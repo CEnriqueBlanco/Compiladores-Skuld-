@@ -15,9 +15,24 @@
 
 ---
 
+## �️ Tecnologías
+
+| Tecnología | Uso |
+|------------|-----|
+| **Python 3** | Lenguaje principal |
+| **PyQt5** | Framework para la interfaz gráfica (GUI) |
+| **Qt Designer** | Diseño visual de ventanas y paneles |
+
+```bash
+# Instalación de dependencias
+pip install PyQt5
+```
+
+---
+
 ## 📌 Descripción General
 
-**Skuld IDE** es un Entorno de Desarrollo Integrado (IDE) diseñado e implementado como herramienta independiente para interactuar con las distintas fases de un compilador para un lenguaje de alto nivel.
+**Skuld IDE** es un Entorno de Desarrollo Integrado (IDE) diseñado e implementado como herramienta independiente para interactuar con las distintas fases de un compilador para un lenguaje de alto nivel. La interfaz gráfica está construida con **PyQt5**.
 
 El IDE actúa como **interfaz gráfica** que facilita:
 - La edición de código fuente.
@@ -34,7 +49,7 @@ El IDE actúa como **interfaz gráfica** que facilita:
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                         SKULD IDE                           │
-│                   (Interfaz Gráfica / GUI)                  │
+│             (Python 3 + PyQt5 — Interfaz Gráfica)           │
 │                                                             │
 │  ┌──────────────┐   ┌──────────────┐   ┌────────────────┐  │
 │  │  Editor de   │   │   Menú de    │   │  Botones de    │  │
@@ -144,6 +159,7 @@ Además, se incluyen **botones de acceso rápido** para cada acción.
 ## 🛠️ Consideraciones de Diseño
 
 - El IDE debe ser **intuitivo y funcional**.
+- Construido con **PyQt5**, aprovechando widgets nativos como `QTextEdit`, `QTreeWidget`, `QTableWidget` y `QDockWidget` para los paneles.
 - Debe permitir visualizar **simultáneamente múltiples paneles**.
 - Debe facilitar la **depuración** del proceso de compilación.
 - Debe estar estructurado de forma **modular** para futuras extensiones.
