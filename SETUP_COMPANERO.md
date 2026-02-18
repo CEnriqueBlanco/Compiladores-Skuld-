@@ -23,21 +23,37 @@ Debe aparecer `3.11` en la lista.
 - Clona el repositorio o descarga el ZIP y descomprímelo.
 - Abre una terminal en la carpeta `Compiladores-Skuld-`.
 
-## 3) Crear y activar entorno virtual
+## 3) Configurar entorno del proyecto (recomendado)
+
+Ejecuta el script de setup una sola vez:
 
 ```powershell
-py -3.11 -m venv venv
-venv\Scripts\activate
+.\setup_env.ps1
 ```
 
-## 4) Instalar dependencias
+Esto crea `.venv311` con **Python 3.11** e instala dependencias.
+
+## 4) Ejecutar el IDE
+
+```powershell
+.\run_ide.ps1
+```
+
+## 5) Alternativa manual (si no quieres scripts)
+
+```powershell
+py -3.11 -m venv .venv311
+.venv311\Scripts\activate
+```
+
+## 6) Instalar dependencias (modo manual)
 
 ```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## 5) Ejecutar el IDE
+## 7) Ejecutar el IDE (modo manual)
 
 ```powershell
 python -m ide.main

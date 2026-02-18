@@ -30,7 +30,19 @@ pip install PyQt5
 
 ## ▶️ Ejecutar el IDE
 
+Recomendado (evita conflictos de versión entre equipos):
+
 ```powershell
+.\setup_env.ps1
+.\run_ide.ps1
+```
+
+Alternativa manual:
+
+```powershell
+py -3.11 -m venv .venv311
+.venv311\Scripts\activate
+python -m pip install -r requirements.txt
 python -m ide.main
 ```
 
