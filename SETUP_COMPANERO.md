@@ -59,6 +59,22 @@ pip install -r requirements.txt
 python -m ide.main
 ```
 
+## Atajos útiles dentro del IDE
+
+- `Ctrl+F`: buscar texto en el editor activo.
+- `Ctrl+S`: guardar archivo actual.
+- `Ctrl+G`: guardar como.
+- `Ctrl+1`: alternar (abrir/cerrar) panel Analizadores.
+- `Ctrl+2`: alternar (abrir/cerrar) panel Terminal.
+- `Ctrl+3`: alternar (abrir/cerrar) Árbol de archivos.
+
+## Paneles laterales e inferiores
+
+- En los paneles de **Analizadores** y **Terminal** hay:
+	- botón `_` para minimizar.
+	- botón `✕` para cerrar temporalmente.
+- Si los cierras, vuelve a abrirlos con `Ctrl+1`, `Ctrl+2` o `Ctrl+3`.
+
 ## 6) (Opcional) Generar ejecutable .exe
 
 ```powershell

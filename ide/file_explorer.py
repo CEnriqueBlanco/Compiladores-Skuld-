@@ -45,6 +45,7 @@ class FileExplorer(QTreeWidget):
             root_item.setIcon(0, icon_folder)
             root_item.setData(0, Qt.UserRole, "folder")
             root_item.setData(0, Qt.UserRole + 1, str(root_path))
+            root_item.setData(0, Qt.UserRole + 2, "root")
             root_item.setToolTip(0, str(root_path))
 
             for path in sorted(root_path.iterdir(), key=lambda p: (p.is_file(), p.name.lower())):
@@ -65,6 +66,18 @@ class FileExplorer(QTreeWidget):
         self._root_paths.clear()
         self.add_root_path(folder_path)
 
+    def set_root_paths(self, folder_paths: list[str]) -> None:
+        self._root_paths.clear()
+        for folder_path in folder_paths:
+            selected = Path(folder_path)
+            if not selected.exists() or not selected.is_dir():
+                continue
+            resolved = selected.resolve()
+            if resolved in self._root_paths:
+                continue
+            self._root_paths.append(resolved)
+        self._build_tree()
+
     def add_root_path(self, folder_path: str) -> None:
         selected = Path(folder_path)
         if not selected.exists() or not selected.is_dir():
@@ -74,6 +87,9 @@ class FileExplorer(QTreeWidget):
             return
         self._root_paths.append(resolved)
         self._build_tree()
+
+    def get_root_paths(self) -> list[str]:
+        return [str(path) for path in self._root_paths]
 
     def _should_skip(self, path: Path) -> bool:
         if path.name in self._ignored_dirs:
@@ -111,8 +127,11 @@ class FileExplorer(QTreeWidget):
 
         menu = QMenu(self)
         action_open_file = None
+        action_remove_root = None
         if item_type == "folder":
             action_open_target = menu.addAction("Abrir en el explorador")
+            if item.data(0, Qt.UserRole + 2) == "root":
+                action_remove_root = menu.addAction("Quitar carpeta del explorador")
         else:
             action_open_file = menu.addAction("Abrir archivo")
             action_open_target = menu.addAction("Abrir carpeta contenedora")
@@ -126,6 +145,23 @@ class FileExplorer(QTreeWidget):
 
         if selected_action == action_open_target:
             self._open_folder_for_item(item)
+            return
+
+        if action_remove_root and selected_action == action_remove_root:
+            item_path_raw = item.data(0, Qt.UserRole + 1)
+            if item_path_raw:
+                self._remove_root_path(str(item_path_raw))
+
+    def _remove_root_path(self, folder_path: str) -> None:
+        selected = Path(folder_path)
+        if not selected.exists():
+            self._root_paths = [path for path in self._root_paths if str(path) != folder_path]
+            self._build_tree()
+            return
+
+        resolved = selected.resolve()
+        self._root_paths = [path for path in self._root_paths if path != resolved]
+        self._build_tree()
 
     def _open_folder_for_item(self, item: QTreeWidgetItem) -> None:
         item_path_raw = item.data(0, Qt.UserRole + 1)

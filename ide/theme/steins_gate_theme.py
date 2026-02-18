@@ -95,4 +95,42 @@ def build_stylesheet() -> str:
     QSplitter::handle {{
         background-color: {COLORS.border};
     }}
+    QScrollBar:vertical {{
+        background: {COLORS.panel_bg};
+        width: 12px;
+        margin: 0;
+        border: 1px solid {COLORS.border};
+    }}
+    QScrollBar::handle:vertical {{
+        background: {COLORS.border};
+        min-height: 24px;
+        border-radius: 4px;
+    }}
+    QScrollBar::add-line:vertical,
+    QScrollBar::sub-line:vertical {{
+        background: {COLORS.panel_bg};
+        height: 12px;
+        border: none;
+    }}
+    QScrollBar:horizontal {{
+        background: {COLORS.panel_bg};
+        height: 12px;
+        margin: 0;
+        border: 1px solid {COLORS.border};
+    }}
+    QScrollBar::handle:horizontal {{
+        background: {COLORS.border};
+        min-width: 24px;
+        border-radius: 4px;
+    }}
+    QScrollBar::add-line:horizontal,
+    QScrollBar::sub-line:horizontal {{
+        background: {COLORS.panel_bg};
+        width: 12px;
+        border: none;
+    }}
+    QScrollBar::add-page,
+    QScrollBar::sub-page {{
+        background: {COLORS.background};
+    }}
     """.strip()

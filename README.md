@@ -46,6 +46,25 @@ python -m pip install -r requirements.txt
 python -m ide.main
 ```
 
+## ⌨️ Atajos de teclado
+
+- `Ctrl+F` — Buscar texto dentro del código en la pestaña activa.
+- `Ctrl+S` — Guardar archivo actual.
+- `Ctrl+G` — Guardar como (nuevo archivo/ruta).
+- `Ctrl+1` — Alternar (abrir/cerrar) panel de **Analizadores**.
+- `Ctrl+2` — Alternar (abrir/cerrar) panel de **Terminal**.
+- `Ctrl+3` — Alternar (abrir/cerrar) **Árbol de archivos**.
+
+## 🪟 Paneles Terminal / Analizadores
+
+- Cada panel tiene botones en su encabezado:
+  - `_` para minimizar contenido.
+  - `✕` para cerrar/ocultar el panel.
+- Si cierras un panel, puedes abrirlo de nuevo con:
+  - `Ctrl+1` para Analizadores.
+  - `Ctrl+2` para Terminal.
+  - `Ctrl+3` para Árbol de archivos.
+
 ## 🔌 Conectar compilador externo
 
 El IDE invoca un compilador externo por `system call`. Define el comando con una variable de entorno:
