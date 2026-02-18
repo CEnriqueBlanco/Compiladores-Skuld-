@@ -1,0 +1,33 @@
+// Programa: Calculadora de Divergencia
+// El Psy Kongroo!
+
+labmem divergence alpha = 1.048596;
+labmem divergence beta = 0.0;
+
+steiner divergence calcular_divergencia(worldline a, worldline b) {
+    labmem divergence resultado = 0.0;
+    resultado = (a + b) / 2.0;
+    return resultado;
+}
+
+steiner void mostrar_mensaje(dmail mensaje) {
+    dmail(mensaje);
+}
+
+gate {
+    labmem worldline x = 10;
+    labmem worldline y = 20;
+
+    beta = calcular_divergencia(x, y);
+
+    choice (beta > alpha) {
+        mostrar_mensaje("¡Worldline alcanzada!");
+    } else {
+        mostrar_mensaje("Divergencia insuficiente");
+    }
+
+    loop (x < 5) {
+        dmail("Iteración: " + x);
+        x = x + 1;
+    }
+}

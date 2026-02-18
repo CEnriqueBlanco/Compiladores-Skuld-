@@ -1,0 +1,345 @@
+================================================================================
+                    PLAN DE DESARROLLO - IDE READING STEINER
+                           Lenguaje: Skuld (.stn)
+                      Tema: Lab Member 004 (Steins;Gate)
+================================================================================
+
+TECNOLOGÍA SELECCIONADA
+-----------------------
+- Lenguaje: Python (estilo procedural)
+- GUI Framework: PyQt5
+- Distribución: PyInstaller para generar .exe
+- Extensión de archivos: .stn
+
+================================================================================
+                        PRIMERA ENTREGA: SOLO VISUAL
+================================================================================
+
+ALCANCE DE LA PRIMERA ENTREGA
+------------------------------
+La primera entrega consiste ÚNICAMENTE en la interfaz visual del IDE 
+(mockup/carcasa) SIN funcionalidad del compilador.
+
+✓ INCLUIR:
+  - Ventana principal con layout completo
+  - Editor de código (texto plano, sin syntax highlighting funcional)
+  - Explorador de archivos (estructura visual estática)
+  - Panel de consola/errores (pestañas visibles, contenido de ejemplo)
+  - Menús y botones (visibles pero sin funcionalidad)
+  - Tema "Lab Member 004" completamente aplicado
+  - Splash screen con branding de Steins;Gate
+  - Iconografía temática
+  - Ejecutable .exe
+
+✗ NO INCLUIR (para entregas posteriores):
+  - Compilador funcional (lexer, parser, etc.)
+  - Syntax highlighting real
+  - Ejecución de código
+  - Análisis de errores
+  - Funcionalidad de guardar/abrir archivos real
+
+================================================================================
+                           CRONOGRAMA ESTIMADO
+================================================================================
+
+TIEMPO TOTAL: 2-3 días
+
+DÍA 1: Setup y Tema Visual
+  - Crear estructura de carpetas del proyecto
+  - Configurar entorno virtual Python
+  - Instalar PyQt5 y dependencias
+  - Implementar paleta de colores en steins_gate_theme.py
+  - Crear QSS (StyleSheet) completo
+  - Diseñar/obtener iconos temáticos
+  - Crear splash screen con logo "Reading Steiner"
+
+DÍA 2: Componentes de la Interfaz
+  - Crear ventana principal con QMainWindow
+  - Implementar menú superior (Archivo, Editar, Compilar, Ayuda)
+  - Crear barra de herramientas con botones
+  - Configurar layout con paneles redimensionables
+  - Crear editor de código (QPlainTextEdit)
+  - Agregar numeración de líneas
+  - Crear explorador de archivos (QTreeWidget)
+  - Crear panel de consola con pestañas (QTabWidget)
+
+DÍA 3: Pulido y Entrega
+  - Aplicar tema a todos los componentes
+  - Mostrar código de ejemplo en Skuld
+  - Generar ejecutable .exe con PyInstaller
+  - Probar en Windows
+  - Crear documentación básica (README)
+  - Tomar screenshots para presentación
+
+================================================================================
+                          TEMA VISUAL: LAB MEMBER 004
+================================================================================
+
+PALETA DE COLORES
+-----------------
+BACKGROUND:  #1a1a1a  (Negro oscuro - fondo principal)
+FOREGROUND:  #e8e8e8  (Blanco suave - texto)
+KEYWORDS:    #c41e3a  (Rojo Kurisu - palabras clave)
+STRINGS:     #8fbc8f  (Verde suave - strings)
+COMMENTS:    #696969  (Gris - comentarios)
+NUMBERS:     #ff6b6b  (Rojo claro - números)
+OPERATORS:   #ffffff  (Blanco - operadores)
+SELECTION:   #4a0e0e  (Rojo oscuro - selección)
+ACCENT:      #c41e3a  (Rojo - botones y acentos)
+PANEL_BG:    #252525  (Fondo de paneles laterales)
+BORDER:      #3a3a3a  (Bordes)
+HOVER:       #5a1e1e  (Hover rojo oscuro)
+
+ELEMENTOS VISUALES CLAVE
+-------------------------
+1. Splash Screen: Logo "Reading Steiner" + frase "El Psy Kongroo"
+2. Tema oscuro con acentos rojos inspirados en Kurisu Makise
+3. Fuente monospace para el editor de código
+4. Iconografía temática de Steins;Gate
+5. Efectos hover en botones y menús
+
+================================================================================
+                           ESTRUCTURA DEL PROYECTO
+================================================================================
+
+Compiladores-Skuld-/
+├── ide/
+│   ├── __init__.py
+│   ├── main.py                    # Punto de entrada
+│   ├── main_window.py             # Ventana principal
+│   ├── code_editor.py             # Editor de código
+│   ├── file_explorer.py           # Explorador de archivos
+│   ├── console_panel.py           # Panel de consola
+│   ├── splash_screen.py           # Pantalla de inicio
+│   └── theme/
+│       ├── __init__.py
+│       └── steins_gate_theme.py   # Tema Lab Member 004
+├── resources/
+│   ├── icons/                     # Iconos del IDE
+│   │   ├── file.png
+│   │   ├── compile.png
+│   │   ├── run.png
+│   │   └── logo.ico
+│   └── splash.png                 # Imagen splash screen
+├── examples/
+│   └── hello_world.stn            # Código de ejemplo
+├── requirements.txt               # PyQt5, etc.
+├── build_exe.py                   # Script para PyInstaller
+└── README.md
+
+================================================================================
+                          COMANDOS DE INSTALACIÓN
+================================================================================
+
+1. Crear entorno virtual:
+   cd "C:\Users\carlo\OneDrive\Documents\Universidad\OCTAVO SEMESTRE\Compiladores\Proyecto\Compiladores-Skuld-"
+   python -m venv venv
+   venv\Scripts\activate
+
+2. Instalar dependencias:
+   pip install -r requirements.txt
+
+3. Ejecutar el IDE:
+   python ide/main.py
+
+4. Generar ejecutable .exe:
+   pip install pyinstaller
+   pyinstaller --onefile --windowed --name "ReadingSteiner" --icon resources/logo.ico ide/main.py
+
+   El ejecutable estará en: dist\ReadingSteiner.exe
+
+================================================================================
+                      COMPONENTES DE LA INTERFAZ
+================================================================================
+
+LAYOUT PRINCIPAL
+----------------
+┌─────────────────────────────────────────────────┐
+│ [Menú] Reading Steiner IDE v1.0                 │
+├──────────┬──────────────────────────┬───────────┤
+│          │                          │           │
+│ Archivos │   Editor de Código       │ Símbolos  │
+│  .stn    │   [código aquí]          │ Variables │
+│          │                          │ Funciones │
+│          │                          │           │
+├──────────┴──────────────────────────┴───────────┤
+│ Consola / Errores / AST                         │
+│ > Compilando worldline.stn...                   │
+│ ✓ Compilación exitosa                           │
+└─────────────────────────────────────────────────┘
+
+MENÚS
+-----
+- Archivo: Nuevo, Abrir, Guardar, Guardar Como, Salir
+- Editar: Deshacer, Rehacer, Copiar, Pegar, Buscar
+- Compilar: Compilar, Ejecutar, Limpiar
+- Ayuda: Documentación, Acerca de
+
+BARRA DE HERRAMIENTAS
+---------------------
+- Botón "Nuevo" (icono de archivo)
+- Botón "Abrir" (icono de carpeta)
+- Botón "Guardar" (icono de disco)
+- Botón "Compilar" (icono de microondas/PhoneWave)
+- Botón "Ejecutar" (icono de rayo verde)
+
+PANEL IZQUIERDO: Explorador de Archivos
+----------------------------------------
+- Árbol de carpetas y archivos .stn
+- Iconos personalizados para archivos Skuld
+- Selección visual de archivos
+
+PANEL CENTRAL: Editor de Código
+--------------------------------
+- Numeración de líneas
+- Fuente monospace (Consolas/Monaco)
+- Colores del tema aplicados
+- Código de ejemplo en Skuld mostrado
+
+PANEL DERECHO: Símbolos (Opcional)
+-----------------------------------
+- Lista de variables
+- Lista de funciones
+- Puede estar vacío en primera entrega
+
+PANEL INFERIOR: Consola/Errores
+--------------------------------
+- Pestañas: Consola | Errores | AST
+- Mensajes de ejemplo:
+  * "Bienvenido a Reading Steiner IDE"
+  * "El Psy Kongroo"
+  * "Listo para compilar..."
+
+================================================================================
+                        GRAMÁTICA DEL LENGUAJE SKULD
+================================================================================
+
+PALABRAS CLAVE TEMÁTICAS
+-------------------------
+Declaraciones:
+  - labmem      (declaración de variable)
+  - worldline   (tipo entero)
+  - divergence  (tipo flotante)
+  - dmail       (tipo string / función de salida)
+  - reading     (tipo booleano)
+
+Estructuras de Control:
+  - choice      (condicional if)
+  - gate        (punto de entrada main)
+  - loop        (bucle while)
+  - shift       (bucle for)
+  - jump        (break)
+  - return      (return)
+
+Funciones:
+  - steiner     (definición de función)
+
+Operadores Lógicos:
+  - and, or, not
+
+EJEMPLO DE CÓDIGO SKULD
+------------------------
+// Programa: Calculadora de Divergencia
+// El Psy Kongroo!
+
+labmem divergence alpha = 1.048596;
+labmem divergence beta = 0.0;
+
+steiner divergence calcular_divergencia(worldline a, worldline b) {
+    labmem divergence resultado = 0.0;
+    resultado = (a + b) / 2.0;
+    return resultado;
+}
+
+steiner void mostrar_mensaje(dmail mensaje) {
+    dmail(mensaje);
+}
+
+gate {
+    labmem worldline x = 10;
+    labmem worldline y = 20;
+    
+    beta = calcular_divergencia(x, y);
+    
+    choice (beta > alpha) {
+        mostrar_mensaje("¡Worldline alcanzada!");
+    } else {
+        mostrar_mensaje("Divergencia insuficiente");
+    }
+    
+    loop (x < 5) {
+        dmail("Iteración: " + x);
+        x = x + 1;
+    }
+}
+
+================================================================================
+                         CRITERIOS DE ACEPTACIÓN
+================================================================================
+
+Para considerar la primera entrega completa:
+
+✓ El IDE se abre con splash screen temático de Steins;Gate
+✓ Ventana principal muestra todos los paneles correctamente
+✓ Tema "Lab Member 004" aplicado a todos los componentes
+✓ Editor muestra código de ejemplo en Skuld
+✓ Menús y botones son visibles (no necesitan funcionar)
+✓ Explorador muestra estructura de archivos de ejemplo
+✓ Panel de consola muestra mensajes de bienvenida
+✓ Se genera ejecutable .exe funcional
+✓ La interfaz se ve profesional y temática
+✓ Colores y fuentes correctamente aplicados
+
+================================================================================
+                        ENTREGAS POSTERIORES
+================================================================================
+
+SEGUNDA ENTREGA: Compilador Funcional
+--------------------------------------
+- Implementar analizador léxico (Lexer)
+- Implementar analizador sintáctico (Parser)
+- Implementar analizador semántico
+- Implementar generador de código
+
+TERCERA ENTREGA: Integración IDE + Compilador
+----------------------------------------------
+- Conectar botón "Compilar" con el compilador
+- Implementar syntax highlighting real
+- Mostrar errores reales en panel de errores
+- Implementar funcionalidad de guardar/abrir archivos
+- Agregar autocompletado
+- Crear casos de prueba
+- Documentación completa
+
+================================================================================
+                              RECURSOS ÚTILES
+================================================================================
+
+DEPENDENCIAS (requirements.txt):
+--------------------------------
+PyQt5>=5.15.0
+PyQt5-tools>=5.15.0
+pytest>=7.0.0
+
+DOCUMENTACIÓN:
+--------------
+- PyQt5: https://www.riverbankcomputing.com/static/Docs/PyQt5/
+- Qt StyleSheets: https://doc.qt.io/qt-5/stylesheet-reference.html
+- PyInstaller: https://pyinstaller.org/en/stable/
+
+INSPIRACIÓN VISUAL:
+-------------------
+- Steins;Gate Visual Novel
+- Kurisu Makise (Lab Member 004)
+- Divergence Meter
+- PhoneWave (microondas)
+- Tema oscuro con acentos rojos
+
+================================================================================
+                                FIN DEL PLAN
+================================================================================
+
+Creado: 2026-02-17
+Proyecto: IDE Reading Steiner para lenguaje Skuld
+Tema: Lab Member 004 (Steins;Gate)
+Primera Entrega: Solo interfaz visual (mockup)
