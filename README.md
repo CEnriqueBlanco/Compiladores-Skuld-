@@ -28,6 +28,28 @@
 pip install PyQt5
 ```
 
+## ▶️ Ejecutar el IDE
+
+```powershell
+python -m ide.main
+```
+
+## 🔌 Conectar compilador externo
+
+El IDE invoca un compilador externo por `system call`. Define el comando con una variable de entorno:
+
+```powershell
+$env:SKULD_COMPILER_CMD="C:\\ruta\\a\\tu\\compilador.exe"
+```
+
+Si el compilador acepta flags por fase, el IDE usará:
+
+- `--lexico`
+- `--sintactico`
+- `--semantico`
+- `--intermedio`
+- `--ejecutar`
+
 ---
 
 ## 📌 Descripción General

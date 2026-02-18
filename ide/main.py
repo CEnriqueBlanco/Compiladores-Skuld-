@@ -15,8 +15,8 @@ def main() -> int:
     app.setApplicationName("Reading Steiner IDE")
     app.setStyleSheet(build_stylesheet())
 
-    icon_path = os.path.join(os.path.dirname(__file__), "..", "resources", "icons", "logo.ico")
-    icon_path = os.path.abspath(icon_path)
+    # Set icon.png as app icon (taskbar/dock)
+    icon_path = os.path.join(os.path.dirname(__file__), '../resources/icons/icon.ico')
     if os.path.exists(icon_path):
         app.setWindowIcon(QIcon(icon_path))
 
@@ -24,7 +24,7 @@ def main() -> int:
     main_window = MainWindow()
 
     splash.show()
-    QTimer.singleShot(1200, lambda: (splash.close(), main_window.show()))
+    QTimer.singleShot(1200, lambda: (splash.close(), main_window.showMaximized()))
 
     return app.exec_()
 
