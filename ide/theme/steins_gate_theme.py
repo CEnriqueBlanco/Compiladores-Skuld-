@@ -203,6 +203,46 @@ def build_stylesheet() -> str:
         background-color: {colors.hover};
         border-color: {colors.border};
     }}
+    QWidget#find_bar {{
+        background-color: {colors.panel_bg};
+        border-bottom: 1px solid {colors.border};
+    }}
+    QWidget#find_bar QLabel {{
+        color: {colors.foreground};
+    }}
+    QWidget#find_bar QLineEdit {{
+        background-color: {colors.background};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        selection-background-color: {colors.selection};
+        min-height: 24px;
+    }}
+    QWidget#find_bar QSpinBox {{
+        background-color: {colors.background};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        min-height: 24px;
+        min-width: 90px;
+        padding: 0 6px;
+    }}
+    QWidget#find_bar QLabel#find_count {{
+        color: {colors.accent};
+        border: 1px solid {colors.border};
+        background-color: {colors.background};
+        border-radius: 3px;
+        padding: 2px 8px;
+        min-width: 52px;
+    }}
+    QWidget#find_bar QToolButton {{
+        background-color: {colors.background};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        padding: 3px 7px;
+        border-radius: 3px;
+    }}
+    QWidget#find_bar QToolButton:hover {{
+        background-color: {colors.hover};
+    }}
     QStatusBar {{
         background-color: {colors.panel_bg};
         color: {colors.foreground};
@@ -210,6 +250,22 @@ def build_stylesheet() -> str:
     QDialog, QMessageBox, QFileDialog, QInputDialog {{
         background-color: {colors.panel_bg};
         color: {colors.foreground};
+    }}
+    QFileDialog QTreeView,
+    QFileDialog QListView,
+    QFileDialog QTableView {{
+        background-color: {colors.background};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        selection-background-color: {colors.selection};
+        selection-color: {colors.foreground};
+        alternate-background-color: {colors.panel_bg};
+    }}
+    QFileDialog QHeaderView::section {{
+        background-color: {colors.panel_bg};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        padding: 4px;
     }}
     QLabel {{
         color: {colors.foreground};

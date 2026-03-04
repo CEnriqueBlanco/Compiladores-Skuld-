@@ -14,7 +14,6 @@ from PyQt5.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QHBoxLayout,
-    QInputDialog,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -22,8 +21,11 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QMainWindow,
     QPlainTextEdit,
+    QSpinBox,
     QSplitter,
+    QStackedWidget,
     QStatusBar,
+    QShortcut,
     QStyle,
     QTabWidget,
     QToolButton,
@@ -60,6 +62,18 @@ class MainWindow(QMainWindow):
         self._status = QStatusBar(self)
         self._settings = QSettings("Skuld", "ReadingSteinerIDE")
         self._editor_tabs: QTabWidget | None = None
+        self._editor_container: QWidget | None = None
+        self._find_bar: QWidget | None = None
+        self._find_bar_stack: QStackedWidget | None = None
+        self._find_input: QLineEdit | None = None
+        self._find_count_label: QLabel | None = None
+        self._find_previous_button: QToolButton | None = None
+        self._find_next_button: QToolButton | None = None
+        self._find_close_button: QToolButton | None = None
+        self._go_to_line_input: QSpinBox | None = None
+        self._go_to_line_button: QToolButton | None = None
+        self._go_to_line_close_button: QToolButton | None = None
+        self._find_close_shortcut: QShortcut | None = None
         self._analysis_panel: AnalysisPanel | None = None
         self._console_panel: ConsolePanel | None = None
         self._file_explorer: FileExplorer | None = None
@@ -347,6 +361,16 @@ class MainWindow(QMainWindow):
         self._editor_tabs.tabCloseRequested.connect(self._close_tab)
         self._editor_tabs.currentChanged.connect(self._on_tab_changed)
 
+        self._editor_container = QWidget(self)
+        editor_layout = QVBoxLayout(self._editor_container)
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_layout.setSpacing(0)
+
+        self._find_bar = self._build_find_bar()
+        editor_layout.addWidget(self._find_bar)
+        editor_layout.addWidget(self._editor_tabs, 1)
+        self._editor_container.setMinimumWidth(420)
+
         self._file_explorer = FileExplorer()
         self._file_explorer.file_open_requested.connect(self._open_file_from_explorer)
         self._file_explorer.file_close_requested.connect(self._close_file_from_explorer)
@@ -363,7 +387,7 @@ class MainWindow(QMainWindow):
         self._top_splitter = QSplitter(Qt.Horizontal)
         self._top_splitter.setChildrenCollapsible(True)
         self._top_splitter.addWidget(self._file_explorer)
-        self._top_splitter.addWidget(self._editor_tabs)
+        self._top_splitter.addWidget(self._editor_container)
         self._top_splitter.addWidget(self._analysis_container)
         self._top_splitter.setStretchFactor(0, 1)
         self._top_splitter.setStretchFactor(1, 3)
@@ -389,6 +413,208 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self._main_splitter)
         self._restore_session()
+
+    def _build_find_bar(self) -> QWidget:
+        bar = QWidget(self)
+        bar.setObjectName("find_bar")
+
+        layout = QHBoxLayout(bar)
+        layout.setContentsMargins(8, 6, 8, 6)
+        layout.setSpacing(6)
+
+        stack = QStackedWidget(bar)
+
+        find_page = QWidget(stack)
+        find_layout = QHBoxLayout(find_page)
+        find_layout.setContentsMargins(0, 0, 0, 0)
+        find_layout.setSpacing(6)
+
+        label = QLabel("Buscar:", find_page)
+        field = QLineEdit(find_page)
+        field.setPlaceholderText("Texto a buscar")
+        field.setClearButtonEnabled(True)
+
+        count_label = QLabel("0/0", find_page)
+        count_label.setObjectName("find_count")
+
+        previous_button = QToolButton(find_page)
+        previous_button.setText("◀")
+        previous_button.setToolTip("Coincidencia anterior (Shift+F3)")
+
+        next_button = QToolButton(find_page)
+        next_button.setText("▶")
+        next_button.setToolTip("Siguiente coincidencia (F3)")
+
+        close_button = QToolButton(find_page)
+        close_button.setText("✕")
+        close_button.setToolTip("Cerrar búsqueda (Esc)")
+
+        find_layout.addWidget(label)
+        find_layout.addWidget(field, 1)
+        find_layout.addWidget(count_label)
+        find_layout.addWidget(previous_button)
+        find_layout.addWidget(next_button)
+        find_layout.addWidget(close_button)
+
+        line_page = QWidget(stack)
+        line_layout = QHBoxLayout(line_page)
+        line_layout.setContentsMargins(0, 0, 0, 0)
+        line_layout.setSpacing(6)
+
+        line_label = QLabel("Ir a línea:", line_page)
+        line_input = QSpinBox(line_page)
+        line_input.setMinimum(1)
+        line_input.setMaximum(1)
+        line_input.setButtonSymbols(QSpinBox.NoButtons)
+
+        go_button = QToolButton(line_page)
+        go_button.setText("Ir")
+        go_button.setToolTip("Mover cursor a la línea")
+
+        go_close_button = QToolButton(line_page)
+        go_close_button.setText("✕")
+        go_close_button.setToolTip("Cerrar (Esc)")
+
+        line_layout.addWidget(line_label)
+        line_layout.addWidget(line_input)
+        line_layout.addWidget(go_button)
+        line_layout.addWidget(go_close_button)
+        line_layout.addStretch(1)
+
+        stack.addWidget(find_page)
+        stack.addWidget(line_page)
+        layout.addWidget(stack, 1)
+
+        field.textChanged.connect(self._on_find_text_changed)
+        field.returnPressed.connect(self._find_next)
+        previous_button.clicked.connect(self._find_previous)
+        next_button.clicked.connect(self._find_next)
+        close_button.clicked.connect(self._hide_find_bar)
+        line_input.editingFinished.connect(lambda: self._jump_to_line(line_input.value()))
+        go_button.clicked.connect(lambda: self._jump_to_line(line_input.value()))
+        go_close_button.clicked.connect(self._hide_find_bar)
+
+        self._find_close_shortcut = QShortcut(QKeySequence("Esc"), bar)
+        self._find_close_shortcut.activated.connect(self._hide_find_bar)
+
+        self._find_bar_stack = stack
+        self._find_input = field
+        self._find_count_label = count_label
+        self._find_previous_button = previous_button
+        self._find_next_button = next_button
+        self._find_close_button = close_button
+        self._go_to_line_input = line_input
+        self._go_to_line_button = go_button
+        self._go_to_line_close_button = go_close_button
+
+        bar.setVisible(False)
+        return bar
+
+    def _show_find_bar(self, mode: str = "find") -> None:
+        if self._find_bar is None:
+            return
+
+        self._find_bar.setVisible(True)
+
+        if mode == "line":
+            self._show_go_to_line_bar()
+            return
+
+        if self._find_bar_stack is not None:
+            self._find_bar_stack.setCurrentIndex(0)
+
+        if self._find_input is not None:
+            self._find_input.setFocus()
+            self._find_input.selectAll()
+
+        self._update_find_match_label()
+
+    def _show_go_to_line_bar(self) -> None:
+        if self._find_bar is None or self._go_to_line_input is None:
+            return
+
+        editor = self._get_active_editor()
+        if editor is None:
+            return
+
+        self._find_bar.setVisible(True)
+        if self._find_bar_stack is not None:
+            self._find_bar_stack.setCurrentIndex(1)
+
+        max_line = max(1, editor.blockCount())
+        current_line = editor.textCursor().blockNumber() + 1
+        self._go_to_line_input.setMaximum(max_line)
+        self._go_to_line_input.setValue(current_line)
+        self._go_to_line_input.setFocus()
+        line_edit = self._go_to_line_input.lineEdit()
+        if line_edit is not None:
+            line_edit.selectAll()
+
+    def _hide_find_bar(self) -> None:
+        if self._find_bar is not None:
+            self._find_bar.setVisible(False)
+
+        editor = self._get_active_editor()
+        if editor is not None:
+            editor.setFocus()
+
+    def _on_find_text_changed(self, text: str) -> None:
+        self._search_text = text
+
+        if self._editor_tabs is None:
+            return
+
+        for index in range(self._editor_tabs.count()):
+            editor = self._editor_tabs.widget(index)
+            if isinstance(editor, CodeEditor):
+                editor.set_search_highlights(self._search_text)
+
+        self._update_find_match_label()
+
+        if not text.strip():
+            self._status.showMessage("Búsqueda limpiada", 1200)
+
+    def _update_find_match_label(self) -> None:
+        if self._find_count_label is None:
+            return
+
+        editor = self._get_active_editor()
+        term = self._search_text
+        if editor is None or not term.strip():
+            self._find_count_label.setText("0/0")
+            return
+
+        content = editor.toPlainText()
+        if not content:
+            self._find_count_label.setText("0/0")
+            return
+
+        positions: list[int] = []
+        offset = 0
+        step = len(term)
+        while True:
+            index = content.find(term, offset)
+            if index == -1:
+                break
+            positions.append(index)
+            offset = index + step
+
+        total = len(positions)
+        if total == 0:
+            self._find_count_label.setText("0/0")
+            return
+
+        cursor = editor.textCursor()
+        cursor_position = min(cursor.position(), cursor.anchor())
+        current = 1
+        for position in positions:
+            if position <= cursor_position:
+                current += 1
+            else:
+                break
+        current = max(1, min(total, current - 1))
+
+        self._find_count_label.setText(f"{current}/{total}")
 
     def _bind_editor_events(self, editor: CodeEditor) -> None:
         editor.cursorPositionChanged.connect(self._update_cursor_status)
@@ -418,7 +644,10 @@ class MainWindow(QMainWindow):
                 desired_width = width_for_editor
 
         desired_width = max(420, min(desired_width, 1600))
-        self._editor_tabs.setMinimumWidth(desired_width)
+        if self._editor_container is not None:
+            self._editor_container.setMinimumWidth(desired_width)
+        else:
+            self._editor_tabs.setMinimumWidth(desired_width)
 
         if self._top_splitter is None:
             return
@@ -474,13 +703,13 @@ class MainWindow(QMainWindow):
         if editor is None:
             return
 
-        text, ok = QInputDialog.getText(self, "Buscar", "Texto a buscar:", text=self._search_text)
-        if not ok or not text:
-            return
+        selected_text = editor.textCursor().selectedText().replace("\u2029", " ").strip()
+        if self._find_input is not None and selected_text and selected_text != self._search_text:
+            self._find_input.setText(selected_text)
+        elif self._find_input is not None and self._search_text:
+            self._find_input.setText(self._search_text)
 
-        self._search_text = text
-        editor.set_search_highlights(self._search_text)
-        self._find_next()
+        self._show_find_bar("find")
 
     def _find_next(self) -> None:
         editor = self._get_active_editor()
@@ -492,13 +721,19 @@ class MainWindow(QMainWindow):
             return
 
         if editor.find(self._search_text):
+            self._update_find_match_label()
             return
 
         cursor = editor.textCursor()
         cursor.movePosition(QTextCursor.Start)
         editor.setTextCursor(cursor)
-        if not editor.find(self._search_text):
-            QMessageBox.information(self, "Buscar", f"No se encontró: {self._search_text}")
+        if editor.find(self._search_text):
+            self._status.showMessage("Búsqueda reiniciada desde el inicio", 1500)
+            self._update_find_match_label()
+            return
+
+        self._status.showMessage(f"No se encontró: {self._search_text}", 2000)
+        self._update_find_match_label()
 
     def _find_previous(self) -> None:
         editor = self._get_active_editor()
@@ -510,34 +745,34 @@ class MainWindow(QMainWindow):
             return
 
         if editor.find(self._search_text, QTextDocument.FindBackward):
+            self._update_find_match_label()
             return
 
         cursor = editor.textCursor()
         cursor.movePosition(QTextCursor.End)
         editor.setTextCursor(cursor)
-        if not editor.find(self._search_text, QTextDocument.FindBackward):
-            QMessageBox.information(self, "Buscar", f"No se encontró: {self._search_text}")
+        if editor.find(self._search_text, QTextDocument.FindBackward):
+            self._status.showMessage("Búsqueda reiniciada desde el final", 1500)
+            self._update_find_match_label()
+            return
+
+        self._status.showMessage(f"No se encontró: {self._search_text}", 2000)
+        self._update_find_match_label()
 
     def _go_to_line(self) -> None:
+        self._show_find_bar("line")
+
+    def _jump_to_line(self, target_line: int) -> None:
         editor = self._get_active_editor()
         if editor is None:
             return
 
         max_line = max(1, editor.blockCount())
-        target_line, ok = QInputDialog.getInt(
-            self,
-            "Ir a línea",
-            "Número de línea:",
-            value=1,
-            min=1,
-            max=max_line,
-        )
-        if not ok:
-            return
+        final_line = max(1, min(int(target_line), max_line))
 
         cursor = editor.textCursor()
         cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, target_line - 1)
+        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, final_line - 1)
         editor.setTextCursor(cursor)
         editor.setFocus()
         self._update_cursor_status()
@@ -1087,6 +1322,7 @@ class MainWindow(QMainWindow):
             editor.setProperty("unsaved", True)
             if self._search_text:
                 editor.set_search_highlights(self._search_text)
+            self._update_find_match_label()
         self._update_cursor_status()
 
     def _set_autosave_enabled(self, enabled: bool, *, persist: bool = True) -> None:
@@ -1140,14 +1376,26 @@ class MainWindow(QMainWindow):
         return True
 
     def _save_editor_as(self, editor: CodeEditor, index: int | None = None) -> bool:
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Guardar archivo",
-            "",
-            "Archivos Skuld (*.stn);;Archivos de texto (*.txt);;Todos los archivos (*.*)",
+        dialog = self._create_themed_file_dialog(
+            title="Guardar archivo",
+            accept_mode=QFileDialog.AcceptSave,
+            file_mode=QFileDialog.AnyFile,
+            name_filters=[
+                "Archivos Skuld (*.stn)",
+                "Archivos de texto (*.txt)",
+                "Todos los archivos (*.*)",
+            ],
+            selected_filter="Archivos Skuld (*.stn)",
+            default_suffix="stn",
         )
-        if not file_path:
+        if dialog.exec_() != QDialog.Accepted:
             return False
+
+        selected_files = dialog.selectedFiles()
+        if not selected_files:
+            return False
+
+        file_path = selected_files[0]
 
         path = Path(file_path)
         if not self._write_editor_to_path(editor, path):
@@ -1363,24 +1611,120 @@ class MainWindow(QMainWindow):
         self._update_cursor_status()
 
     def _open_file(self) -> None:
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Abrir archivo",
-            "",
-            "Archivos compatibles (*.stn *.txt);;Archivos Skuld (*.stn);;Archivos de texto (*.txt);;Todos los archivos (*.*)",
+        dialog = self._create_themed_file_dialog(
+            title="Abrir archivo",
+            accept_mode=QFileDialog.AcceptOpen,
+            file_mode=QFileDialog.ExistingFile,
+            name_filters=[
+                "Archivos compatibles (*.stn *.txt)",
+                "Archivos Skuld (*.stn)",
+                "Archivos de texto (*.txt)",
+                "Todos los archivos (*.*)",
+            ],
+            selected_filter="Archivos compatibles (*.stn *.txt)",
         )
-        if not file_path:
+        if dialog.exec_() != QDialog.Accepted:
             return
-        self._open_file_path(Path(file_path))
+
+        selected_files = dialog.selectedFiles()
+        if not selected_files:
+            return
+
+        self._open_file_path(Path(selected_files[0]))
 
     def _open_folder(self) -> None:
-        folder_path = QFileDialog.getExistingDirectory(self, "Seleccionar carpeta")
+        dialog = self._create_themed_file_dialog(
+            title="Seleccionar carpeta",
+            accept_mode=QFileDialog.AcceptOpen,
+            file_mode=QFileDialog.Directory,
+        )
+        dialog.setOption(QFileDialog.ShowDirsOnly, True)
+        if dialog.exec_() != QDialog.Accepted:
+            return
+
+        selected_paths = dialog.selectedFiles()
+        if not selected_paths:
+            return
+
+        folder_path = selected_paths[0]
         if not folder_path:
             return
         if self._file_explorer is not None:
             self._file_explorer.add_root_path(folder_path)
         if self._console_panel is not None:
             self._console_panel.append_console(f"Carpeta agregada: {Path(folder_path).name}")
+
+    def _create_themed_file_dialog(
+        self,
+        *,
+        title: str,
+        accept_mode: QFileDialog.AcceptMode,
+        file_mode: QFileDialog.FileMode,
+        name_filters: list[str] | None = None,
+        selected_filter: str | None = None,
+        default_suffix: str | None = None,
+    ) -> QFileDialog:
+        dialog = QFileDialog(self, title)
+        dialog.setOption(QFileDialog.DontUseNativeDialog, True)
+        dialog.setAcceptMode(accept_mode)
+        dialog.setFileMode(file_mode)
+
+        if name_filters:
+            dialog.setNameFilters(name_filters)
+            if selected_filter:
+                dialog.selectNameFilter(selected_filter)
+
+        if default_suffix:
+            dialog.setDefaultSuffix(default_suffix)
+
+        colors = steins_gate_theme.get_colors()
+        dialog.setStyleSheet(
+            f"""
+            QFileDialog {{
+                background-color: {colors.panel_bg};
+                color: {colors.foreground};
+            }}
+            QFileDialog QLabel {{
+                color: {colors.foreground};
+            }}
+            QFileDialog QLineEdit,
+            QFileDialog QComboBox,
+            QFileDialog QSpinBox {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                selection-background-color: {colors.selection};
+            }}
+            QFileDialog QToolButton,
+            QFileDialog QPushButton {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                padding: 4px 10px;
+            }}
+            QFileDialog QToolButton:hover,
+            QFileDialog QPushButton:hover {{
+                background-color: {colors.hover};
+            }}
+            QFileDialog QTreeView,
+            QFileDialog QListView,
+            QFileDialog QTableView {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                alternate-background-color: {colors.panel_bg};
+                selection-background-color: {colors.selection};
+                selection-color: {colors.foreground};
+            }}
+            QFileDialog QHeaderView::section {{
+                background-color: {colors.panel_bg};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                padding: 4px;
+            }}
+            """
+        )
+        return dialog
 
     def _save_file(self) -> None:
         editor = self._get_active_editor()
@@ -1715,6 +2059,7 @@ class MainWindow(QMainWindow):
         if editor:
             editor.setReadOnly(False)
             editor.set_search_highlights(self._search_text)
+            self._update_find_match_label()
             editor.setFocus()
         self._update_cursor_status()
 
