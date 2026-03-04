@@ -65,13 +65,14 @@ class CodeEditor(QPlainTextEdit):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
+                block_height = int(self.blockBoundingRect(block).height())
                 painter.setPen(QColor(colors.comments))
                 painter.drawText(
                     0,
                     top,
                     self._line_number_area.width() - 4,
-                    self.fontMetrics().height(),
-                    Qt.AlignRight,
+                    block_height,
+                    Qt.AlignRight | Qt.AlignVCenter,
                     number,
                 )
 

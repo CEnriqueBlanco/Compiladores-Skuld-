@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import datetime
+import importlib
 from pathlib import Path
 
-from PyQt5.QtCore import QSettings, Qt
-from PyQt5.QtGui import QCloseEvent, QFont, QKeySequence, QTextCursor
+from PyQt5.QtCore import QSettings, QSize, Qt
+from PyQt5.QtGui import QCloseEvent, QFont, QFontDatabase, QFontMetrics, QIcon, QKeySequence, QTextCursor
 from PyQt5.QtWidgets import (
     QAction,
     QApplication,
@@ -15,6 +16,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QInputDialog,
     QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMessageBox,
@@ -37,14 +39,22 @@ from ide.console_panel import ConsolePanel
 from ide.file_explorer import FileExplorer
 from ide.theme import steins_gate_theme
 
+try:
+    qta = importlib.import_module("qtawesome")
+except ImportError:
+    qta = None
+
 
 class MainWindow(QMainWindow):
     _MAX_QT_SIZE = 16777215
+    _DEFAULT_CODE_FONT_FAMILY = "Consolas"
+    _DEFAULT_CODE_FONT_SIZE = 11
 
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Reading Steiner IDE v1.0")
-        self.resize(1200, 800)
+        self.resize(1420, 860)
+        self.setMinimumWidth(1200)
 
         self._status = QStatusBar(self)
         self._settings = QSettings("Skuld", "ReadingSteinerIDE")
@@ -62,7 +72,9 @@ class MainWindow(QMainWindow):
         self._main_sizes_before_console_toggle: list[int] | None = None
         self._top_sizes_before_explorer_toggle: list[int] | None = None
         self._untitled_counter = 1
+        self._code_font = QFont(self._DEFAULT_CODE_FONT_FAMILY, self._DEFAULT_CODE_FONT_SIZE)
 
+        self._restore_code_font_preference()
         self._build_menu()
         self._build_toolbar()
         self._build_status_bar()
@@ -87,6 +99,9 @@ class MainWindow(QMainWindow):
         action_toggle_explorer = QAction("Alternar Árbol de archivos", self)
         action_adjust_layout = QAction("Ajustar layout al contenido", self)
         action_themes = QAction("Temas", self)
+        action_code_font = QAction("Topografia", self)
+        action_zoom_in = QAction("Aumentar texto", self)
+        action_zoom_out = QAction("Disminuir texto", self)
         action_exit = QAction("Salir", self)
 
         action_new.setShortcut(QKeySequence("Ctrl+N"))
@@ -100,6 +115,15 @@ class MainWindow(QMainWindow):
         action_toggle_terminal.setShortcut(QKeySequence("Ctrl+2"))
         action_toggle_explorer.setShortcut(QKeySequence("Ctrl+3"))
         action_adjust_layout.setShortcut(QKeySequence("Ctrl+Alt+A"))
+        action_zoom_in.setShortcuts([
+            QKeySequence("Ctrl++"),
+            QKeySequence("Ctrl+="),
+            QKeySequence("Ctrl+Shift+="),
+            QKeySequence("Ctrl+Y"),
+        ])
+        action_zoom_in.setShortcutContext(Qt.ApplicationShortcut)
+        action_zoom_out.setShortcut(QKeySequence("Ctrl+-"))
+        action_zoom_out.setShortcutContext(Qt.ApplicationShortcut)
 
         action_new.triggered.connect(self._new_file)
         action_open.triggered.connect(self._open_file)
@@ -113,6 +137,9 @@ class MainWindow(QMainWindow):
         action_toggle_explorer.triggered.connect(self._toggle_explorer_panel)
         action_adjust_layout.triggered.connect(self._fit_editor_to_content)
         action_themes.triggered.connect(self._open_theme_dialog)
+        action_code_font.triggered.connect(self._select_code_font)
+        action_zoom_in.triggered.connect(lambda: self._change_code_font_size(1))
+        action_zoom_out.triggered.connect(lambda: self._change_code_font_size(-1))
         action_exit.triggered.connect(self.close)
 
         menu_file.addAction(action_new)
@@ -134,6 +161,9 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_toggle_explorer)
         menu_edit.addAction(action_adjust_layout)
         menu_edit.addAction(action_themes)
+        menu_edit.addAction(action_code_font)
+        menu_edit.addAction(action_zoom_in)
+        menu_edit.addAction(action_zoom_out)
 
         action_lex = QAction("Análisis Léxico", self)
         action_syn = QAction("Análisis Sintáctico", self)
@@ -163,21 +193,28 @@ class MainWindow(QMainWindow):
     def _build_toolbar(self) -> None:
         toolbar = QToolBar("Herramientas", self)
         toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(20, 20))
         self.addToolBar(Qt.TopToolBarArea, toolbar)
 
-        action_new = QAction(self.style().standardIcon(QStyle.SP_FileIcon), "Nuevo", self)
-        action_open = QAction(self.style().standardIcon(QStyle.SP_DirOpenIcon), "Abrir", self)
-        action_save = QAction(self.style().standardIcon(QStyle.SP_DialogSaveButton), "Guardar", self)
-        action_save_as = QAction(self.style().standardIcon(QStyle.SP_DialogSaveButton), "Guardar como", self)
-        action_find = QAction(self.style().standardIcon(QStyle.SP_FileDialogContentsView), "Buscar", self)
-        action_toggle_analysis = QAction(self.style().standardIcon(QStyle.SP_FileDialogDetailedView), "Alternar analizadores", self)
-        action_toggle_terminal = QAction(self.style().standardIcon(QStyle.SP_ComputerIcon), "Alternar terminal", self)
-        action_toggle_explorer = QAction(self.style().standardIcon(QStyle.SP_DirIcon), "Alternar árbol", self)
-        action_lex = QAction(self.style().standardIcon(QStyle.SP_FileDialogInfoView), "Léxico", self)
-        action_syn = QAction(self.style().standardIcon(QStyle.SP_FileDialogContentsView), "Sintáctico", self)
-        action_sem = QAction(self.style().standardIcon(QStyle.SP_MessageBoxInformation), "Semántico", self)
-        action_inter = QAction(self.style().standardIcon(QStyle.SP_ComputerIcon), "Intermedio", self)
-        action_exec = QAction(self.style().standardIcon(QStyle.SP_MediaPlay), "Ejecución", self)
+        colors = steins_gate_theme.get_colors()
+        warm_color = "#f5b041"
+        green_color = "#58d68d"
+        blue_color = "#5dade2"
+        purple_color = "#af7ac5"
+
+        action_new = QAction(self._toolbar_icon(["fa5s.file-alt", "fa5.file"], QStyle.SP_FileIcon, color=colors.foreground), "Nuevo", self)
+        action_open = QAction(self._toolbar_icon(["fa5s.folder-open", "fa5.folder-open"], QStyle.SP_DirOpenIcon, color=warm_color), "Abrir", self)
+        action_save = QAction(self._toolbar_icon(["fa5s.save", "fa5.save"], QStyle.SP_DialogSaveButton, color=green_color), "Guardar", self)
+        action_save_as = QAction(self._toolbar_icon(["fa5s.file-export", "fa5.copy"], QStyle.SP_DialogSaveButton, color=blue_color), "Guardar como", self)
+        action_find = QAction(self._toolbar_icon(["fa5s.search", "fa5.search"], QStyle.SP_FileDialogContentsView, color=purple_color), "Buscar", self)
+        action_toggle_analysis = QAction(self._toolbar_icon(["fa5s.chart-bar", "fa5.chart-bar"], QStyle.SP_FileDialogDetailedView, color=colors.accent), "Alternar analizadores", self)
+        action_toggle_terminal = QAction(self._toolbar_icon(["fa5s.terminal", "fa5.terminal"], QStyle.SP_ComputerIcon, color=colors.foreground), "Alternar terminal", self)
+        action_toggle_explorer = QAction(self._toolbar_icon(["fa5s.sitemap", "fa5.sitemap"], QStyle.SP_DirIcon, color=warm_color), "Alternar árbol", self)
+        action_lex = QAction(self._toolbar_icon(["fa5s.font", "fa5.font"], QStyle.SP_FileDialogInfoView, color=blue_color), "Léxico", self)
+        action_syn = QAction(self._toolbar_icon(["fa5s.code-branch", "fa5.code-branch"], QStyle.SP_FileDialogContentsView, color=purple_color), "Sintáctico", self)
+        action_sem = QAction(self._toolbar_icon(["fa5s.check-circle", "fa5.check-circle"], QStyle.SP_MessageBoxInformation, color=green_color), "Semántico", self)
+        action_inter = QAction(self._toolbar_icon(["fa5s.cogs", "fa5.cogs"], QStyle.SP_ComputerIcon, color=warm_color), "Intermedio", self)
+        action_exec = QAction(self._toolbar_icon(["fa5s.play-circle", "fa5.play-circle"], QStyle.SP_MediaPlay, color=colors.accent), "Ejecución", self)
 
         action_new.setToolTip("Nuevo (Ctrl+N)")
         action_open.setToolTip("Abrir archivo")
@@ -222,6 +259,26 @@ class MainWindow(QMainWindow):
         toolbar.addAction(action_sem)
         toolbar.addAction(action_inter)
         toolbar.addAction(action_exec)
+
+    def _toolbar_icon(
+        self,
+        awesome_names: str | list[str],
+        fallback_standard: QStyle.StandardPixmap,
+        *,
+        color: str | None = None,
+    ) -> QIcon:
+        if qta is not None:
+            try:
+                icon_color = color or steins_gate_theme.get_colors().foreground
+                names = [awesome_names] if isinstance(awesome_names, str) else awesome_names
+                for icon_name in names:
+                    try:
+                        return qta.icon(icon_name, color=icon_color)
+                    except Exception:
+                        continue
+            except Exception:
+                pass
+        return self.style().standardIcon(fallback_standard)
 
     def _build_status_bar(self) -> None:
         self._status.showMessage(f"{self._current_lab_member_label()} · El Psy Kongroo")
@@ -529,6 +586,220 @@ class MainWindow(QMainWindow):
             return
         self._apply_theme(saved_theme_key, persist=False, show_status=False)
 
+    def _restore_code_font_preference(self) -> None:
+        family = str(self._settings.value("session/code_font_family", self._DEFAULT_CODE_FONT_FAMILY) or self._DEFAULT_CODE_FONT_FAMILY)
+        size = int(self._settings.value("session/code_font_size", self._DEFAULT_CODE_FONT_SIZE) or self._DEFAULT_CODE_FONT_SIZE)
+        self._code_font = QFont(family, size)
+
+    def _select_code_font(self) -> None:
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Topografia")
+        dialog.resize(760, 460)
+
+        colors = steins_gate_theme.get_colors()
+        dialog.setStyleSheet(
+            f"""
+            QDialog {{
+                background-color: {colors.panel_bg};
+                color: {colors.foreground};
+            }}
+            QLabel {{
+                color: {colors.foreground};
+            }}
+            QListWidget, QLineEdit {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                selection-background-color: {colors.selection};
+            }}
+            QPushButton {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                padding: 4px 10px;
+            }}
+            QPushButton:hover {{
+                background-color: {colors.hover};
+            }}
+            """
+        )
+
+        layout = QVBoxLayout(dialog)
+        lists_row = QHBoxLayout()
+
+        family_container = QVBoxLayout()
+        style_container = QVBoxLayout()
+        size_container = QVBoxLayout()
+
+        family_label = QLabel("Font")
+        style_label = QLabel("Font style")
+        size_label = QLabel("Size")
+
+        family_list = QListWidget(dialog)
+        style_list = QListWidget(dialog)
+        size_list = QListWidget(dialog)
+
+        family_container.addWidget(family_label)
+        family_container.addWidget(family_list)
+        style_container.addWidget(style_label)
+        style_container.addWidget(style_list)
+        size_container.addWidget(size_label)
+        size_container.addWidget(size_list)
+
+        lists_row.addLayout(family_container, 4)
+        lists_row.addLayout(style_container, 3)
+        lists_row.addLayout(size_container, 2)
+        layout.addLayout(lists_row)
+
+        preview_label = QLabel("Sample")
+        preview_edit = QLineEdit(dialog)
+        preview_edit.setReadOnly(True)
+        preview_edit.setMinimumHeight(36)
+        layout.addWidget(preview_label)
+        layout.addWidget(preview_edit)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=dialog)
+        reset_button = button_box.addButton("Restablecer", QDialogButtonBox.ResetRole)
+        layout.addWidget(button_box)
+
+        db = QFontDatabase()
+        for family in db.families():
+            family_list.addItem(family)
+
+        def select_item_by_text(widget: QListWidget, value: str) -> None:
+            for row in range(widget.count()):
+                item = widget.item(row)
+                if item and item.text() == value:
+                    widget.setCurrentRow(row)
+                    return
+            if widget.count() > 0:
+                widget.setCurrentRow(0)
+
+        def select_item_by_size(widget: QListWidget, size: int) -> None:
+            best_row = 0
+            best_delta = 10_000
+            for row in range(widget.count()):
+                item = widget.item(row)
+                if item is None:
+                    continue
+                try:
+                    current_size = int(item.text())
+                except ValueError:
+                    continue
+                delta = abs(current_size - size)
+                if delta < best_delta:
+                    best_delta = delta
+                    best_row = row
+            if widget.count() > 0:
+                widget.setCurrentRow(best_row)
+
+        def selected_font() -> QFont:
+            family_item = family_list.currentItem()
+            style_item = style_list.currentItem()
+            size_item = size_list.currentItem()
+
+            family = family_item.text() if family_item else self._DEFAULT_CODE_FONT_FAMILY
+            style = style_item.text() if style_item else "Regular"
+            try:
+                size = int(size_item.text()) if size_item else self._DEFAULT_CODE_FONT_SIZE
+            except ValueError:
+                size = self._DEFAULT_CODE_FONT_SIZE
+
+            return db.font(family, style, size)
+
+        def refresh_styles_and_sizes() -> None:
+            family_item = family_list.currentItem()
+            if family_item is None:
+                return
+
+            family = family_item.text()
+            current_style = style_list.currentItem().text() if style_list.currentItem() else "Regular"
+            style_list.clear()
+            styles = db.styles(family) or ["Regular"]
+            for style in styles:
+                style_list.addItem(style)
+            select_item_by_text(style_list, current_style)
+
+            current_size = self._code_font.pointSize()
+            size_list.clear()
+            sizes = db.pointSizes(family)
+            if not sizes:
+                sizes = [6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32]
+            for size in sizes:
+                size_list.addItem(str(size))
+            select_item_by_size(size_list, current_size)
+
+        def update_preview() -> None:
+            candidate_font = selected_font()
+            preview_text = "AaBbYyZz 0123"
+            metrics = QFontMetrics(candidate_font)
+            supports_preview = all(metrics.inFont(char) for char in preview_text if char != " ")
+
+            if supports_preview:
+                preview_edit.setFont(candidate_font)
+                preview_edit.setText(preview_text)
+                return
+
+            preview_edit.setFont(QFont(self._DEFAULT_CODE_FONT_FAMILY, self._DEFAULT_CODE_FONT_SIZE))
+            preview_edit.setText("Sin vista previa para esta fuente")
+
+        family_list.currentRowChanged.connect(lambda _row: (refresh_styles_and_sizes(), update_preview()))
+        style_list.currentRowChanged.connect(lambda _row: update_preview())
+        size_list.currentRowChanged.connect(lambda _row: update_preview())
+
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        reset_button.clicked.connect(
+            lambda: (
+                select_item_by_text(family_list, self._DEFAULT_CODE_FONT_FAMILY),
+                refresh_styles_and_sizes(),
+                select_item_by_size(size_list, self._DEFAULT_CODE_FONT_SIZE),
+                update_preview(),
+            )
+        )
+
+        select_item_by_text(family_list, self._code_font.family())
+        refresh_styles_and_sizes()
+        select_item_by_text(style_list, db.styleString(self._code_font) or "Regular")
+        select_item_by_size(size_list, self._code_font.pointSize())
+        update_preview()
+
+        if dialog.exec_() != QDialog.Accepted:
+            return
+
+        selected = selected_font()
+        selected_size = selected.pointSize() if selected.pointSize() > 0 else self._code_font.pointSize()
+        self._code_font = QFont(selected.family(), selected_size)
+        self._apply_code_font_to_open_editors()
+        self._settings.setValue("session/code_font_family", self._code_font.family())
+        self._settings.setValue("session/code_font_size", self._code_font.pointSize())
+        self._status.showMessage(f"Topografia aplicada: {self._code_font.family()} {self._code_font.pointSize()}pt", 3000)
+
+    def _apply_code_font_to_open_editors(self) -> None:
+        if self._editor_tabs is None:
+            return
+
+        for index in range(self._editor_tabs.count()):
+            editor = self._editor_tabs.widget(index)
+            if not isinstance(editor, CodeEditor):
+                continue
+            editor.setFont(self._code_font)
+            editor.update_line_number_area_width(0)
+            editor.viewport().update()
+            editor.update()
+
+    def _change_code_font_size(self, delta: int) -> None:
+        current_size = self._code_font.pointSize() if self._code_font.pointSize() > 0 else self._DEFAULT_CODE_FONT_SIZE
+        new_size = max(6, min(48, current_size + delta))
+        if new_size == current_size:
+            return
+
+        self._code_font = QFont(self._code_font.family(), new_size)
+        self._apply_code_font_to_open_editors()
+        self._settings.setValue("session/code_font_family", self._code_font.family())
+        self._settings.setValue("session/code_font_size", self._code_font.pointSize())
+        self._status.showMessage(f"Topografia: {self._code_font.family()} {self._code_font.pointSize()}pt", 1500)
+
     def _apply_theme(self, theme_key: str, *, persist: bool = True, show_status: bool = True) -> None:
         if not steins_gate_theme.set_theme(theme_key):
             return
@@ -555,7 +826,7 @@ class MainWindow(QMainWindow):
     def _open_theme_dialog(self) -> None:
         dialog = QDialog(self)
         dialog.setWindowTitle("Temas")
-        dialog.resize(760, 440)
+        dialog.resize(920, 500)
         colors = steins_gate_theme.get_colors()
         dialog.setStyleSheet(
             f"""
@@ -713,7 +984,7 @@ class MainWindow(QMainWindow):
         editor = CodeEditor()
         editor.setReadOnly(False)
         editor.setFocusPolicy(Qt.StrongFocus)
-        editor.setFont(QFont("Consolas", 11))
+        editor.setFont(self._code_font)
         if with_example:
             editor.setPlainText(self._load_example_code())
         self._bind_editor_events(editor)
@@ -906,7 +1177,7 @@ class MainWindow(QMainWindow):
         editor = CodeEditor()
         editor.setReadOnly(False)
         editor.setFocusPolicy(Qt.StrongFocus)
-        editor.setFont(QFont("Consolas", 11))
+        editor.setFont(self._code_font)
         try:
             content: str | None = None
             for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
@@ -1006,6 +1277,8 @@ class MainWindow(QMainWindow):
         self._settings.setValue("session/open_files", open_files)
         self._settings.setValue("session/active_file", active_file)
         self._settings.setValue("session/theme", steins_gate_theme.get_theme_key())
+        self._settings.setValue("session/code_font_family", self._code_font.family())
+        self._settings.setValue("session/code_font_size", self._code_font.pointSize())
         self._settings.setValue("session/analysis_visible", self._analysis_container.isVisible() if self._analysis_container is not None else True)
         self._settings.setValue("session/console_visible", self._console_container.isVisible() if self._console_container is not None else True)
         self._settings.setValue("session/explorer_visible", self._file_explorer.isVisible() if self._file_explorer is not None else True)
