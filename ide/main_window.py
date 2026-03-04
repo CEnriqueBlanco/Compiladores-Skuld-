@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from pathlib import Path
 
 from PyQt5.QtCore import QSettings, Qt
@@ -81,7 +82,9 @@ class MainWindow(QMainWindow):
         action_new.setShortcut(QKeySequence("Ctrl+N"))
         action_open_folder.setShortcut(QKeySequence("Ctrl+O"))
         action_save.setShortcut(QKeySequence("Ctrl+S"))
-        action_save_as.setShortcut(QKeySequence("Ctrl+G"))
+        action_save.setShortcutContext(Qt.ApplicationShortcut)
+        action_save_as.setShortcut(QKeySequence("Ctrl+Shift+S"))
+        action_save_as.setShortcutContext(Qt.ApplicationShortcut)
         action_find.setShortcut(QKeySequence("Ctrl+F"))
         action_toggle_analysis.setShortcut(QKeySequence("Ctrl+1"))
         action_toggle_terminal.setShortcut(QKeySequence("Ctrl+2"))
@@ -166,10 +169,8 @@ class MainWindow(QMainWindow):
 
         action_new.setToolTip("Nuevo (Ctrl+N)")
         action_open.setToolTip("Abrir archivo")
-        action_save.setShortcut(QKeySequence("Ctrl+S"))
         action_save.setToolTip("Guardar (Ctrl+S)")
-        action_save_as.setShortcut(QKeySequence("Ctrl+G"))
-        action_save_as.setToolTip("Guardar como (Ctrl+G)")
+        action_save_as.setToolTip("Guardar como (Ctrl+Shift+S)")
         action_find.setToolTip("Buscar (Ctrl+F)")
         action_toggle_analysis.setToolTip("Alternar analizadores (Ctrl+1)")
         action_toggle_terminal.setToolTip("Alternar terminal (Ctrl+2)")
@@ -224,6 +225,7 @@ class MainWindow(QMainWindow):
 
         self._file_explorer = FileExplorer()
         self._file_explorer.file_open_requested.connect(self._open_file_from_explorer)
+        self._file_explorer.file_close_requested.connect(self._close_file_from_explorer)
         self._analysis_panel = AnalysisPanel()
         self._analysis_container = self._create_panel_container(
             "Analizadores",
@@ -264,6 +266,7 @@ class MainWindow(QMainWindow):
 
     def _bind_editor_events(self, editor: CodeEditor) -> None:
         editor.cursorPositionChanged.connect(self._update_cursor_status)
+        editor.textChanged.connect(self._on_text_changed)
 
     def _fit_editor_to_content(self) -> None:
         if self._editor_tabs is None:
@@ -501,6 +504,12 @@ class MainWindow(QMainWindow):
             return example_path.read_text(encoding="utf-8")
         return "// Hola mundo Skuld\n\ngate {\n    dmail(\"El Psy Kongroo\");\n}\n"
 
+    def _on_text_changed(self) -> None:
+        editor = self._get_active_editor()
+        if editor:
+            editor.setProperty("unsaved", True)
+        self._update_cursor_status()
+
     def _update_cursor_status(self) -> None:
         editor = self._get_active_editor()
         if not editor:
@@ -510,7 +519,9 @@ class MainWindow(QMainWindow):
         column = cursor.columnNumber() + 1
         current_file = self._get_active_file_path()
         file_label = current_file.name if current_file else self._current_tab_title()
-        self._status.showMessage(f"Lab Member 004 · {file_label} · Línea {line}, Col {column}")
+        unsaved = editor.property("unsaved")
+        save_indicator = "  ●  Sin guardar" if unsaved else ""
+        self._status.showMessage(f"Lab Member 004 · {file_label} · Línea {line}, Col {column}{save_indicator}")
 
     def _new_file(self, with_example: bool = False) -> None:
         if self._editor_tabs is None:
@@ -540,7 +551,7 @@ class MainWindow(QMainWindow):
             self,
             "Abrir archivo",
             "",
-            "Archivos Skuld (*.stn);;Todos los archivos (*.*)",
+            "Archivos compatibles (*.stn *.txt);;Archivos Skuld (*.stn);;Archivos de texto (*.txt);;Todos los archivos (*.*)",
         )
         if not file_path:
             return
@@ -565,8 +576,11 @@ class MainWindow(QMainWindow):
             return
 
         current_file.write_text(editor.toPlainText(), encoding="utf-8")
+        editor.setProperty("unsaved", False)
+        now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
         if self._console_panel is not None:
             self._console_panel.append_console(f"Archivo guardado: {current_file.name}")
+        self._status.showMessage(f"Guardado · {now}")
         if self._file_explorer is not None:
             self._file_explorer.refresh()
 
@@ -579,7 +593,7 @@ class MainWindow(QMainWindow):
             self,
             "Guardar archivo",
             "",
-            "Archivos Skuld (*.stn);;Todos los archivos (*.*)",
+            "Archivos Skuld (*.stn);;Archivos de texto (*.txt);;Todos los archivos (*.*)",
         )
         if not file_path:
             return
@@ -587,6 +601,8 @@ class MainWindow(QMainWindow):
         path = Path(file_path)
         path.write_text(editor.toPlainText(), encoding="utf-8")
         editor.setProperty("file_path", str(path))
+        editor.setProperty("unsaved", False)
+        now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
         if self._editor_tabs is not None:
             current_index = self._editor_tabs.currentIndex()
@@ -596,6 +612,7 @@ class MainWindow(QMainWindow):
 
         if self._console_panel is not None:
             self._console_panel.append_console(f"Archivo guardado: {path.name}")
+        self._status.showMessage(f"Guardado · {now}")
         if self._file_explorer is not None:
             self._file_explorer.refresh()
         self._update_cursor_status()
@@ -653,6 +670,22 @@ class MainWindow(QMainWindow):
             self._console_panel.append_console(f"Solicitud abrir desde explorador: {Path(file_path).name}")
         self._open_file_path(Path(file_path))
 
+    def _close_file_from_explorer(self, file_path: str) -> None:
+        if self._editor_tabs is None:
+            return
+        resolved = Path(file_path).resolve()
+        for index in range(self._editor_tabs.count()):
+            editor = self._editor_tabs.widget(index)
+            tab_file_raw = editor.property("file_path") if editor else None
+            if not tab_file_raw:
+                continue
+            if Path(str(tab_file_raw)).resolve() == resolved:
+                self._close_tab(index)
+                return
+        # Si no hay pestaña abierta, solo quitar del explorador
+        if self._file_explorer is not None:
+            self._file_explorer.remove_open_file(file_path)
+
     def _open_file_path(self, path: Path, log_to_console: bool = True) -> None:
         if self._editor_tabs is None:
             return
@@ -664,6 +697,9 @@ class MainWindow(QMainWindow):
                 f"El archivo no existe o no es valido:\n{path}",
             )
             return
+
+        if self._file_explorer is not None:
+            self._file_explorer.add_open_file(str(path))
 
         resolved = path.resolve()
         for index in range(self._editor_tabs.count()):
@@ -689,14 +725,21 @@ class MainWindow(QMainWindow):
         editor.setFocusPolicy(Qt.StrongFocus)
         editor.setFont(QFont("Consolas", 11))
         try:
-            editor.setPlainText(path.read_text(encoding="utf-8"))
-        except UnicodeDecodeError:
-            QMessageBox.warning(
-                self,
-                "No se puede abrir",
-                f"El archivo no esta en UTF-8:\n{path}",
-            )
-            return
+            content: str | None = None
+            for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
+                try:
+                    content = path.read_text(encoding=enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            if content is None:
+                QMessageBox.warning(
+                    self,
+                    "No se puede abrir",
+                    f"No se pudo detectar la codificacion del archivo:\n{path}",
+                )
+                return
+            editor.setPlainText(content)
         except OSError as exc:
             QMessageBox.warning(
                 self,
@@ -849,6 +892,10 @@ class MainWindow(QMainWindow):
         if self._editor_tabs is None:
             return
         widget = self._editor_tabs.widget(index)
+        if widget and self._file_explorer is not None:
+            file_path_raw = widget.property("file_path")
+            if file_path_raw:
+                self._file_explorer.remove_open_file(str(file_path_raw))
         self._editor_tabs.removeTab(index)
         if widget:
             widget.deleteLater()

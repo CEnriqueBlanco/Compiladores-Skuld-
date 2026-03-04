@@ -7,16 +7,20 @@ from PyQt5.QtWidgets import QAbstractItemView, QMenu, QMessageBox, QTreeWidget, 
 
 class FileExplorer(QTreeWidget):
     file_open_requested = pyqtSignal(str)
+    file_close_requested = pyqtSignal(str)
 
     def __init__(self) -> None:
         super().__init__()
         self._root_paths: list[Path] = []
+        self._open_files: list[Path] = []
         self._ignored_dirs = {
             ".git",
             "__pycache__",
             ".venv",
             ".venv311",
             "venv",
+            "venv312",
+            "node_modules",
         }
         self.setHeaderHidden(True)
         self.setSelectionMode(QAbstractItemView.SingleSelection)
@@ -30,14 +34,22 @@ class FileExplorer(QTreeWidget):
 
     def _build_tree(self) -> None:
         self.clear()
-        if not self._root_paths:
-            placeholder = QTreeWidgetItem(["Selecciona una carpeta para explorar"])
-            placeholder.setData(0, Qt.UserRole, "placeholder")
-            self.addTopLevelItem(placeholder)
+        if not self._root_paths and not self._open_files:
             return
 
         icon_file = QIcon("../resources/icons/file.png")
         icon_folder = QIcon("../resources/icons/icon.png")
+
+        for file_path in self._open_files:
+            # No mostrar si ya está dentro de alguna carpeta abierta
+            if any(file_path.is_relative_to(root) for root in self._root_paths):
+                continue
+            item = QTreeWidgetItem([file_path.name])
+            item.setIcon(0, icon_file)
+            item.setData(0, Qt.UserRole, "file")
+            item.setData(0, Qt.UserRole + 1, str(file_path))
+            item.setToolTip(0, str(file_path))
+            self.addTopLevelItem(item)
 
         for root_path in self._root_paths:
             root_label = root_path.name if root_path.name else str(root_path)
@@ -88,13 +100,33 @@ class FileExplorer(QTreeWidget):
         self._root_paths.append(resolved)
         self._build_tree()
 
+    def clear_roots(self) -> None:
+        self._root_paths.clear()
+        self._build_tree()
+
+    def add_open_file(self, file_path: str) -> None:
+        path = Path(file_path).resolve()
+        if path not in self._open_files:
+            self._open_files.append(path)
+        self._build_tree()
+
+    def remove_open_file(self, file_path: str) -> None:
+        path = Path(file_path).resolve()
+        self._open_files = [f for f in self._open_files if f != path]
+        self._build_tree()
+
     def get_root_paths(self) -> list[str]:
         return [str(path) for path in self._root_paths]
 
     def _should_skip(self, path: Path) -> bool:
-        if path.name in self._ignored_dirs:
-            return True
-        if path.name.startswith(".") and path.name not in {".vscode"}:
+        if path.is_dir():
+            if path.name in self._ignored_dirs:
+                return True
+            if path.name.startswith(".") and path.name not in {".vscode"}:
+                return True
+            return False
+        # Para archivos, solo mostrar .stn y .txt
+        if path.suffix.lower() not in {".stn", ".txt"}:
             return True
         return False
 
@@ -113,6 +145,9 @@ class FileExplorer(QTreeWidget):
                 child_item = self._create_item(child, icon_folder, icon_file)
                 if child_item:
                     item.addChild(child_item)
+            # No mostrar carpetas vacias (sin archivos .stn/.txt)
+            if item.childCount() == 0:
+                return None
 
         return item
 
@@ -127,6 +162,7 @@ class FileExplorer(QTreeWidget):
 
         menu = QMenu(self)
         action_open_file = None
+        action_close_file = None
         action_remove_root = None
         if item_type == "folder":
             action_open_target = menu.addAction("Abrir en el explorador")
@@ -134,6 +170,7 @@ class FileExplorer(QTreeWidget):
                 action_remove_root = menu.addAction("Quitar carpeta del explorador")
         else:
             action_open_file = menu.addAction("Abrir archivo")
+            action_close_file = menu.addAction("Cerrar")
             action_open_target = menu.addAction("Abrir carpeta contenedora")
 
         selected_action = menu.exec_(self.viewport().mapToGlobal(position))
@@ -141,6 +178,12 @@ class FileExplorer(QTreeWidget):
             item_path_raw = item.data(0, Qt.UserRole + 1)
             if item_path_raw:
                 self.file_open_requested.emit(str(item_path_raw))
+            return
+
+        if action_close_file and selected_action == action_close_file:
+            item_path_raw = item.data(0, Qt.UserRole + 1)
+            if item_path_raw:
+                self.file_close_requested.emit(str(item_path_raw))
             return
 
         if selected_action == action_open_target:
