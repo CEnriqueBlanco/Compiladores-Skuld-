@@ -221,6 +221,7 @@ Declaraciones:
   - worldline   (tipo entero)
   - divergence  (tipo flotante)
   - dmail       (tipo string / función de salida)
+  - sphone      (entrada estándar temática, estilo cin)
   - reading     (tipo booleano)
 
 Estructuras de Control:
@@ -236,6 +237,211 @@ Funciones:
 
 Operadores Lógicos:
   - and, or, not
+
+SINTAXIS LÉXICA COMPLETA (RECONOCIMIENTO DE TOKENS)
+---------------------------------------------------
+
+1) REGLAS GENERALES DEL LEXER
+-----------------------------
+- El análisis léxico recorre el código de izquierda a derecha.
+- Se aplica regla de "maximal munch" (coincidencia más larga).
+- Cuando dos tokens compiten con la misma longitud, gana el de mayor prioridad:
+  1. Comentarios
+  2. Literales de cadena
+  3. Literales numéricos
+  4. Palabras clave
+  5. Identificadores
+  6. Operadores compuestos
+  7. Operadores simples
+  8. Delimitadores
+- Espacios, tabs y saltos de línea se ignoran, pero actualizan fila/columna.
+
+2) TOKENS IGNORADOS
+-------------------
+WHITESPACE:
+  - Regex: [ \t\r\n]+
+  - Acción: Ignorar (actualizar posición).
+
+COMMENT_LINE:
+  - Sintaxis: // ... hasta fin de línea
+  - Regex: //[^\n]*
+  - Acción: Ignorar.
+
+COMMENT_BLOCK (opcional recomendado):
+  - Sintaxis: /* ... */
+  - Regex aproximada: /\*([^*]|\*+[^*/])*\*+/
+  - Acción: Ignorar.
+  - Error: si no cierra con */ → ERROR_LEXICO.
+
+3) PALABRAS RESERVADAS (KEYWORDS)
+---------------------------------
+Regex base de palabra clave exacta:
+  - Debe coincidir completa, no como prefijo de identificador.
+  - Ejemplo: "gate" es KEYWORD, "gateway" es IDENTIFIER.
+
+Lista completa:
+  - labmem
+  - worldline
+  - divergence
+  - dmail
+  - sphone
+  - reading
+  - choice
+  - gate
+  - loop
+  - shift
+  - jump
+  - return
+  - steiner
+  - and
+  - or
+  - not
+  - else
+  - void
+  - true
+  - false
+
+Tokens sugeridos:
+  - KW_LABMEM, KW_WORLDLINE, KW_DIVERGENCE, KW_DMAIL, KW_SPHONE, KW_READING
+  - KW_CHOICE, KW_GATE, KW_LOOP, KW_SHIFT, KW_JUMP, KW_RETURN
+  - KW_STEINER, KW_AND, KW_OR, KW_NOT, KW_ELSE, KW_VOID
+  - KW_TRUE, KW_FALSE
+
+4) IDENTIFICADORES
+------------------
+IDENTIFIER:
+  - Regex: [A-Za-z_][A-Za-z0-9_]*
+  - Regla: Si el lexema está en la tabla de keywords, se clasifica como KEYWORD.
+  - Ejemplos válidos: alpha, beta_1, calcular_divergencia, _tmp
+  - Ejemplos inválidos: 1abc, @valor
+
+5) LITERALES
+------------
+INTEGER_LITERAL (worldline):
+  - Regex: 0|[1-9][0-9]*
+  - Ejemplos: 0, 7, 120
+
+FLOAT_LITERAL (divergence):
+  - Regex recomendada: ([0-9]+\.[0-9]+)([eE][+-]?[0-9]+)?
+  - Opcional extendida: ([0-9]+\.[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?
+  - Ejemplos: 1.048596, 0.0, 2.5e-3
+
+STRING_LITERAL (dmail):
+  - Delimitador: comillas dobles
+  - Regex conceptual: "([^"\\]|\\["\\nrt])*"
+  - Escapes soportados: \", \\, \n, \r, \t
+  - Ejemplos: "Hola", "Iteración: "
+  - Error: cadena sin cierre antes de fin de línea/archivo.
+
+BOOLEAN_LITERAL (reading):
+  - Lexemas: true | false
+  - Nota: pueden tokenizarse como KW_TRUE/KW_FALSE o BOOL_LITERAL.
+
+6) OPERADORES
+-------------
+ARITMÉTICOS:
+  - +   (PLUS)
+  - -   (MINUS)
+  - *   (STAR)
+  - /   (SLASH)
+  - %   (PERCENT)
+
+ASIGNACIÓN:
+  - =   (ASSIGN)
+  - +=  (PLUS_ASSIGN)
+  - -=  (MINUS_ASSIGN)
+  - *=  (MUL_ASSIGN)
+  - /=  (DIV_ASSIGN)
+  - %=  (MOD_ASSIGN)
+
+INCREMENTO/DECREMENTO:
+  - ++  (INC)
+  - --  (DEC)
+
+RELACIONALES:
+  - ==  (EQ)
+  - !=  (NEQ)
+  - <   (LT)
+  - <=  (LTE)
+  - >   (GT)
+  - >=  (GTE)
+
+E/S ESTILO STREAM (cin/cout para Skuld):
+  - <<  (STREAM_OUT)   -> salida con dmail
+  - >>  (STREAM_IN)    -> entrada con sphone
+
+LÓGICOS (simbólicos y/o por keyword):
+  - &&  (AND_OP)  [opcional, si decides soportarlo]
+  - ||  (OR_OP)   [opcional, si decides soportarlo]
+  - !   (NOT_OP)  [opcional, si decides soportarlo]
+  - and, or, not  (keywords lógicas ya definidas)
+
+Sintaxis propuesta de uso:
+  - cout equivalente:
+      dmail << "Hola";
+      dmail << "x = " << x;
+    (También válido el estilo función existente: dmail("Hola");)
+
+  - cin equivalente:
+      sphone >> x;
+      sphone >> nombre;
+
+7) DELIMITADORES Y SIGNOS DE PUNTUACIÓN
+----------------------------------------
+  - (   LPAREN
+  - )   RPAREN
+  - {   LBRACE
+  - }   RBRACE
+  - [   LBRACKET
+  - ]   RBRACKET
+  - ;   SEMICOLON
+  - ,   COMMA
+  - .   DOT
+  - :   COLON
+
+8) TABLA RESUMEN DE REGEX PRIORITARIA
+-------------------------------------
+Orden sugerido de matching (de mayor a menor prioridad):
+  1. //[^\n]*
+  2. /\*([^*]|\*+[^*/])*\*+/         (si habilitas bloque)
+  3. "([^"\\]|\\["\\nrt])*"
+  4. ([0-9]+\.[0-9]+)([eE][+-]?[0-9]+)?
+  5. 0|[1-9][0-9]*
+  6. [A-Za-z_][A-Za-z0-9_]*           (luego validar keyword)
+  7. ==|!=|<=|>=|<<|>>|\+\+|--|\+=|-=|\*=|/=|%=|&&|\|\|
+  8. [=+\-*/%<>!(){}\[\];,.:]
+  9. [ \t\r\n]+
+
+9) ERRORES LÉXICOS A REPORTAR
+-----------------------------
+- Carácter no reconocido (ej: @, #, `) fuera de strings/comentarios.
+- Cadena no terminada.
+- Comentario de bloque no terminado (si se habilita).
+- Número mal formado (ej: 12..3, 1e, 09 si prohíbes ceros a la izquierda).
+- Secuencia de escape inválida en string (ej: \q).
+
+Formato recomendado de error:
+  ERROR_LEXICO(linea, columna): <descripcion> -> '<lexema>'
+
+10) EJEMPLO DE TOKENIZACIÓN
+---------------------------
+Entrada:
+  labmem worldline x = 10;
+
+Salida de tokens:
+  [KW_LABMEM:"labmem"]
+  [KW_WORLDLINE:"worldline"]
+  [IDENTIFIER:"x"]
+  [ASSIGN:"="]
+  [INTEGER_LITERAL:"10"]
+  [SEMICOLON:";"]
+
+11) RECOMENDACIÓN DE IMPLEMENTACIÓN
+-----------------------------------
+- Guardar para cada token: tipo, lexema, línea, columna inicial, columna final.
+- Mantener tabla de símbolos separada (el lexer solo reconoce tokens).
+- Implementar pruebas unitarias por categoría de token.
+- Usar archivo fuente UTF-8 para permitir tildes/Unicode dentro de strings.
 
 EJEMPLO DE CÓDIGO SKULD
 ------------------------

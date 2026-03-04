@@ -7,12 +7,19 @@ from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QCloseEvent, QFont, QKeySequence, QTextCursor
 from PyQt5.QtWidgets import (
     QAction,
+    QApplication,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
+    QFormLayout,
     QHBoxLayout,
     QInputDialog,
     QLabel,
+    QListWidget,
+    QListWidgetItem,
     QMessageBox,
     QMainWindow,
+    QPlainTextEdit,
     QSplitter,
     QStatusBar,
     QStyle,
@@ -28,6 +35,7 @@ from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
 from ide.console_panel import ConsolePanel
 from ide.file_explorer import FileExplorer
+from ide.theme import steins_gate_theme
 
 
 class MainWindow(QMainWindow):
@@ -58,6 +66,7 @@ class MainWindow(QMainWindow):
         self._build_menu()
         self._build_toolbar()
         self._build_status_bar()
+        self._restore_theme_preference()
         self._build_layout()
 
     def _build_menu(self) -> None:
@@ -77,6 +86,7 @@ class MainWindow(QMainWindow):
         action_toggle_terminal = QAction("Alternar Terminal", self)
         action_toggle_explorer = QAction("Alternar Árbol de archivos", self)
         action_adjust_layout = QAction("Ajustar layout al contenido", self)
+        action_themes = QAction("Temas", self)
         action_exit = QAction("Salir", self)
 
         action_new.setShortcut(QKeySequence("Ctrl+N"))
@@ -102,6 +112,7 @@ class MainWindow(QMainWindow):
         action_toggle_terminal.triggered.connect(self._toggle_terminal_panel)
         action_toggle_explorer.triggered.connect(self._toggle_explorer_panel)
         action_adjust_layout.triggered.connect(self._fit_editor_to_content)
+        action_themes.triggered.connect(self._open_theme_dialog)
         action_exit.triggered.connect(self.close)
 
         menu_file.addAction(action_new)
@@ -122,6 +133,7 @@ class MainWindow(QMainWindow):
         menu_edit.addAction(action_toggle_terminal)
         menu_edit.addAction(action_toggle_explorer)
         menu_edit.addAction(action_adjust_layout)
+        menu_edit.addAction(action_themes)
 
         action_lex = QAction("Análisis Léxico", self)
         action_syn = QAction("Análisis Sintáctico", self)
@@ -212,8 +224,15 @@ class MainWindow(QMainWindow):
         toolbar.addAction(action_exec)
 
     def _build_status_bar(self) -> None:
-        self._status.showMessage("Lab Member 004 · El Psy Kongroo")
+        self._status.showMessage(f"{self._current_lab_member_label()} · El Psy Kongroo")
         self.setStatusBar(self._status)
+
+    def _current_lab_member_label(self) -> str:
+        theme_key = steins_gate_theme.get_theme_key()
+        member_code = theme_key.split("_", 1)[1] if "_" in theme_key else "004"
+        if member_code.isdigit():
+            return f"Lab Member {int(member_code):03d}"
+        return steins_gate_theme.get_theme_name()
 
     def _build_layout(self) -> None:
         self._editor_tabs = QTabWidget()
@@ -504,6 +523,168 @@ class MainWindow(QMainWindow):
             return example_path.read_text(encoding="utf-8")
         return "// Hola mundo Skuld\n\ngate {\n    dmail(\"El Psy Kongroo\");\n}\n"
 
+    def _restore_theme_preference(self) -> None:
+        saved_theme_key = str(self._settings.value("session/theme", steins_gate_theme.get_theme_key()) or "")
+        if not saved_theme_key:
+            return
+        self._apply_theme(saved_theme_key, persist=False, show_status=False)
+
+    def _apply_theme(self, theme_key: str, *, persist: bool = True, show_status: bool = True) -> None:
+        if not steins_gate_theme.set_theme(theme_key):
+            return
+
+        app = QApplication.instance()
+        if app is not None:
+            app.setStyleSheet(steins_gate_theme.build_stylesheet())
+
+        if self._editor_tabs is not None:
+            for index in range(self._editor_tabs.count()):
+                editor = self._editor_tabs.widget(index)
+                if not isinstance(editor, CodeEditor):
+                    continue
+                editor.highlight_current_line()
+                editor.viewport().update()
+                editor.update()
+
+        if persist:
+            self._settings.setValue("session/theme", theme_key)
+
+        if show_status:
+            self._status.showMessage(f"Tema aplicado: {steins_gate_theme.get_theme_name(theme_key)}", 3000)
+
+    def _open_theme_dialog(self) -> None:
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Temas")
+        dialog.resize(760, 440)
+        colors = steins_gate_theme.get_colors()
+        dialog.setStyleSheet(
+            f"""
+            QDialog {{
+                background-color: {colors.panel_bg};
+                color: {colors.foreground};
+            }}
+            QLabel {{
+                color: {colors.foreground};
+            }}
+            QListWidget {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+            }}
+            QListWidget::item:selected {{
+                background-color: {colors.selection};
+                color: {colors.foreground};
+            }}
+            QPlainTextEdit {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                selection-background-color: {colors.selection};
+            }}
+            QPushButton {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                padding: 4px 10px;
+            }}
+            QPushButton:hover {{
+                background-color: {colors.hover};
+            }}
+            """
+        )
+
+        root_layout = QHBoxLayout(dialog)
+
+        theme_list = QListWidget(dialog)
+        theme_list.setMinimumWidth(250)
+        for theme_key, theme_name in steins_gate_theme.list_themes():
+            item = QListWidgetItem(theme_name)
+            item.setData(Qt.UserRole, theme_key)
+            theme_list.addItem(item)
+
+        current_theme_key = steins_gate_theme.get_theme_key()
+        for row in range(theme_list.count()):
+            item = theme_list.item(row)
+            if item.data(Qt.UserRole) == current_theme_key:
+                theme_list.setCurrentRow(row)
+                break
+
+        right_panel = QWidget(dialog)
+        right_layout = QVBoxLayout(right_panel)
+
+        preview_code = QPlainTextEdit(right_panel)
+        preview_code.setReadOnly(True)
+        preview_code.setPlainText(
+            "// Vista previa de tema\n"
+            "gate {\n"
+            "    let mensaje = \"El Psy Kongroo\";\n"
+            "    dmail(mensaje);\n"
+            "}\n"
+        )
+
+        preview_info = QFormLayout()
+        label_background = QLabel(right_panel)
+        label_foreground = QLabel(right_panel)
+        label_accent = QLabel(right_panel)
+        label_selection = QLabel(right_panel)
+        preview_info.addRow("Fondo:", label_background)
+        preview_info.addRow("Texto:", label_foreground)
+        preview_info.addRow("Acento:", label_accent)
+        preview_info.addRow("Selección:", label_selection)
+
+        def apply_preview(theme_key: str) -> None:
+            colors = steins_gate_theme.get_colors_for_theme(theme_key)
+            swatch_style = "padding: 4px 8px; border: 1px solid {}; background-color: {}; color: {};"
+
+            label_background.setText(colors.background)
+            label_background.setStyleSheet(swatch_style.format(colors.border, colors.background, colors.foreground))
+            label_foreground.setText(colors.foreground)
+            label_foreground.setStyleSheet(swatch_style.format(colors.border, colors.panel_bg, colors.foreground))
+            label_accent.setText(colors.accent)
+            label_accent.setStyleSheet(swatch_style.format(colors.border, colors.accent, colors.background))
+            label_selection.setText(colors.selection)
+            label_selection.setStyleSheet(swatch_style.format(colors.border, colors.selection, colors.foreground))
+
+            preview_code.setStyleSheet(
+                f""
+                f"QPlainTextEdit {{"
+                f"background-color: {colors.background};"
+                f"color: {colors.foreground};"
+                f"selection-background-color: {colors.selection};"
+                f"border: 1px solid {colors.border};"
+                f"}}"
+            )
+
+        def on_theme_selected() -> None:
+            selected_item = theme_list.currentItem()
+            if selected_item is None:
+                return
+            selected_key = str(selected_item.data(Qt.UserRole))
+            apply_preview(selected_key)
+
+        theme_list.currentRowChanged.connect(lambda _row: on_theme_selected())
+        on_theme_selected()
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=dialog)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+
+        right_layout.addLayout(preview_info)
+        right_layout.addWidget(preview_code, 1)
+        right_layout.addWidget(buttons)
+
+        root_layout.addWidget(theme_list)
+        root_layout.addWidget(right_panel, 1)
+
+        if dialog.exec_() != QDialog.Accepted:
+            return
+
+        selected_item = theme_list.currentItem()
+        if selected_item is None:
+            return
+        selected_key = str(selected_item.data(Qt.UserRole))
+        self._apply_theme(selected_key)
+
     def _on_text_changed(self) -> None:
         editor = self._get_active_editor()
         if editor:
@@ -521,7 +702,9 @@ class MainWindow(QMainWindow):
         file_label = current_file.name if current_file else self._current_tab_title()
         unsaved = editor.property("unsaved")
         save_indicator = "  ●  Sin guardar" if unsaved else ""
-        self._status.showMessage(f"Lab Member 004 · {file_label} · Línea {line}, Col {column}{save_indicator}")
+        self._status.showMessage(
+            f"{self._current_lab_member_label()} · {file_label} · Línea {line}, Col {column}{save_indicator}"
+        )
 
     def _new_file(self, with_example: bool = False) -> None:
         if self._editor_tabs is None:
@@ -822,6 +1005,7 @@ class MainWindow(QMainWindow):
         self._settings.setValue("session/folders", folders)
         self._settings.setValue("session/open_files", open_files)
         self._settings.setValue("session/active_file", active_file)
+        self._settings.setValue("session/theme", steins_gate_theme.get_theme_key())
         self._settings.setValue("session/analysis_visible", self._analysis_container.isVisible() if self._analysis_container is not None else True)
         self._settings.setValue("session/console_visible", self._console_container.isVisible() if self._console_container is not None else True)
         self._settings.setValue("session/explorer_visible", self._file_explorer.isVisible() if self._file_explorer is not None else True)

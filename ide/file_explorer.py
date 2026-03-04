@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PyQt5.QtCore import QPoint, Qt, QUrl, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QAbstractItemView, QMenu, QMessageBox, QTreeWidget, QTreeWidgetItem
+from PyQt5.QtWidgets import QAbstractItemView, QInputDialog, QMenu, QMessageBox, QTreeWidget, QTreeWidgetItem
 
 
 class FileExplorer(QTreeWidget):
@@ -164,6 +164,7 @@ class FileExplorer(QTreeWidget):
         action_open_file = None
         action_close_file = None
         action_remove_root = None
+        action_new_file = menu.addAction("Nuevo archivo")
         if item_type == "folder":
             action_open_target = menu.addAction("Abrir en el explorador")
             if item.data(0, Qt.UserRole + 2) == "root":
@@ -174,6 +175,10 @@ class FileExplorer(QTreeWidget):
             action_open_target = menu.addAction("Abrir carpeta contenedora")
 
         selected_action = menu.exec_(self.viewport().mapToGlobal(position))
+        if selected_action == action_new_file:
+            self._create_new_file_for_item(item)
+            return
+
         if action_open_file and selected_action == action_open_file:
             item_path_raw = item.data(0, Qt.UserRole + 1)
             if item_path_raw:
@@ -223,6 +228,56 @@ class FileExplorer(QTreeWidget):
             return
 
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder_path)))
+
+    def _create_new_file_for_item(self, item: QTreeWidgetItem) -> None:
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        item_type = item.data(0, Qt.UserRole)
+        if not item_path_raw:
+            return
+
+        selected_path = Path(str(item_path_raw))
+        target_dir = selected_path if item_type == "folder" else selected_path.parent
+        if not target_dir.exists() or not target_dir.is_dir():
+            QMessageBox.warning(
+                self,
+                "Carpeta no disponible",
+                f"La carpeta no existe en el proyecto:\n{target_dir}",
+            )
+            return
+
+        file_name, ok = QInputDialog.getText(self, "Nuevo archivo", "Nombre del archivo:")
+        if not ok:
+            return
+
+        clean_name = file_name.strip()
+        if not clean_name:
+            QMessageBox.information(self, "Nuevo archivo", "Debes ingresar un nombre de archivo.")
+            return
+
+        if not Path(clean_name).suffix:
+            clean_name = f"{clean_name}.stn"
+
+        new_file_path = target_dir / clean_name
+        if new_file_path.exists():
+            QMessageBox.warning(
+                self,
+                "Nuevo archivo",
+                f"Ya existe un archivo con ese nombre:\n{new_file_path.name}",
+            )
+            return
+
+        try:
+            new_file_path.write_text("", encoding="utf-8")
+        except OSError as exc:
+            QMessageBox.warning(
+                self,
+                "No se pudo crear",
+                f"No fue posible crear el archivo:\n{new_file_path}\n\n{exc}",
+            )
+            return
+
+        self.refresh()
+        self.file_open_requested.emit(str(new_file_path))
 
     def _on_item_activated(self, item: QTreeWidgetItem, _column: int) -> None:
         item_type = item.data(0, Qt.UserRole)

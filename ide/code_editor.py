@@ -2,7 +2,7 @@ from PyQt5.QtCore import QRect, QSize, Qt
 from PyQt5.QtGui import QColor, QPainter, QTextFormat
 from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
-from ide.theme.steins_gate_theme import COLORS
+from ide.theme import steins_gate_theme
 
 
 class LineNumberArea(QWidget):
@@ -53,8 +53,9 @@ class CodeEditor(QPlainTextEdit):
         self._line_number_area.setGeometry(QRect(cr.left(), cr.top(), self.line_number_area_width(), cr.height()))
 
     def line_number_area_paint_event(self, event) -> None:
+        colors = steins_gate_theme.get_colors()
         painter = QPainter(self._line_number_area)
-        painter.fillRect(event.rect(), QColor(COLORS.panel_bg))
+        painter.fillRect(event.rect(), QColor(colors.panel_bg))
 
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
@@ -64,7 +65,7 @@ class CodeEditor(QPlainTextEdit):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 number = str(block_number + 1)
-                painter.setPen(QColor(COLORS.comments))
+                painter.setPen(QColor(colors.comments))
                 painter.drawText(
                     0,
                     top,
@@ -80,10 +81,11 @@ class CodeEditor(QPlainTextEdit):
             block_number += 1
 
     def highlight_current_line(self) -> None:
+        colors = steins_gate_theme.get_colors()
         extra_selections = []
         if not self.isReadOnly():
             selection = QTextEdit.ExtraSelection()
-            selection.format.setBackground(QColor(COLORS.selection))
+            selection.format.setBackground(QColor(colors.selection))
             selection.format.setProperty(QTextFormat.FullWidthSelection, True)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
