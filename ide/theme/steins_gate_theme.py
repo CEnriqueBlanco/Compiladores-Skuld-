@@ -207,8 +207,27 @@ def build_stylesheet() -> str:
         background-color: {colors.panel_bg};
         color: {colors.foreground};
     }}
+    QDialog, QMessageBox, QFileDialog, QInputDialog {{
+        background-color: {colors.panel_bg};
+        color: {colors.foreground};
+    }}
     QLabel {{
         color: {colors.foreground};
+    }}
+    QLineEdit, QComboBox, QSpinBox {{
+        background-color: {colors.background};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        selection-background-color: {colors.selection};
+    }}
+    QPushButton {{
+        background-color: {colors.background};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+        padding: 4px 10px;
+    }}
+    QPushButton:hover {{
+        background-color: {colors.hover};
     }}
     QPlainTextEdit, QTextEdit {{
         background-color: {colors.background};

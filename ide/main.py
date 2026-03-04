@@ -1,7 +1,7 @@
 import os
 import sys
 
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QApplication
 
@@ -11,6 +11,7 @@ from ide.theme.steins_gate_theme import build_stylesheet
 
 
 def main() -> int:
+    QApplication.setAttribute(Qt.AA_DontUseNativeDialogs, True)
     app = QApplication(sys.argv)
     app.setApplicationName("Reading Steiner IDE")
     app.setStyleSheet(build_stylesheet())

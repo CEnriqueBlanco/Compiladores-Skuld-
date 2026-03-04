@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QRect, QSize, Qt
-from PyQt5.QtGui import QColor, QPainter, QTextFormat
+from PyQt5.QtGui import QColor, QPainter, QTextCursor, QTextFormat
 from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 from ide.theme import steins_gate_theme
@@ -21,6 +21,7 @@ class CodeEditor(QPlainTextEdit):
     def __init__(self) -> None:
         super().__init__()
         self._line_number_area = LineNumberArea(self)
+        self._search_selections: list[QTextEdit.ExtraSelection] = []
 
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
@@ -82,6 +83,29 @@ class CodeEditor(QPlainTextEdit):
             block_number += 1
 
     def highlight_current_line(self) -> None:
+        self._apply_extra_selections()
+
+    def set_search_highlights(self, text: str) -> None:
+        self._search_selections = []
+        query = text.strip()
+        if not query:
+            self._apply_extra_selections()
+            return
+
+        colors = steins_gate_theme.get_colors()
+        cursor = self.document().find(query)
+        while not cursor.isNull():
+            selection = QTextEdit.ExtraSelection()
+            selection.cursor = cursor
+            selection.format.setBackground(QColor(colors.hover))
+            selection.format.setForeground(QColor(colors.foreground))
+            self._search_selections.append(selection)
+            start_position = cursor.selectionEnd()
+            cursor = self.document().find(query, start_position)
+
+        self._apply_extra_selections()
+
+    def _apply_extra_selections(self) -> None:
         colors = steins_gate_theme.get_colors()
         extra_selections = []
         if not self.isReadOnly():
@@ -91,4 +115,5 @@ class CodeEditor(QPlainTextEdit):
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
             extra_selections.append(selection)
+        extra_selections.extend(self._search_selections)
         self.setExtraSelections(extra_selections)

@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QAbstractItemView, QInputDialog, QMenu, QMessageBox,
 class FileExplorer(QTreeWidget):
     file_open_requested = pyqtSignal(str)
     file_close_requested = pyqtSignal(str)
+    path_renamed = pyqtSignal(str, str)
+    path_deleted = pyqtSignal(str)
 
     def __init__(self) -> None:
         super().__init__()
@@ -145,9 +147,6 @@ class FileExplorer(QTreeWidget):
                 child_item = self._create_item(child, icon_folder, icon_file)
                 if child_item:
                     item.addChild(child_item)
-            # No mostrar carpetas vacias (sin archivos .stn/.txt)
-            if item.childCount() == 0:
-                return None
 
         return item
 
@@ -165,6 +164,9 @@ class FileExplorer(QTreeWidget):
         action_close_file = None
         action_remove_root = None
         action_new_file = menu.addAction("Nuevo archivo")
+        action_new_folder = menu.addAction("Nueva carpeta")
+        action_rename = menu.addAction("Renombrar")
+        action_delete = menu.addAction("Eliminar")
         if item_type == "folder":
             action_open_target = menu.addAction("Abrir en el explorador")
             if item.data(0, Qt.UserRole + 2) == "root":
@@ -177,6 +179,18 @@ class FileExplorer(QTreeWidget):
         selected_action = menu.exec_(self.viewport().mapToGlobal(position))
         if selected_action == action_new_file:
             self._create_new_file_for_item(item)
+            return
+
+        if selected_action == action_new_folder:
+            self._create_new_folder_for_item(item)
+            return
+
+        if selected_action == action_rename:
+            self._rename_item_path(item)
+            return
+
+        if selected_action == action_delete:
+            self._delete_item_path(item)
             return
 
         if action_open_file and selected_action == action_open_file:
@@ -278,6 +292,133 @@ class FileExplorer(QTreeWidget):
 
         self.refresh()
         self.file_open_requested.emit(str(new_file_path))
+
+    def _create_new_folder_for_item(self, item: QTreeWidgetItem) -> None:
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        item_type = item.data(0, Qt.UserRole)
+        if not item_path_raw:
+            return
+
+        selected_path = Path(str(item_path_raw))
+        target_dir = selected_path if item_type == "folder" else selected_path.parent
+        if not target_dir.exists() or not target_dir.is_dir():
+            QMessageBox.warning(
+                self,
+                "Carpeta no disponible",
+                f"La carpeta no existe en el proyecto:\n{target_dir}",
+            )
+            return
+
+        folder_name, ok = QInputDialog.getText(self, "Nueva carpeta", "Nombre de la carpeta:")
+        if not ok:
+            return
+
+        clean_name = folder_name.strip()
+        if not clean_name:
+            QMessageBox.information(self, "Nueva carpeta", "Debes ingresar un nombre de carpeta.")
+            return
+
+        new_folder_path = target_dir / clean_name
+        if new_folder_path.exists():
+            QMessageBox.warning(
+                self,
+                "Nueva carpeta",
+                f"Ya existe una carpeta con ese nombre:\n{new_folder_path.name}",
+            )
+            return
+
+        try:
+            new_folder_path.mkdir(parents=False, exist_ok=False)
+        except OSError as exc:
+            QMessageBox.warning(
+                self,
+                "No se pudo crear",
+                f"No fue posible crear la carpeta:\n{new_folder_path}\n\n{exc}",
+            )
+            return
+
+        self.refresh()
+
+    def _rename_item_path(self, item: QTreeWidgetItem) -> None:
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        item_type = item.data(0, Qt.UserRole)
+        if not item_path_raw:
+            return
+
+        path = Path(str(item_path_raw))
+        if item_type == "folder" and item.data(0, Qt.UserRole + 2) == "root":
+            QMessageBox.information(self, "Renombrar", "No se puede renombrar una carpeta raíz desde el explorador.")
+            return
+
+        if not path.exists():
+            QMessageBox.warning(self, "Renombrar", f"La ruta ya no existe:\n{path}")
+            self.refresh()
+            return
+
+        new_name, ok = QInputDialog.getText(self, "Renombrar", "Nuevo nombre:", text=path.name)
+        if not ok:
+            return
+
+        clean_name = new_name.strip()
+        if not clean_name or clean_name == path.name:
+            return
+
+        target_path = path.with_name(clean_name)
+        if target_path.exists():
+            QMessageBox.warning(self, "Renombrar", f"Ya existe una ruta con ese nombre:\n{target_path.name}")
+            return
+
+        try:
+            path.rename(target_path)
+        except OSError as exc:
+            QMessageBox.warning(self, "Renombrar", f"No fue posible renombrar:\n{path}\n\n{exc}")
+            return
+
+        self.refresh()
+        self.path_renamed.emit(str(path), str(target_path))
+
+    def _delete_item_path(self, item: QTreeWidgetItem) -> None:
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        item_type = item.data(0, Qt.UserRole)
+        if not item_path_raw:
+            return
+
+        path = Path(str(item_path_raw))
+        if item_type == "folder" and item.data(0, Qt.UserRole + 2) == "root":
+            QMessageBox.information(self, "Eliminar", "Usa 'Quitar carpeta del explorador' para la carpeta raíz.")
+            return
+
+        if not path.exists():
+            self.refresh()
+            return
+
+        label = "carpeta" if path.is_dir() else "archivo"
+        confirmed = QMessageBox.question(
+            self,
+            "Eliminar",
+            f"¿Deseas eliminar este {label}?\n\n{path.name}",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if confirmed != QMessageBox.Yes:
+            return
+
+        try:
+            if path.is_dir():
+                path.rmdir()
+            else:
+                path.unlink()
+        except OSError as exc:
+            QMessageBox.warning(
+                self,
+                "Eliminar",
+                f"No fue posible eliminar la ruta:\n{path}\n\n{exc}\n\n"
+                "Nota: para carpetas, primero elimina su contenido.",
+            )
+            return
+
+        self.refresh()
+        self.path_deleted.emit(str(path))
 
     def _on_item_activated(self, item: QTreeWidgetItem, _column: int) -> None:
         item_type = item.data(0, Qt.UserRole)
