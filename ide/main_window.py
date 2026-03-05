@@ -39,6 +39,52 @@ from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
 from ide.console_panel import ConsolePanel
 from ide.file_explorer import FileExplorer
+from ide.main_window_sections import (
+    apply_code_font_to_open_editors,
+    apply_theme,
+    auto_save_open_files,
+    build_find_bar,
+    build_layout,
+    build_menu,
+    build_toolbar,
+    change_code_font_size,
+    clear_outputs,
+    close_file,
+    close_file_from_explorer,
+    close_tab,
+    collect_unsaved_tab_indexes,
+    confirm_all_unsaved_before_exit,
+    confirm_unsaved_for_tab,
+    create_themed_file_dialog,
+    current_tab_title,
+    get_active_editor,
+    get_active_file_path,
+    new_file,
+    normalize_settings_list,
+    on_path_deleted,
+    on_path_renamed,
+    on_tab_changed,
+    on_watched_file_changed,
+    open_file,
+    open_file_from_explorer,
+    open_file_path,
+    open_folder,
+    open_theme_dialog,
+    reload_editor_from_disk,
+    restore_layout_state,
+    restore_session,
+    run_phase,
+    save_editor,
+    save_editor_as,
+    save_file,
+    save_file_as,
+    save_session,
+    set_autosave_enabled,
+    select_code_font,
+    unwatch_file_if_unused,
+    watch_file,
+    write_editor_to_path,
+)
 from ide.theme import steins_gate_theme
 
 try:
@@ -107,220 +153,10 @@ class MainWindow(QMainWindow):
         self._set_autosave_enabled(self._autosave_enabled, persist=False)
 
     def _build_menu(self) -> None:
-        menu_file = self.menuBar().addMenu("Archivo")
-        menu_edit = self.menuBar().addMenu("Editar")
-        menu_build = self.menuBar().addMenu("Compilar")
-        menu_help = self.menuBar().addMenu("Ayuda")
-
-        action_new = QAction("Nuevo", self)
-        action_open = QAction("Abrir", self)
-        action_open_folder = QAction("Abrir Carpeta", self)
-        action_close = QAction("Cerrar", self)
-        action_save = QAction("Guardar", self)
-        action_save_as = QAction("Guardar Como", self)
-        action_find = QAction("Buscar", self)
-        action_find_next = QAction("Buscar siguiente", self)
-        action_find_prev = QAction("Buscar anterior", self)
-        action_go_to_line = QAction("Ir a línea", self)
-        action_toggle_analysis = QAction("Alternar Analizadores", self)
-        action_toggle_terminal = QAction("Alternar Terminal", self)
-        action_toggle_explorer = QAction("Alternar Árbol de archivos", self)
-        action_adjust_layout = QAction("Ajustar layout al contenido", self)
-        action_themes = QAction("Temas", self)
-        action_code_font = QAction("Topografia", self)
-        action_undo = QAction("Deshacer", self)
-        action_redo = QAction("Rehacer", self)
-        action_copy = QAction("Copiar", self)
-        action_paste = QAction("Pegar", self)
-        action_autosave = QAction("Autoguardado (300s)", self)
-        action_zoom_in = QAction("Aumentar texto", self)
-        action_zoom_out = QAction("Disminuir texto", self)
-        action_exit = QAction("Salir", self)
-
-        action_new.setShortcut(QKeySequence("Ctrl+N"))
-        action_open_folder.setShortcut(QKeySequence("Ctrl+O"))
-        action_save.setShortcut(QKeySequence("Ctrl+S"))
-        action_save.setShortcutContext(Qt.ApplicationShortcut)
-        action_save_as.setShortcut(QKeySequence("Ctrl+G"))
-        action_save_as.setShortcutContext(Qt.ApplicationShortcut)
-        action_find.setShortcut(QKeySequence("Ctrl+F"))
-        action_find_next.setShortcut(QKeySequence("F3"))
-        action_find_prev.setShortcut(QKeySequence("Shift+F3"))
-        action_go_to_line.setShortcut(QKeySequence("Ctrl+4"))
-        action_undo.setShortcut(QKeySequence("Ctrl+Z"))
-        action_redo.setShortcut(QKeySequence("Ctrl+Y"))
-        action_copy.setShortcut(QKeySequence("Ctrl+C"))
-        action_paste.setShortcut(QKeySequence("Ctrl+V"))
-        action_toggle_analysis.setShortcut(QKeySequence("Ctrl+1"))
-        action_toggle_terminal.setShortcut(QKeySequence("Ctrl+2"))
-        action_toggle_explorer.setShortcut(QKeySequence("Ctrl+3"))
-        action_adjust_layout.setShortcut(QKeySequence("Ctrl+Alt+A"))
-        action_zoom_in.setShortcuts([
-            QKeySequence("Ctrl++"),
-            QKeySequence("Ctrl+="),
-            QKeySequence("Ctrl+Shift+="),
-        ])
-        action_zoom_in.setShortcutContext(Qt.ApplicationShortcut)
-        action_zoom_out.setShortcut(QKeySequence("Ctrl+-"))
-        action_zoom_out.setShortcutContext(Qt.ApplicationShortcut)
-        action_find_next.setShortcutContext(Qt.ApplicationShortcut)
-        action_find_prev.setShortcutContext(Qt.ApplicationShortcut)
-        action_go_to_line.setShortcutContext(Qt.ApplicationShortcut)
-        action_undo.setShortcutContext(Qt.ApplicationShortcut)
-        action_redo.setShortcutContext(Qt.ApplicationShortcut)
-        action_copy.setShortcutContext(Qt.ApplicationShortcut)
-        action_paste.setShortcutContext(Qt.ApplicationShortcut)
-        action_autosave.setCheckable(True)
-        action_autosave.setChecked(self._autosave_enabled)
-
-        action_new.triggered.connect(self._new_file)
-        action_open.triggered.connect(self._open_file)
-        action_open_folder.triggered.connect(self._open_folder)
-        action_close.triggered.connect(self._close_file)
-        action_save.triggered.connect(self._save_file)
-        action_save_as.triggered.connect(self._save_file_as)
-        action_find.triggered.connect(self._find_in_code)
-        action_find_next.triggered.connect(self._find_next)
-        action_find_prev.triggered.connect(self._find_previous)
-        action_go_to_line.triggered.connect(self._go_to_line)
-        action_undo.triggered.connect(self._undo_active_editor)
-        action_redo.triggered.connect(self._redo_active_editor)
-        action_copy.triggered.connect(self._copy_active_editor)
-        action_paste.triggered.connect(self._paste_active_editor)
-        action_toggle_analysis.triggered.connect(self._toggle_analysis_panel)
-        action_toggle_terminal.triggered.connect(self._toggle_terminal_panel)
-        action_toggle_explorer.triggered.connect(self._toggle_explorer_panel)
-        action_adjust_layout.triggered.connect(self._fit_editor_to_content)
-        action_themes.triggered.connect(self._open_theme_dialog)
-        action_code_font.triggered.connect(self._select_code_font)
-        action_autosave.triggered.connect(lambda enabled: self._set_autosave_enabled(bool(enabled)))
-        action_zoom_in.triggered.connect(lambda: self._change_code_font_size(1))
-        action_zoom_out.triggered.connect(lambda: self._change_code_font_size(-1))
-        action_exit.triggered.connect(self.close)
-
-        menu_file.addAction(action_new)
-        menu_file.addAction(action_open)
-        menu_file.addAction(action_open_folder)
-        menu_file.addAction(action_close)
-        menu_file.addSeparator()
-        menu_file.addAction(action_save)
-        menu_file.addAction(action_save_as)
-        menu_file.addSeparator()
-        menu_file.addAction(action_exit)
-
-        menu_edit.addAction(action_undo)
-        menu_edit.addAction(action_redo)
-        menu_edit.addAction(action_copy)
-        menu_edit.addAction(action_paste)
-        menu_edit.addSeparator()
-        menu_edit.addAction(action_find)
-        menu_edit.addAction(action_find_next)
-        menu_edit.addAction(action_find_prev)
-        menu_edit.addAction(action_go_to_line)
-        menu_edit.addAction(action_toggle_analysis)
-        menu_edit.addAction(action_toggle_terminal)
-        menu_edit.addAction(action_toggle_explorer)
-        menu_edit.addAction(action_adjust_layout)
-        menu_edit.addAction(action_themes)
-        menu_edit.addAction(action_code_font)
-        menu_edit.addAction(action_autosave)
-        menu_edit.addAction(action_zoom_in)
-        menu_edit.addAction(action_zoom_out)
-
-        action_lex = QAction("Análisis Léxico", self)
-        action_syn = QAction("Análisis Sintáctico", self)
-        action_sem = QAction("Análisis Semántico", self)
-        action_inter = QAction("Código Intermedio", self)
-        action_exec = QAction("Ejecución", self)
-        action_clear = QAction("Limpiar", self)
-
-        action_lex.triggered.connect(lambda: self._run_phase("lexico"))
-        action_syn.triggered.connect(lambda: self._run_phase("sintactico"))
-        action_sem.triggered.connect(lambda: self._run_phase("semantico"))
-        action_inter.triggered.connect(lambda: self._run_phase("intermedio"))
-        action_exec.triggered.connect(lambda: self._run_phase("ejecucion"))
-        action_clear.triggered.connect(self._clear_outputs)
-
-        menu_build.addAction(action_lex)
-        menu_build.addAction(action_syn)
-        menu_build.addAction(action_sem)
-        menu_build.addAction(action_inter)
-        menu_build.addAction(action_exec)
-        menu_build.addSeparator()
-        menu_build.addAction(action_clear)
-
-        for label in ["Documentación", "Acerca de"]:
-            menu_help.addAction(QAction(label, self))
+        build_menu(self)
 
     def _build_toolbar(self) -> None:
-        toolbar = QToolBar("Herramientas", self)
-        toolbar.setMovable(False)
-        toolbar.setIconSize(QSize(20, 20))
-        self.addToolBar(Qt.TopToolBarArea, toolbar)
-
-        colors = steins_gate_theme.get_colors()
-        warm_color = "#f5b041"
-        green_color = "#58d68d"
-        blue_color = "#5dade2"
-        purple_color = "#af7ac5"
-
-        action_new = QAction(self._toolbar_icon(["fa5s.file-alt", "fa5.file"], QStyle.SP_FileIcon, color=colors.foreground), "Nuevo", self)
-        action_open = QAction(self._toolbar_icon(["fa5s.folder-open", "fa5.folder-open"], QStyle.SP_DirOpenIcon, color=warm_color), "Abrir", self)
-        action_save = QAction(self._toolbar_icon(["fa5s.save", "fa5.save"], QStyle.SP_DialogSaveButton, color=green_color), "Guardar", self)
-        action_save_as = QAction(self._toolbar_icon(["fa5s.file-export", "fa5.copy"], QStyle.SP_DialogSaveButton, color=blue_color), "Guardar como", self)
-        action_find = QAction(self._toolbar_icon(["fa5s.search", "fa5.search"], QStyle.SP_FileDialogContentsView, color=purple_color), "Buscar", self)
-        action_toggle_analysis = QAction(self._toolbar_icon(["fa5s.chart-bar", "fa5.chart-bar"], QStyle.SP_FileDialogDetailedView, color=colors.accent), "Alternar analizadores", self)
-        action_toggle_terminal = QAction(self._toolbar_icon(["fa5s.terminal", "fa5.terminal"], QStyle.SP_ComputerIcon, color=colors.foreground), "Alternar terminal", self)
-        action_toggle_explorer = QAction(self._toolbar_icon(["fa5s.sitemap", "fa5.sitemap"], QStyle.SP_DirIcon, color=warm_color), "Alternar árbol", self)
-        action_lex = QAction(self._toolbar_icon(["fa5s.font", "fa5.font"], QStyle.SP_FileDialogInfoView, color=blue_color), "Léxico", self)
-        action_syn = QAction(self._toolbar_icon(["fa5s.code-branch", "fa5.code-branch"], QStyle.SP_FileDialogContentsView, color=purple_color), "Sintáctico", self)
-        action_sem = QAction(self._toolbar_icon(["fa5s.check-circle", "fa5.check-circle"], QStyle.SP_MessageBoxInformation, color=green_color), "Semántico", self)
-        action_inter = QAction(self._toolbar_icon(["fa5s.cogs", "fa5.cogs"], QStyle.SP_ComputerIcon, color=warm_color), "Intermedio", self)
-        action_exec = QAction(self._toolbar_icon(["fa5s.play-circle", "fa5.play-circle"], QStyle.SP_MediaPlay, color=colors.accent), "Ejecución", self)
-
-        action_new.setToolTip("Nuevo (Ctrl+N)")
-        action_open.setToolTip("Abrir archivo")
-        action_save.setToolTip("Guardar (Ctrl+S)")
-        action_save_as.setToolTip("Guardar como (Ctrl+Shift+S)")
-        action_find.setToolTip("Buscar (Ctrl+F)")
-        action_toggle_analysis.setToolTip("Alternar analizadores (Ctrl+1)")
-        action_toggle_terminal.setToolTip("Alternar terminal (Ctrl+2)")
-        action_toggle_explorer.setToolTip("Alternar árbol de archivos (Ctrl+3)")
-        action_lex.setToolTip("Análisis léxico")
-        action_syn.setToolTip("Análisis sintáctico")
-        action_sem.setToolTip("Análisis semántico")
-        action_inter.setToolTip("Código intermedio")
-        action_exec.setToolTip("Ejecución")
-
-        action_new.triggered.connect(self._new_file)
-        action_open.triggered.connect(self._open_file)
-        action_save.triggered.connect(self._save_file)
-        action_save_as.triggered.connect(self._save_file_as)
-        action_find.triggered.connect(self._find_in_code)
-        action_toggle_analysis.triggered.connect(self._toggle_analysis_panel)
-        action_toggle_terminal.triggered.connect(self._toggle_terminal_panel)
-        action_toggle_explorer.triggered.connect(self._toggle_explorer_panel)
-        action_lex.triggered.connect(lambda: self._run_phase("lexico"))
-        action_syn.triggered.connect(lambda: self._run_phase("sintactico"))
-        action_sem.triggered.connect(lambda: self._run_phase("semantico"))
-        action_inter.triggered.connect(lambda: self._run_phase("intermedio"))
-        action_exec.triggered.connect(lambda: self._run_phase("ejecucion"))
-
-        toolbar.addAction(action_new)
-        toolbar.addAction(action_open)
-        toolbar.addAction(action_save)
-        toolbar.addAction(action_save_as)
-        toolbar.addAction(action_find)
-        toolbar.addSeparator()
-        toolbar.addAction(action_toggle_analysis)
-        toolbar.addAction(action_toggle_terminal)
-        toolbar.addAction(action_toggle_explorer)
-        toolbar.addSeparator()
-        toolbar.addAction(action_lex)
-        toolbar.addAction(action_syn)
-        toolbar.addAction(action_sem)
-        toolbar.addAction(action_inter)
-        toolbar.addAction(action_exec)
+        build_toolbar(self)
 
     def _toolbar_icon(
         self,
@@ -354,161 +190,10 @@ class MainWindow(QMainWindow):
         return steins_gate_theme.get_theme_name()
 
     def _build_layout(self) -> None:
-        self._editor_tabs = QTabWidget()
-        self._editor_tabs.setFocusPolicy(Qt.StrongFocus)
-        self._editor_tabs.setMinimumWidth(420)
-        self._editor_tabs.setTabsClosable(True)
-        self._editor_tabs.tabCloseRequested.connect(self._close_tab)
-        self._editor_tabs.currentChanged.connect(self._on_tab_changed)
-
-        self._editor_container = QWidget(self)
-        editor_layout = QVBoxLayout(self._editor_container)
-        editor_layout.setContentsMargins(0, 0, 0, 0)
-        editor_layout.setSpacing(0)
-
-        self._find_bar = self._build_find_bar()
-        editor_layout.addWidget(self._find_bar)
-        editor_layout.addWidget(self._editor_tabs, 1)
-        self._editor_container.setMinimumWidth(420)
-
-        self._file_explorer = FileExplorer()
-        self._file_explorer.file_open_requested.connect(self._open_file_from_explorer)
-        self._file_explorer.file_close_requested.connect(self._close_file_from_explorer)
-        self._file_explorer.path_renamed.connect(self._on_path_renamed)
-        self._file_explorer.path_deleted.connect(self._on_path_deleted)
-        self._analysis_panel = AnalysisPanel()
-        self._analysis_container = self._create_panel_container(
-            "Analizadores",
-            self._analysis_panel,
-            on_toggle_minimize=self._toggle_analysis_minimize,
-            on_close=self._close_analysis_panel,
-        )
-
-        self._top_splitter = QSplitter(Qt.Horizontal)
-        self._top_splitter.setChildrenCollapsible(True)
-        self._top_splitter.addWidget(self._file_explorer)
-        self._top_splitter.addWidget(self._editor_container)
-        self._top_splitter.addWidget(self._analysis_container)
-        self._top_splitter.setStretchFactor(0, 1)
-        self._top_splitter.setStretchFactor(1, 3)
-        self._top_splitter.setStretchFactor(2, 1)
-        self._top_splitter.setSizes([250, 700, 250])
-        self._top_sizes_before_analysis_toggle = self._top_splitter.sizes()
-
-        self._console_panel = ConsolePanel()
-        self._console_container = self._create_panel_container(
-            "Terminal",
-            self._console_panel,
-            on_toggle_minimize=self._toggle_console_minimize,
-            on_close=self._close_console_panel,
-        )
-
-        self._main_splitter = QSplitter(Qt.Vertical)
-        self._main_splitter.addWidget(self._top_splitter)
-        self._main_splitter.addWidget(self._console_container)
-        self._main_splitter.setStretchFactor(0, 3)
-        self._main_splitter.setStretchFactor(1, 1)
-        self._main_splitter.setSizes([620, 180])
-        self._main_sizes_before_console_toggle = self._main_splitter.sizes()
-
-        self.setCentralWidget(self._main_splitter)
-        self._restore_session()
+        build_layout(self)
 
     def _build_find_bar(self) -> QWidget:
-        bar = QWidget(self)
-        bar.setObjectName("find_bar")
-
-        layout = QHBoxLayout(bar)
-        layout.setContentsMargins(8, 6, 8, 6)
-        layout.setSpacing(6)
-
-        stack = QStackedWidget(bar)
-
-        find_page = QWidget(stack)
-        find_layout = QHBoxLayout(find_page)
-        find_layout.setContentsMargins(0, 0, 0, 0)
-        find_layout.setSpacing(6)
-
-        label = QLabel("Buscar:", find_page)
-        field = QLineEdit(find_page)
-        field.setPlaceholderText("Texto a buscar")
-        field.setClearButtonEnabled(True)
-
-        count_label = QLabel("0/0", find_page)
-        count_label.setObjectName("find_count")
-
-        previous_button = QToolButton(find_page)
-        previous_button.setText("◀")
-        previous_button.setToolTip("Coincidencia anterior (Shift+F3)")
-
-        next_button = QToolButton(find_page)
-        next_button.setText("▶")
-        next_button.setToolTip("Siguiente coincidencia (F3)")
-
-        close_button = QToolButton(find_page)
-        close_button.setText("✕")
-        close_button.setToolTip("Cerrar búsqueda (Esc)")
-
-        find_layout.addWidget(label)
-        find_layout.addWidget(field, 1)
-        find_layout.addWidget(count_label)
-        find_layout.addWidget(previous_button)
-        find_layout.addWidget(next_button)
-        find_layout.addWidget(close_button)
-
-        line_page = QWidget(stack)
-        line_layout = QHBoxLayout(line_page)
-        line_layout.setContentsMargins(0, 0, 0, 0)
-        line_layout.setSpacing(6)
-
-        line_label = QLabel("Ir a línea:", line_page)
-        line_input = QSpinBox(line_page)
-        line_input.setMinimum(1)
-        line_input.setMaximum(1)
-        line_input.setButtonSymbols(QSpinBox.NoButtons)
-
-        go_button = QToolButton(line_page)
-        go_button.setText("Ir")
-        go_button.setToolTip("Mover cursor a la línea")
-
-        go_close_button = QToolButton(line_page)
-        go_close_button.setText("✕")
-        go_close_button.setToolTip("Cerrar (Esc)")
-
-        line_layout.addWidget(line_label)
-        line_layout.addWidget(line_input)
-        line_layout.addWidget(go_button)
-        line_layout.addWidget(go_close_button)
-        line_layout.addStretch(1)
-
-        stack.addWidget(find_page)
-        stack.addWidget(line_page)
-        layout.addWidget(stack, 1)
-
-        field.textChanged.connect(self._on_find_text_changed)
-        field.returnPressed.connect(self._find_next)
-        previous_button.clicked.connect(self._find_previous)
-        next_button.clicked.connect(self._find_next)
-        close_button.clicked.connect(self._hide_find_bar)
-        line_input.editingFinished.connect(lambda: self._jump_to_line(line_input.value()))
-        go_button.clicked.connect(lambda: self._jump_to_line(line_input.value()))
-        go_close_button.clicked.connect(self._hide_find_bar)
-
-        self._find_close_shortcut = QShortcut(QKeySequence("Esc"), bar)
-        self._find_close_shortcut.activated.connect(self._hide_find_bar)
-
-        self._find_bar_stack = stack
-        self._find_input = field
-        self._find_count_label = count_label
-        self._find_previous_button = previous_button
-        self._find_next_button = next_button
-        self._find_close_button = close_button
-        self._go_to_line_input = line_input
-        self._go_to_line_button = go_button
-        self._go_to_line_close_button = go_close_button
-
-        bar.setVisible(False)
-        return bar
+        return build_find_bar(self)
 
     def _show_find_bar(self, mode: str = "find") -> None:
         if self._find_bar is None:
@@ -952,369 +637,19 @@ class MainWindow(QMainWindow):
         self._code_font = QFont(family, size)
 
     def _select_code_font(self) -> None:
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Topografia")
-        dialog.resize(760, 460)
-
-        colors = steins_gate_theme.get_colors()
-        dialog.setStyleSheet(
-            f"""
-            QDialog {{
-                background-color: {colors.panel_bg};
-                color: {colors.foreground};
-            }}
-            QLabel {{
-                color: {colors.foreground};
-            }}
-            QListWidget, QLineEdit {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                selection-background-color: {colors.selection};
-            }}
-            QPushButton {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                padding: 4px 10px;
-            }}
-            QPushButton:hover {{
-                background-color: {colors.hover};
-            }}
-            """
-        )
-
-        layout = QVBoxLayout(dialog)
-        lists_row = QHBoxLayout()
-
-        family_container = QVBoxLayout()
-        style_container = QVBoxLayout()
-        size_container = QVBoxLayout()
-
-        family_label = QLabel("Font")
-        style_label = QLabel("Font style")
-        size_label = QLabel("Size")
-
-        family_list = QListWidget(dialog)
-        style_list = QListWidget(dialog)
-        size_list = QListWidget(dialog)
-
-        family_container.addWidget(family_label)
-        family_container.addWidget(family_list)
-        style_container.addWidget(style_label)
-        style_container.addWidget(style_list)
-        size_container.addWidget(size_label)
-        size_container.addWidget(size_list)
-
-        lists_row.addLayout(family_container, 4)
-        lists_row.addLayout(style_container, 3)
-        lists_row.addLayout(size_container, 2)
-        layout.addLayout(lists_row)
-
-        preview_label = QLabel("Sample")
-        preview_edit = QLineEdit(dialog)
-        preview_edit.setReadOnly(True)
-        preview_edit.setMinimumHeight(36)
-        layout.addWidget(preview_label)
-        layout.addWidget(preview_edit)
-
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=dialog)
-        reset_button = button_box.addButton("Restablecer", QDialogButtonBox.ResetRole)
-        layout.addWidget(button_box)
-
-        db = QFontDatabase()
-        for family in db.families():
-            family_list.addItem(family)
-
-        def select_item_by_text(widget: QListWidget, value: str) -> None:
-            for row in range(widget.count()):
-                item = widget.item(row)
-                if item and item.text() == value:
-                    widget.setCurrentRow(row)
-                    return
-            if widget.count() > 0:
-                widget.setCurrentRow(0)
-
-        def select_item_by_size(widget: QListWidget, size: int) -> None:
-            best_row = 0
-            best_delta = 10_000
-            for row in range(widget.count()):
-                item = widget.item(row)
-                if item is None:
-                    continue
-                try:
-                    current_size = int(item.text())
-                except ValueError:
-                    continue
-                delta = abs(current_size - size)
-                if delta < best_delta:
-                    best_delta = delta
-                    best_row = row
-            if widget.count() > 0:
-                widget.setCurrentRow(best_row)
-
-        def selected_font() -> QFont:
-            family_item = family_list.currentItem()
-            style_item = style_list.currentItem()
-            size_item = size_list.currentItem()
-
-            family = family_item.text() if family_item else self._DEFAULT_CODE_FONT_FAMILY
-            style = style_item.text() if style_item else "Regular"
-            try:
-                size = int(size_item.text()) if size_item else self._DEFAULT_CODE_FONT_SIZE
-            except ValueError:
-                size = self._DEFAULT_CODE_FONT_SIZE
-
-            return db.font(family, style, size)
-
-        def refresh_styles_and_sizes() -> None:
-            family_item = family_list.currentItem()
-            if family_item is None:
-                return
-
-            family = family_item.text()
-            current_style = style_list.currentItem().text() if style_list.currentItem() else "Regular"
-            style_list.clear()
-            styles = db.styles(family) or ["Regular"]
-            for style in styles:
-                style_list.addItem(style)
-            select_item_by_text(style_list, current_style)
-
-            current_size = self._code_font.pointSize()
-            size_list.clear()
-            sizes = db.pointSizes(family)
-            if not sizes:
-                sizes = [6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32]
-            for size in sizes:
-                size_list.addItem(str(size))
-            select_item_by_size(size_list, current_size)
-
-        def update_preview() -> None:
-            candidate_font = selected_font()
-            preview_text = "AaBbYyZz 0123"
-            metrics = QFontMetrics(candidate_font)
-            supports_preview = all(metrics.inFont(char) for char in preview_text if char != " ")
-
-            if supports_preview:
-                preview_edit.setFont(candidate_font)
-                preview_edit.setText(preview_text)
-                return
-
-            preview_edit.setFont(QFont(self._DEFAULT_CODE_FONT_FAMILY, self._DEFAULT_CODE_FONT_SIZE))
-            preview_edit.setText("Sin vista previa para esta fuente")
-
-        family_list.currentRowChanged.connect(lambda _row: (refresh_styles_and_sizes(), update_preview()))
-        style_list.currentRowChanged.connect(lambda _row: update_preview())
-        size_list.currentRowChanged.connect(lambda _row: update_preview())
-
-        button_box.accepted.connect(dialog.accept)
-        button_box.rejected.connect(dialog.reject)
-        reset_button.clicked.connect(
-            lambda: (
-                select_item_by_text(family_list, self._DEFAULT_CODE_FONT_FAMILY),
-                refresh_styles_and_sizes(),
-                select_item_by_size(size_list, self._DEFAULT_CODE_FONT_SIZE),
-                update_preview(),
-            )
-        )
-
-        select_item_by_text(family_list, self._code_font.family())
-        refresh_styles_and_sizes()
-        select_item_by_text(style_list, db.styleString(self._code_font) or "Regular")
-        select_item_by_size(size_list, self._code_font.pointSize())
-        update_preview()
-
-        if dialog.exec_() != QDialog.Accepted:
-            return
-
-        selected = selected_font()
-        selected_size = selected.pointSize() if selected.pointSize() > 0 else self._code_font.pointSize()
-        self._code_font = QFont(selected.family(), selected_size)
-        self._apply_code_font_to_open_editors()
-        self._settings.setValue("session/code_font_family", self._code_font.family())
-        self._settings.setValue("session/code_font_size", self._code_font.pointSize())
-        self._status.showMessage(f"Topografia aplicada: {self._code_font.family()} {self._code_font.pointSize()}pt", 3000)
+        select_code_font(self)
 
     def _apply_code_font_to_open_editors(self) -> None:
-        if self._editor_tabs is None:
-            return
-
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if not isinstance(editor, CodeEditor):
-                continue
-            editor.setFont(self._code_font)
-            editor.update_line_number_area_width(0)
-            editor.viewport().update()
-            editor.update()
+        apply_code_font_to_open_editors(self)
 
     def _change_code_font_size(self, delta: int) -> None:
-        current_size = self._code_font.pointSize() if self._code_font.pointSize() > 0 else self._DEFAULT_CODE_FONT_SIZE
-        new_size = max(6, min(48, current_size + delta))
-        if new_size == current_size:
-            return
-
-        self._code_font = QFont(self._code_font.family(), new_size)
-        self._apply_code_font_to_open_editors()
-        self._settings.setValue("session/code_font_family", self._code_font.family())
-        self._settings.setValue("session/code_font_size", self._code_font.pointSize())
-        self._status.showMessage(f"Topografia: {self._code_font.family()} {self._code_font.pointSize()}pt", 1500)
+        change_code_font_size(self, delta)
 
     def _apply_theme(self, theme_key: str, *, persist: bool = True, show_status: bool = True) -> None:
-        if not steins_gate_theme.set_theme(theme_key):
-            return
-
-        app = QApplication.instance()
-        if app is not None:
-            app.setStyleSheet(steins_gate_theme.build_stylesheet())
-
-        if self._editor_tabs is not None:
-            for index in range(self._editor_tabs.count()):
-                editor = self._editor_tabs.widget(index)
-                if not isinstance(editor, CodeEditor):
-                    continue
-                editor.highlight_current_line()
-                editor.viewport().update()
-                editor.update()
-
-        if persist:
-            self._settings.setValue("session/theme", theme_key)
-
-        if show_status:
-            self._status.showMessage(f"Tema aplicado: {steins_gate_theme.get_theme_name(theme_key)}", 3000)
+        apply_theme(self, theme_key, persist=persist, show_status=show_status)
 
     def _open_theme_dialog(self) -> None:
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Temas")
-        dialog.resize(920, 500)
-        colors = steins_gate_theme.get_colors()
-        dialog.setStyleSheet(
-            f"""
-            QDialog {{
-                background-color: {colors.panel_bg};
-                color: {colors.foreground};
-            }}
-            QLabel {{
-                color: {colors.foreground};
-            }}
-            QListWidget {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-            }}
-            QListWidget::item:selected {{
-                background-color: {colors.selection};
-                color: {colors.foreground};
-            }}
-            QPlainTextEdit {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                selection-background-color: {colors.selection};
-            }}
-            QPushButton {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                padding: 4px 10px;
-            }}
-            QPushButton:hover {{
-                background-color: {colors.hover};
-            }}
-            """
-        )
-
-        root_layout = QHBoxLayout(dialog)
-
-        theme_list = QListWidget(dialog)
-        theme_list.setMinimumWidth(250)
-        for theme_key, theme_name in steins_gate_theme.list_themes():
-            item = QListWidgetItem(theme_name)
-            item.setData(Qt.UserRole, theme_key)
-            theme_list.addItem(item)
-
-        current_theme_key = steins_gate_theme.get_theme_key()
-        for row in range(theme_list.count()):
-            item = theme_list.item(row)
-            if item.data(Qt.UserRole) == current_theme_key:
-                theme_list.setCurrentRow(row)
-                break
-
-        right_panel = QWidget(dialog)
-        right_layout = QVBoxLayout(right_panel)
-
-        preview_code = QPlainTextEdit(right_panel)
-        preview_code.setReadOnly(True)
-        preview_code.setPlainText(
-            "// Vista previa de tema\n"
-            "gate {\n"
-            "    let mensaje = \"El Psy Kongroo\";\n"
-            "    dmail(mensaje);\n"
-            "}\n"
-        )
-
-        preview_info = QFormLayout()
-        label_background = QLabel(right_panel)
-        label_foreground = QLabel(right_panel)
-        label_accent = QLabel(right_panel)
-        label_selection = QLabel(right_panel)
-        preview_info.addRow("Fondo:", label_background)
-        preview_info.addRow("Texto:", label_foreground)
-        preview_info.addRow("Acento:", label_accent)
-        preview_info.addRow("Selección:", label_selection)
-
-        def apply_preview(theme_key: str) -> None:
-            colors = steins_gate_theme.get_colors_for_theme(theme_key)
-            swatch_style = "padding: 4px 8px; border: 1px solid {}; background-color: {}; color: {};"
-
-            label_background.setText(colors.background)
-            label_background.setStyleSheet(swatch_style.format(colors.border, colors.background, colors.foreground))
-            label_foreground.setText(colors.foreground)
-            label_foreground.setStyleSheet(swatch_style.format(colors.border, colors.panel_bg, colors.foreground))
-            label_accent.setText(colors.accent)
-            label_accent.setStyleSheet(swatch_style.format(colors.border, colors.accent, colors.background))
-            label_selection.setText(colors.selection)
-            label_selection.setStyleSheet(swatch_style.format(colors.border, colors.selection, colors.foreground))
-
-            preview_code.setStyleSheet(
-                f""
-                f"QPlainTextEdit {{"
-                f"background-color: {colors.background};"
-                f"color: {colors.foreground};"
-                f"selection-background-color: {colors.selection};"
-                f"border: 1px solid {colors.border};"
-                f"}}"
-            )
-
-        def on_theme_selected() -> None:
-            selected_item = theme_list.currentItem()
-            if selected_item is None:
-                return
-            selected_key = str(selected_item.data(Qt.UserRole))
-            apply_preview(selected_key)
-
-        theme_list.currentRowChanged.connect(lambda _row: on_theme_selected())
-        on_theme_selected()
-
-        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=dialog)
-        buttons.accepted.connect(dialog.accept)
-        buttons.rejected.connect(dialog.reject)
-
-        right_layout.addLayout(preview_info)
-        right_layout.addWidget(preview_code, 1)
-        right_layout.addWidget(buttons)
-
-        root_layout.addWidget(theme_list)
-        root_layout.addWidget(right_panel, 1)
-
-        if dialog.exec_() != QDialog.Accepted:
-            return
-
-        selected_item = theme_list.currentItem()
-        if selected_item is None:
-            return
-        selected_key = str(selected_item.data(Qt.UserRole))
-        self._apply_theme(selected_key)
+        open_theme_dialog(self)
 
     def _on_text_changed(self) -> None:
         editor = self._get_active_editor()
@@ -1326,250 +661,40 @@ class MainWindow(QMainWindow):
         self._update_cursor_status()
 
     def _set_autosave_enabled(self, enabled: bool, *, persist: bool = True) -> None:
-        self._autosave_enabled = enabled
-        if self._autosave_enabled:
-            self._autosave_timer.start()
-        else:
-            self._autosave_timer.stop()
-
-        if persist:
-            self._settings.setValue("session/autosave_enabled", self._autosave_enabled)
+        set_autosave_enabled(self, enabled, persist=persist)
 
     def _auto_save_open_files(self) -> None:
-        if self._editor_tabs is None:
-            return
-
-        saved_count = 0
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if not isinstance(editor, CodeEditor):
-                continue
-            if not bool(editor.property("unsaved")):
-                continue
-
-            file_path_raw = editor.property("file_path")
-            if not file_path_raw:
-                continue
-
-            path = Path(str(file_path_raw))
-            if not path.exists() or not path.is_file():
-                continue
-
-            if self._write_editor_to_path(editor, path):
-                saved_count += 1
-
-        if saved_count > 0 and self._console_panel is not None:
-            self._console_panel.append_console(f"Autoguardado: {saved_count} archivo(s).")
+        auto_save_open_files(self)
 
     def _write_editor_to_path(self, editor: CodeEditor, path: Path) -> bool:
-        path_key = str(path.resolve())
-        self._suppress_file_watch_event.add(path_key)
-        try:
-            path.write_text(editor.toPlainText(), encoding="utf-8")
-        except OSError:
-            return False
-        finally:
-            self._suppress_file_watch_event.discard(path_key)
-
-        editor.setProperty("unsaved", False)
-        self._watch_file(path)
-        return True
+        return write_editor_to_path(self, editor, path)
 
     def _save_editor_as(self, editor: CodeEditor, index: int | None = None) -> bool:
-        dialog = self._create_themed_file_dialog(
-            title="Guardar archivo",
-            accept_mode=QFileDialog.AcceptSave,
-            file_mode=QFileDialog.AnyFile,
-            name_filters=[
-                "Archivos Skuld (*.stn)",
-                "Archivos de texto (*.txt)",
-                "Todos los archivos (*.*)",
-            ],
-            selected_filter="Archivos Skuld (*.stn)",
-            default_suffix="stn",
-        )
-        if dialog.exec_() != QDialog.Accepted:
-            return False
-
-        selected_files = dialog.selectedFiles()
-        if not selected_files:
-            return False
-
-        file_path = selected_files[0]
-
-        path = Path(file_path)
-        if not self._write_editor_to_path(editor, path):
-            QMessageBox.warning(self, "Guardar", f"No fue posible guardar el archivo:\n{path}")
-            return False
-
-        editor.setProperty("file_path", str(path))
-        tab_index = index if index is not None else (self._editor_tabs.currentIndex() if self._editor_tabs is not None else -1)
-        if self._editor_tabs is not None and tab_index >= 0:
-            self._editor_tabs.setTabText(tab_index, path.name)
-            self._editor_tabs.setTabToolTip(tab_index, str(path))
-
-        if self._file_explorer is not None:
-            self._file_explorer.refresh()
-            self._file_explorer.add_open_file(str(path))
-        return True
+        return save_editor_as(self, editor, index=index)
 
     def _save_editor(self, editor: CodeEditor, index: int | None = None) -> bool:
-        file_path_raw = editor.property("file_path")
-        if not file_path_raw:
-            return self._save_editor_as(editor, index=index)
-
-        path = Path(str(file_path_raw))
-        if not self._write_editor_to_path(editor, path):
-            QMessageBox.warning(self, "Guardar", f"No fue posible guardar el archivo:\n{path}")
-            return False
-
-        if self._file_explorer is not None:
-            self._file_explorer.refresh()
-        return True
+        return save_editor(self, editor, index=index)
 
     def _collect_unsaved_tab_indexes(self) -> list[int]:
-        if self._editor_tabs is None:
-            return []
-        result: list[int] = []
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if isinstance(editor, CodeEditor) and bool(editor.property("unsaved")):
-                result.append(index)
-        return result
+        return collect_unsaved_tab_indexes(self)
 
     def _confirm_unsaved_for_tab(self, index: int) -> bool:
-        if self._editor_tabs is None:
-            return True
-        editor = self._editor_tabs.widget(index)
-        if not isinstance(editor, CodeEditor) or not bool(editor.property("unsaved")):
-            return True
-
-        tab_name = self._editor_tabs.tabText(index) or "Sin título"
-        choice = QMessageBox.question(
-            self,
-            "Cambios sin guardar",
-            f"El archivo '{tab_name}' tiene cambios sin guardar.\n\n¿Deseas guardar antes de cerrar?",
-            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-            QMessageBox.Save,
-        )
-        if choice == QMessageBox.Cancel:
-            return False
-        if choice == QMessageBox.Discard:
-            return True
-
-        if self._editor_tabs.currentIndex() != index:
-            self._editor_tabs.setCurrentIndex(index)
-        active_editor = self._get_active_editor()
-        if active_editor is None:
-            return False
-        return self._save_editor(active_editor, index=index)
+        return confirm_unsaved_for_tab(self, index)
 
     def _confirm_all_unsaved_before_exit(self) -> bool:
-        for index in sorted(self._collect_unsaved_tab_indexes(), reverse=True):
-            if not self._confirm_unsaved_for_tab(index):
-                return False
-        return True
+        return confirm_all_unsaved_before_exit(self)
 
     def _watch_file(self, path: Path) -> None:
-        resolved_str = str(path.resolve())
-        if not path.exists() or not path.is_file():
-            return
-        if resolved_str not in self._file_watcher.files():
-            self._file_watcher.addPath(resolved_str)
-        self._watched_files_mtime[resolved_str] = path.stat().st_mtime
+        watch_file(self, path)
 
     def _unwatch_file_if_unused(self, path: Path) -> None:
-        resolved = path.resolve()
-        resolved_str = str(resolved)
-
-        if self._editor_tabs is not None:
-            for index in range(self._editor_tabs.count()):
-                editor = self._editor_tabs.widget(index)
-                if not isinstance(editor, CodeEditor):
-                    continue
-                tab_path_raw = editor.property("file_path")
-                if not tab_path_raw:
-                    continue
-                if Path(str(tab_path_raw)).resolve() == resolved:
-                    return
-
-        if resolved_str in self._file_watcher.files():
-            self._file_watcher.removePath(resolved_str)
-        self._watched_files_mtime.pop(resolved_str, None)
+        unwatch_file_if_unused(self, path)
 
     def _reload_editor_from_disk(self, editor: CodeEditor, path: Path) -> bool:
-        try:
-            content: str | None = None
-            for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
-                try:
-                    content = path.read_text(encoding=enc)
-                    break
-                except UnicodeDecodeError:
-                    continue
-            if content is None:
-                return False
-        except OSError:
-            return False
-
-        editor.blockSignals(True)
-        editor.setPlainText(content)
-        editor.blockSignals(False)
-        editor.setProperty("unsaved", False)
-        if self._search_text:
-            editor.set_search_highlights(self._search_text)
-        return True
+        return reload_editor_from_disk(self, editor, path)
 
     def _on_watched_file_changed(self, file_path: str) -> None:
-        if file_path in self._suppress_file_watch_event:
-            self._watch_file(Path(file_path))
-            return
-
-        changed_path = Path(file_path)
-        if not changed_path.exists() or not changed_path.is_file():
-            return
-
-        current_mtime = changed_path.stat().st_mtime
-        previous_mtime = self._watched_files_mtime.get(file_path)
-        if previous_mtime is not None and current_mtime <= previous_mtime:
-            self._watch_file(changed_path)
-            return
-
-        self._watch_file(changed_path)
-
-        if self._editor_tabs is None:
-            return
-
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if not isinstance(editor, CodeEditor):
-                continue
-            tab_path_raw = editor.property("file_path")
-            if not tab_path_raw:
-                continue
-
-            tab_path = Path(str(tab_path_raw)).resolve()
-            if tab_path != changed_path.resolve():
-                continue
-
-            if bool(editor.property("unsaved")):
-                QMessageBox.information(
-                    self,
-                    "Archivo actualizado externamente",
-                    f"El archivo cambió fuera de la IDE y esta pestaña tiene cambios sin guardar:\n{tab_path.name}",
-                )
-                continue
-
-            reload_choice = QMessageBox.question(
-                self,
-                "Archivo actualizado externamente",
-                f"El archivo cambió fuera de la IDE:\n{tab_path.name}\n\n¿Deseas recargarlo?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.Yes,
-            )
-            if reload_choice == QMessageBox.Yes:
-                self._reload_editor_from_disk(editor, tab_path)
-                if self._editor_tabs.currentIndex() == index:
-                    self._update_cursor_status()
+        on_watched_file_changed(self, file_path)
 
     def _update_cursor_status(self) -> None:
         editor = self._get_active_editor()
@@ -1587,72 +712,13 @@ class MainWindow(QMainWindow):
         )
 
     def _new_file(self, with_example: bool = False) -> None:
-        if self._editor_tabs is None:
-            return
-
-        editor = CodeEditor()
-        editor.setReadOnly(False)
-        editor.setFocusPolicy(Qt.StrongFocus)
-        editor.setFont(self._code_font)
-        if with_example:
-            editor.setPlainText(self._load_example_code())
-        self._bind_editor_events(editor)
-        editor.setProperty("file_path", "")
-        editor.set_search_highlights(self._search_text)
-
-        tab_title = f"Sin título {self._untitled_counter}"
-        self._untitled_counter += 1
-        tab_index = self._editor_tabs.addTab(editor, tab_title)
-        self._editor_tabs.setCurrentIndex(tab_index)
-
-        if self._console_panel is not None:
-            self._console_panel.append_console("Nuevo archivo creado.")
-        editor.setFocus()
-        self._update_cursor_status()
+        new_file(self, with_example=with_example)
 
     def _open_file(self) -> None:
-        dialog = self._create_themed_file_dialog(
-            title="Abrir archivo",
-            accept_mode=QFileDialog.AcceptOpen,
-            file_mode=QFileDialog.ExistingFile,
-            name_filters=[
-                "Archivos compatibles (*.stn *.txt)",
-                "Archivos Skuld (*.stn)",
-                "Archivos de texto (*.txt)",
-                "Todos los archivos (*.*)",
-            ],
-            selected_filter="Archivos compatibles (*.stn *.txt)",
-        )
-        if dialog.exec_() != QDialog.Accepted:
-            return
-
-        selected_files = dialog.selectedFiles()
-        if not selected_files:
-            return
-
-        self._open_file_path(Path(selected_files[0]))
+        open_file(self)
 
     def _open_folder(self) -> None:
-        dialog = self._create_themed_file_dialog(
-            title="Seleccionar carpeta",
-            accept_mode=QFileDialog.AcceptOpen,
-            file_mode=QFileDialog.Directory,
-        )
-        dialog.setOption(QFileDialog.ShowDirsOnly, True)
-        if dialog.exec_() != QDialog.Accepted:
-            return
-
-        selected_paths = dialog.selectedFiles()
-        if not selected_paths:
-            return
-
-        folder_path = selected_paths[0]
-        if not folder_path:
-            return
-        if self._file_explorer is not None:
-            self._file_explorer.add_root_path(folder_path)
-        if self._console_panel is not None:
-            self._console_panel.append_console(f"Carpeta agregada: {Path(folder_path).name}")
+        open_folder(self)
 
     def _create_themed_file_dialog(
         self,
@@ -1664,370 +730,48 @@ class MainWindow(QMainWindow):
         selected_filter: str | None = None,
         default_suffix: str | None = None,
     ) -> QFileDialog:
-        dialog = QFileDialog(self, title)
-        dialog.setOption(QFileDialog.DontUseNativeDialog, True)
-        dialog.setAcceptMode(accept_mode)
-        dialog.setFileMode(file_mode)
-
-        if name_filters:
-            dialog.setNameFilters(name_filters)
-            if selected_filter:
-                dialog.selectNameFilter(selected_filter)
-
-        if default_suffix:
-            dialog.setDefaultSuffix(default_suffix)
-
-        colors = steins_gate_theme.get_colors()
-        dialog.setStyleSheet(
-            f"""
-            QFileDialog {{
-                background-color: {colors.panel_bg};
-                color: {colors.foreground};
-            }}
-            QFileDialog QLabel {{
-                color: {colors.foreground};
-            }}
-            QFileDialog QLineEdit,
-            QFileDialog QComboBox,
-            QFileDialog QSpinBox {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                selection-background-color: {colors.selection};
-            }}
-            QFileDialog QToolButton,
-            QFileDialog QPushButton {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                padding: 4px 10px;
-            }}
-            QFileDialog QToolButton:hover,
-            QFileDialog QPushButton:hover {{
-                background-color: {colors.hover};
-            }}
-            QFileDialog QTreeView,
-            QFileDialog QListView,
-            QFileDialog QTableView {{
-                background-color: {colors.background};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                alternate-background-color: {colors.panel_bg};
-                selection-background-color: {colors.selection};
-                selection-color: {colors.foreground};
-            }}
-            QFileDialog QHeaderView::section {{
-                background-color: {colors.panel_bg};
-                color: {colors.foreground};
-                border: 1px solid {colors.border};
-                padding: 4px;
-            }}
-            """
+        return create_themed_file_dialog(
+            self,
+            title=title,
+            accept_mode=accept_mode,
+            file_mode=file_mode,
+            name_filters=name_filters,
+            selected_filter=selected_filter,
+            default_suffix=default_suffix,
         )
-        return dialog
 
     def _save_file(self) -> None:
-        editor = self._get_active_editor()
-        if not editor:
-            return
-        if not self._save_editor(editor):
-            return
-        now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        current_file = self._get_active_file_path()
-        if self._console_panel is not None:
-            name = current_file.name if current_file is not None else "archivo"
-            self._console_panel.append_console(f"Archivo guardado: {name}")
-        self._status.showMessage(f"Guardado · {now}")
-        self._update_cursor_status()
+        save_file(self)
 
     def _save_file_as(self) -> None:
-        editor = self._get_active_editor()
-        if not editor:
-            return
-        if not self._save_editor_as(editor):
-            return
-        now = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        path = self._get_active_file_path()
-        if self._console_panel is not None:
-            name = path.name if path is not None else "archivo"
-            self._console_panel.append_console(f"Archivo guardado: {name}")
-        self._status.showMessage(f"Guardado · {now}")
-        self._update_cursor_status()
+        save_file_as(self)
 
     def _close_file(self) -> None:
-        if self._editor_tabs is None:
-            return
-
-        current_index = self._editor_tabs.currentIndex()
-        if current_index >= 0:
-            self._close_tab(current_index)
-
-        if self._console_panel is not None:
-            self._console_panel.append_console("Archivo cerrado.")
-        self._update_cursor_status()
+        close_file(self)
 
     def _run_phase(self, phase: str) -> None:
-        editor = self._get_active_editor()
-        if not editor:
-            return
-
-        current_file = self._get_active_file_path()
-        if not current_file:
-            self._save_file_as()
-            current_file = self._get_active_file_path()
-            if not current_file:
-                return
-
-        self._save_file()
-        result = run_compiler(phase, str(current_file))
-
-        if result.returncode != 0:
-            if self._console_panel is not None:
-                self._console_panel.append_errors(result.stderr or "Error ejecutando el compilador.")
-            return
-
-        output_text = result.stdout or "(sin salida)"
-        if phase == "lexico":
-            self._analysis_panel.set_tokens(output_text)
-        elif phase == "sintactico":
-            self._analysis_panel.set_syntax(output_text)
-        elif phase == "semantico":
-            self._analysis_panel.set_semantic(output_text)
-        elif phase == "intermedio":
-            self._analysis_panel.set_intermediate(output_text)
-        elif phase == "ejecucion":
-            if self._console_panel is not None:
-                self._console_panel.append_execution(output_text)
-
-        if self._console_panel is not None:
-            self._console_panel.append_console(f"Fase ejecutada: {phase}")
+        run_phase(self, phase)
 
     def _open_file_from_explorer(self, file_path: str) -> None:
-        if self._console_panel is not None:
-            self._console_panel.append_console(f"Solicitud abrir desde explorador: {Path(file_path).name}")
-        self._open_file_path(Path(file_path))
+        open_file_from_explorer(self, file_path)
 
     def _close_file_from_explorer(self, file_path: str) -> None:
-        if self._editor_tabs is None:
-            return
-        resolved = Path(file_path).resolve()
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            tab_file_raw = editor.property("file_path") if editor else None
-            if not tab_file_raw:
-                continue
-            if Path(str(tab_file_raw)).resolve() == resolved:
-                self._close_tab(index)
-                return
-        # Si no hay pestaña abierta, solo quitar del explorador
-        if self._file_explorer is not None:
-            self._file_explorer.remove_open_file(file_path)
+        close_file_from_explorer(self, file_path)
 
     def _open_file_path(self, path: Path, log_to_console: bool = True) -> None:
-        if self._editor_tabs is None:
-            return
-
-        if not path.exists() or not path.is_file():
-            QMessageBox.warning(
-                self,
-                "No se puede abrir",
-                f"El archivo no existe o no es valido:\n{path}",
-            )
-            return
-
-        if self._file_explorer is not None:
-            self._file_explorer.add_open_file(str(path))
-
-        resolved = path.resolve()
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if not isinstance(editor, CodeEditor):
-                continue
-            tab_file_raw = editor.property("file_path")
-            if not tab_file_raw:
-                continue
-            tab_file = Path(str(tab_file_raw)).resolve()
-            if tab_file == resolved:
-                self._editor_tabs.setCurrentIndex(index)
-                self._watch_file(path)
-                if log_to_console and self._console_panel is not None:
-                    self._console_panel.append_console(f"Archivo abierto: {path.name}")
-                active_editor = self._get_active_editor()
-                if active_editor:
-                    active_editor.setFocus()
-                self._update_cursor_status()
-                return
-
-        editor = CodeEditor()
-        editor.setReadOnly(False)
-        editor.setFocusPolicy(Qt.StrongFocus)
-        editor.setFont(self._code_font)
-        try:
-            content: str | None = None
-            for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
-                try:
-                    content = path.read_text(encoding=enc)
-                    break
-                except UnicodeDecodeError:
-                    continue
-            if content is None:
-                QMessageBox.warning(
-                    self,
-                    "No se puede abrir",
-                    f"No se pudo detectar la codificacion del archivo:\n{path}",
-                )
-                return
-            editor.setPlainText(content)
-        except OSError as exc:
-            QMessageBox.warning(
-                self,
-                "No se puede abrir",
-                f"No fue posible abrir el archivo:\n{path}\n\n{exc}",
-            )
-            return
-        self._bind_editor_events(editor)
-        editor.setProperty("file_path", str(path))
-        if self._search_text:
-            editor.set_search_highlights(self._search_text)
-
-        tab_index = self._editor_tabs.addTab(editor, path.name)
-        self._editor_tabs.setTabToolTip(tab_index, str(path))
-        self._editor_tabs.setCurrentIndex(tab_index)
-        self._watch_file(path)
-        if log_to_console and self._console_panel is not None:
-            self._console_panel.append_console(f"Archivo abierto: {path.name}")
-        editor.setFocus()
-        self._update_cursor_status()
+        open_file_path(self, path, log_to_console=log_to_console)
 
     def _restore_session(self) -> None:
-        if self._file_explorer is None:
-            return
-
-        folder_paths = self._normalize_settings_list(self._settings.value("session/folders", []))
-        open_files = self._normalize_settings_list(self._settings.value("session/open_files", []))
-        active_file = str(self._settings.value("session/active_file", "") or "")
-
-        if folder_paths:
-            self._file_explorer.set_root_paths(folder_paths)
-
-        opened_any = False
-        for file_path in open_files:
-            path = Path(file_path)
-            if path.exists() and path.is_file():
-                self._open_file_path(path, log_to_console=False)
-                opened_any = True
-
-        if not opened_any:
-            self._new_file(with_example=True)
-            return
-
-        if active_file and self._editor_tabs is not None:
-            active_path = Path(active_file)
-            for index in range(self._editor_tabs.count()):
-                editor = self._editor_tabs.widget(index)
-                if not isinstance(editor, CodeEditor):
-                    continue
-                tab_file_raw = editor.property("file_path")
-                if not tab_file_raw:
-                    continue
-                tab_path = Path(str(tab_file_raw))
-                if tab_path == active_path:
-                    self._editor_tabs.setCurrentIndex(index)
-                    break
-
-            self._restore_layout_state()
+        restore_session(self)
 
     def _save_session(self) -> None:
-        folders: list[str] = []
-        if self._file_explorer is not None:
-            folders = self._file_explorer.get_root_paths()
-
-        open_files: list[str] = []
-        if self._editor_tabs is not None:
-            for index in range(self._editor_tabs.count()):
-                editor = self._editor_tabs.widget(index)
-                if not isinstance(editor, CodeEditor):
-                    continue
-                file_path_raw = editor.property("file_path")
-                if not file_path_raw:
-                    continue
-                file_path = Path(str(file_path_raw))
-                if file_path.exists() and file_path.is_file():
-                    open_files.append(str(file_path))
-
-        active_file = ""
-        active_path = self._get_active_file_path()
-        if active_path is not None:
-            active_file = str(active_path)
-
-        self._settings.setValue("session/folders", folders)
-        self._settings.setValue("session/open_files", open_files)
-        self._settings.setValue("session/active_file", active_file)
-        self._settings.setValue("session/theme", steins_gate_theme.get_theme_key())
-        self._settings.setValue("session/autosave_enabled", self._autosave_enabled)
-        self._settings.setValue("session/code_font_family", self._code_font.family())
-        self._settings.setValue("session/code_font_size", self._code_font.pointSize())
-        self._settings.setValue("session/analysis_visible", self._analysis_container.isVisible() if self._analysis_container is not None else True)
-        self._settings.setValue("session/console_visible", self._console_container.isVisible() if self._console_container is not None else True)
-        self._settings.setValue("session/explorer_visible", self._file_explorer.isVisible() if self._file_explorer is not None else True)
-        self._settings.setValue("session/analysis_minimized", self._analysis_minimized)
-        self._settings.setValue("session/console_minimized", self._console_minimized)
-        if self._top_splitter is not None:
-            self._settings.setValue("session/top_splitter_sizes", self._top_splitter.sizes())
-        if self._main_splitter is not None:
-            self._settings.setValue("session/main_splitter_sizes", self._main_splitter.sizes())
-        self._settings.sync()
+        save_session(self)
 
     def _normalize_settings_list(self, value) -> list[str]:
-        if value is None:
-            return []
-        if isinstance(value, list):
-            return [str(item) for item in value if str(item).strip()]
-        text = str(value).strip()
-        if not text:
-            return []
-        return [text]
+        return normalize_settings_list(self, value)
 
     def _restore_layout_state(self) -> None:
-        analysis_visible = bool(self._settings.value("session/analysis_visible", True, type=bool))
-        console_visible = bool(self._settings.value("session/console_visible", True, type=bool))
-        explorer_visible = bool(self._settings.value("session/explorer_visible", True, type=bool))
-        self._analysis_minimized = bool(self._settings.value("session/analysis_minimized", False, type=bool))
-        self._console_minimized = bool(self._settings.value("session/console_minimized", False, type=bool))
-
-        top_sizes = self._normalize_settings_list(self._settings.value("session/top_splitter_sizes", []))
-        main_sizes = self._normalize_settings_list(self._settings.value("session/main_splitter_sizes", []))
-
-        if self._analysis_container is not None:
-            self._analysis_container.setVisible(analysis_visible)
-        if self._console_container is not None:
-            self._console_container.setVisible(console_visible)
-        if self._file_explorer is not None:
-            self._file_explorer.setVisible(explorer_visible)
-
-        if self._analysis_panel is not None:
-            self._analysis_panel.setVisible(analysis_visible and not self._analysis_minimized)
-        if self._console_panel is not None:
-            self._console_panel.setVisible(console_visible and not self._console_minimized)
-
-        if self._top_splitter is not None and top_sizes:
-            parsed_top_sizes = [int(value) for value in top_sizes if str(value).strip()]
-            if parsed_top_sizes:
-                self._top_splitter.setSizes(parsed_top_sizes)
-                self._top_sizes_before_analysis_toggle = parsed_top_sizes
-
-        if self._main_splitter is not None and main_sizes:
-            parsed_main_sizes = [int(value) for value in main_sizes if str(value).strip()]
-            if parsed_main_sizes:
-                self._main_splitter.setSizes(parsed_main_sizes)
-                self._main_sizes_before_console_toggle = parsed_main_sizes
-
-        if self._analysis_minimized and self._analysis_container is not None:
-            self._analysis_container.setVisible(False)
-        if self._console_minimized and self._console_container is not None:
-            self._console_container.setVisible(False)
-        if not explorer_visible and self._file_explorer is not None:
-            self._file_explorer.setVisible(False)
+        restore_layout_state(self)
 
     def closeEvent(self, event: QCloseEvent) -> None:  # type: ignore[override]
         if not self._confirm_all_unsaved_before_exit():
@@ -2037,127 +781,25 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
     def _close_tab(self, index: int) -> None:
-        if self._editor_tabs is None:
-            return
-        if not self._confirm_unsaved_for_tab(index):
-            return
-
-        widget = self._editor_tabs.widget(index)
-        if widget and self._file_explorer is not None:
-            file_path_raw = widget.property("file_path")
-            if file_path_raw:
-                self._file_explorer.remove_open_file(str(file_path_raw))
-                self._unwatch_file_if_unused(Path(str(file_path_raw)))
-        self._editor_tabs.removeTab(index)
-        if widget:
-            widget.deleteLater()
-        if self._editor_tabs.count() == 0:
-            self._new_file()
+        close_tab(self, index)
 
     def _on_tab_changed(self, _index: int) -> None:
-        editor = self._get_active_editor()
-        if editor:
-            editor.setReadOnly(False)
-            editor.set_search_highlights(self._search_text)
-            self._update_find_match_label()
-            editor.setFocus()
-        self._update_cursor_status()
+        on_tab_changed(self, _index)
 
     def _on_path_renamed(self, old_path_raw: str, new_path_raw: str) -> None:
-        old_path = Path(old_path_raw).resolve()
-        new_path = Path(new_path_raw).resolve()
-
-        if self._editor_tabs is None:
-            return
-
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if not isinstance(editor, CodeEditor):
-                continue
-
-            tab_file_raw = editor.property("file_path")
-            if not tab_file_raw:
-                continue
-
-            tab_path = Path(str(tab_file_raw)).resolve()
-            updated_path: Path | None = None
-
-            if tab_path == old_path:
-                updated_path = new_path
-            elif old_path.is_dir() and tab_path.is_relative_to(old_path):
-                updated_path = new_path / tab_path.relative_to(old_path)
-
-            if updated_path is None:
-                continue
-
-            editor.setProperty("file_path", str(updated_path))
-            self._editor_tabs.setTabText(index, updated_path.name)
-            self._editor_tabs.setTabToolTip(index, str(updated_path))
-            self._unwatch_file_if_unused(tab_path)
-            self._watch_file(updated_path)
+        on_path_renamed(self, old_path_raw, new_path_raw)
 
     def _on_path_deleted(self, deleted_path_raw: str) -> None:
-        deleted_path = Path(deleted_path_raw).resolve()
-
-        if self._editor_tabs is None:
-            return
-
-        indexes_to_close: list[int] = []
-        for index in range(self._editor_tabs.count()):
-            editor = self._editor_tabs.widget(index)
-            if not isinstance(editor, CodeEditor):
-                continue
-            tab_file_raw = editor.property("file_path")
-            if not tab_file_raw:
-                continue
-            tab_path = Path(str(tab_file_raw)).resolve()
-            if tab_path == deleted_path or (deleted_path.is_dir() and tab_path.is_relative_to(deleted_path)):
-                indexes_to_close.append(index)
-
-        for index in sorted(indexes_to_close, reverse=True):
-            widget = self._editor_tabs.widget(index)
-            if widget is not None:
-                file_path_raw = widget.property("file_path")
-                if file_path_raw:
-                    self._unwatch_file_if_unused(Path(str(file_path_raw)))
-            self._editor_tabs.removeTab(index)
-            if widget is not None:
-                widget.deleteLater()
-
-        if indexes_to_close and self._editor_tabs.count() == 0:
-            self._new_file()
+        on_path_deleted(self, deleted_path_raw)
 
     def _get_active_editor(self) -> CodeEditor | None:
-        if self._editor_tabs is None:
-            return None
-        widget = self._editor_tabs.currentWidget()
-        if isinstance(widget, CodeEditor):
-            return widget
-        return None
+        return get_active_editor(self)
 
     def _get_active_file_path(self) -> Path | None:
-        editor = self._get_active_editor()
-        if not editor:
-            return None
-        file_path_raw = editor.property("file_path")
-        if not file_path_raw:
-            return None
-        return Path(str(file_path_raw))
+        return get_active_file_path(self)
 
     def _current_tab_title(self) -> str:
-        if self._editor_tabs is None:
-            return "Sin archivo"
-        current_index = self._editor_tabs.currentIndex()
-        if current_index < 0:
-            return "Sin archivo"
-        return self._editor_tabs.tabText(current_index) or "Sin archivo"
+        return current_tab_title(self)
 
     def _clear_outputs(self) -> None:
-        if self._analysis_panel is not None:
-            self._analysis_panel.set_tokens("")
-            self._analysis_panel.set_syntax("")
-            self._analysis_panel.set_semantic("")
-            self._analysis_panel.set_intermediate("")
-            self._analysis_panel.set_symbols("")
-        if self._console_panel is not None:
-            self._console_panel.clear_all()
+        clear_outputs(self)

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PyQt5.QtCore import QPoint, Qt, QUrl, pyqtSignal
 from PyQt5.QtGui import QDesktopServices, QIcon
-from PyQt5.QtWidgets import QAbstractItemView, QInputDialog, QMenu, QMessageBox, QTreeWidget, QTreeWidgetItem
+from PyQt5.QtWidgets import QAbstractItemView, QInputDialog, QMenu, QMessageBox, QStyle, QTreeWidget, QTreeWidgetItem
 
 
 class FileExplorer(QTreeWidget):
@@ -39,8 +39,8 @@ class FileExplorer(QTreeWidget):
         if not self._root_paths and not self._open_files:
             return
 
-        icon_file = QIcon("../resources/icons/file.png")
-        icon_folder = QIcon("../resources/icons/icon.png")
+        icon_file = self.style().standardIcon(QStyle.SP_FileIcon)
+        icon_folder = self.style().standardIcon(QStyle.SP_DirIcon)
 
         for file_path in self._open_files:
             # No mostrar si ya está dentro de alguna carpeta abierta
