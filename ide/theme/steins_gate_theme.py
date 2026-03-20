@@ -132,6 +132,23 @@ THEMES: dict[str, tuple[str, ThemeColors]] = {
             hover="#4a3463",
         ),
     ),
+    "personalizado": (
+        "Personalizado",
+        ThemeColors(
+            background="#11131a",
+            foreground="#e6edf3",
+            keywords="#ff7b72",
+            strings="#79c0ff",
+            comments="#8b949e",
+            numbers="#d2a8ff",
+            operators="#ffa657",
+            selection="#2d3a50",
+            accent="#58a6ff",
+            panel_bg="#161b22",
+            border="#30363d",
+            hover="#21262d",
+        ),
+    ),
 }
 
 DEFAULT_THEME_KEY = "labmem_004"
@@ -145,7 +162,11 @@ ERROR_THEMES: dict[str, ErrorColors] = {
     "labmem_005": ErrorColors(underline="#ff6a6a", background="#3f1a1f", text="#ffc0c8", border="#7e323d"),
     "labmem_006": ErrorColors(underline="#ff7f50", background="#4a2718", text="#ffd2bf", border="#915236"),
     "labmem_007": ErrorColors(underline="#ff6ed3", background="#3e1f45", text="#ffc8f0", border="#7c3a8a"),
+    "personalizado": ErrorColors(underline="#ff4d4d", background="#401818", text="#ffb3b3", border="#8c2a2a"),
 }
+
+DEFAULT_THEMES: dict[str, tuple[str, ThemeColors]] = dict(THEMES)
+DEFAULT_ERROR_THEMES: dict[str, ErrorColors] = dict(ERROR_THEMES)
 
 
 def list_themes() -> list[tuple[str, str]]:
@@ -171,6 +192,24 @@ def set_theme(theme_key: str) -> bool:
     return True
 
 
+def set_theme_palette(theme_key: str, colors: ThemeColors, error_colors: ErrorColors, *, name: str | None = None) -> bool:
+    if theme_key not in THEMES:
+        return False
+
+    current_name = THEMES[theme_key][0]
+    THEMES[theme_key] = (name or current_name, colors)
+    ERROR_THEMES[theme_key] = error_colors
+    return True
+
+
+def reset_theme_palette(theme_key: str) -> bool:
+    if theme_key not in DEFAULT_THEMES or theme_key not in DEFAULT_ERROR_THEMES:
+        return False
+    THEMES[theme_key] = DEFAULT_THEMES[theme_key]
+    ERROR_THEMES[theme_key] = DEFAULT_ERROR_THEMES[theme_key]
+    return True
+
+
 def get_colors() -> ThemeColors:
     return THEMES[_current_theme_key][1]
 
@@ -179,10 +218,204 @@ def get_error_colors() -> ErrorColors:
     return ERROR_THEMES.get(_current_theme_key, ERROR_THEMES[DEFAULT_THEME_KEY])
 
 
+def get_error_colors_for_theme(theme_key: str) -> ErrorColors:
+    if theme_key not in ERROR_THEMES:
+        return ERROR_THEMES[DEFAULT_THEME_KEY]
+    return ERROR_THEMES[theme_key]
+
+
 def get_colors_for_theme(theme_key: str) -> ThemeColors:
     if theme_key not in THEMES:
         return THEMES[DEFAULT_THEME_KEY][1]
     return THEMES[theme_key][1]
+
+
+def get_default_theme_name(theme_key: str) -> str:
+    if theme_key not in DEFAULT_THEMES:
+        return DEFAULT_THEMES[DEFAULT_THEME_KEY][0]
+    return DEFAULT_THEMES[theme_key][0]
+
+
+def get_default_colors_for_theme(theme_key: str) -> ThemeColors:
+    if theme_key not in DEFAULT_THEMES:
+        return DEFAULT_THEMES[DEFAULT_THEME_KEY][1]
+    return DEFAULT_THEMES[theme_key][1]
+
+
+def get_default_error_colors_for_theme(theme_key: str) -> ErrorColors:
+    if theme_key not in DEFAULT_ERROR_THEMES:
+        return DEFAULT_ERROR_THEMES[DEFAULT_THEME_KEY]
+    return DEFAULT_ERROR_THEMES[theme_key]
+
+
+def set_custom_theme(colors: ThemeColors, error_colors: ErrorColors, *, name: str = "Personalizado") -> None:
+    THEMES["personalizado"] = (name, colors)
+    ERROR_THEMES["personalizado"] = error_colors
+
+
+def export_custom_theme_payload() -> dict[str, str]:
+    theme_name, custom_colors = THEMES["personalizado"]
+    custom_error_colors = ERROR_THEMES["personalizado"]
+    return {
+        "name": theme_name,
+        "background": custom_colors.background,
+        "foreground": custom_colors.foreground,
+        "keywords": custom_colors.keywords,
+        "strings": custom_colors.strings,
+        "comments": custom_colors.comments,
+        "numbers": custom_colors.numbers,
+        "operators": custom_colors.operators,
+        "selection": custom_colors.selection,
+        "accent": custom_colors.accent,
+        "panel_bg": custom_colors.panel_bg,
+        "border": custom_colors.border,
+        "hover": custom_colors.hover,
+        "err_underline": custom_error_colors.underline,
+        "err_background": custom_error_colors.background,
+        "err_text": custom_error_colors.text,
+        "err_border": custom_error_colors.border,
+    }
+
+
+def import_custom_theme_payload(payload: dict[str, str]) -> bool:
+    required = {
+        "background",
+        "foreground",
+        "keywords",
+        "strings",
+        "comments",
+        "numbers",
+        "operators",
+        "selection",
+        "accent",
+        "panel_bg",
+        "border",
+        "hover",
+        "err_underline",
+        "err_background",
+        "err_text",
+        "err_border",
+    }
+    if not required.issubset(payload.keys()):
+        return False
+
+    set_custom_theme(
+        ThemeColors(
+            background=payload["background"],
+            foreground=payload["foreground"],
+            keywords=payload["keywords"],
+            strings=payload["strings"],
+            comments=payload["comments"],
+            numbers=payload["numbers"],
+            operators=payload["operators"],
+            selection=payload["selection"],
+            accent=payload["accent"],
+            panel_bg=payload["panel_bg"],
+            border=payload["border"],
+            hover=payload["hover"],
+        ),
+        ErrorColors(
+            underline=payload["err_underline"],
+            background=payload["err_background"],
+            text=payload["err_text"],
+            border=payload["err_border"],
+        ),
+        name=payload.get("name", "Personalizado"),
+    )
+    return True
+
+
+def export_theme_overrides_payload() -> dict[str, dict[str, str]]:
+    result: dict[str, dict[str, str]] = {}
+    for theme_key, (theme_name, theme_colors) in THEMES.items():
+        default_theme_name, default_theme_colors = DEFAULT_THEMES.get(theme_key, (theme_name, theme_colors))
+        default_error_colors = DEFAULT_ERROR_THEMES.get(theme_key, ERROR_THEMES.get(theme_key, DEFAULT_ERROR_THEMES[DEFAULT_THEME_KEY]))
+        current_error_colors = ERROR_THEMES.get(theme_key, default_error_colors)
+
+        if (
+            theme_name == default_theme_name
+            and theme_colors == default_theme_colors
+            and current_error_colors == default_error_colors
+        ):
+            continue
+
+        result[theme_key] = {
+            "name": theme_name,
+            "background": theme_colors.background,
+            "foreground": theme_colors.foreground,
+            "keywords": theme_colors.keywords,
+            "strings": theme_colors.strings,
+            "comments": theme_colors.comments,
+            "numbers": theme_colors.numbers,
+            "operators": theme_colors.operators,
+            "selection": theme_colors.selection,
+            "accent": theme_colors.accent,
+            "panel_bg": theme_colors.panel_bg,
+            "border": theme_colors.border,
+            "hover": theme_colors.hover,
+            "err_underline": current_error_colors.underline,
+            "err_background": current_error_colors.background,
+            "err_text": current_error_colors.text,
+            "err_border": current_error_colors.border,
+        }
+
+    return result
+
+
+def import_theme_overrides_payload(payload: dict[str, dict[str, str]]) -> bool:
+    if not isinstance(payload, dict):
+        return False
+
+    for theme_key, theme_data in payload.items():
+        if not isinstance(theme_data, dict) or theme_key not in THEMES:
+            continue
+        required = {
+            "background",
+            "foreground",
+            "keywords",
+            "strings",
+            "comments",
+            "numbers",
+            "operators",
+            "selection",
+            "accent",
+            "panel_bg",
+            "border",
+            "hover",
+            "err_underline",
+            "err_background",
+            "err_text",
+            "err_border",
+        }
+        if not required.issubset(theme_data.keys()):
+            continue
+
+        set_theme_palette(
+            theme_key,
+            ThemeColors(
+                background=theme_data["background"],
+                foreground=theme_data["foreground"],
+                keywords=theme_data["keywords"],
+                strings=theme_data["strings"],
+                comments=theme_data["comments"],
+                numbers=theme_data["numbers"],
+                operators=theme_data["operators"],
+                selection=theme_data["selection"],
+                accent=theme_data["accent"],
+                panel_bg=theme_data["panel_bg"],
+                border=theme_data["border"],
+                hover=theme_data["hover"],
+            ),
+            ErrorColors(
+                underline=theme_data["err_underline"],
+                background=theme_data["err_background"],
+                text=theme_data["err_text"],
+                border=theme_data["err_border"],
+            ),
+            name=theme_data.get("name"),
+        )
+
+    return True
 
 
 def build_stylesheet() -> str:

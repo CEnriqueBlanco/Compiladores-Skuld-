@@ -6,7 +6,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import List
 
-from skuld_lexer import LexicalError, tokenize_file
+from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize_file
 
 
 @dataclass

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import importlib
+import json
 from pathlib import Path
 
 from PyQt5.QtCore import QFileSystemWatcher, QSettings, QSize, Qt, QTimer
@@ -628,6 +629,24 @@ class MainWindow(QMainWindow):
         return "// Hola mundo Skuld\n\ngate {\n    dmail(\"El Psy Kongroo\");\n}\n"
 
     def _restore_theme_preference(self) -> None:
+        theme_overrides_raw = str(self._settings.value("session/theme_overrides_payload", "") or "").strip()
+        if theme_overrides_raw:
+            try:
+                payload = json.loads(theme_overrides_raw)
+                if isinstance(payload, dict):
+                    steins_gate_theme.import_theme_overrides_payload(payload)
+            except (ValueError, TypeError):
+                pass
+
+        custom_payload_raw = str(self._settings.value("session/custom_theme_payload", "") or "").strip()
+        if custom_payload_raw:
+            try:
+                payload = json.loads(custom_payload_raw)
+                if isinstance(payload, dict):
+                    steins_gate_theme.import_custom_theme_payload(payload)
+            except (ValueError, TypeError):
+                pass
+
         saved_theme_key = str(self._settings.value("session/theme", steins_gate_theme.get_theme_key()) or "")
         if not saved_theme_key:
             return

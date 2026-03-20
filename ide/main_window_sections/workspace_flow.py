@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
 from ide.theme import steins_gate_theme
-from skuld_lexer import LexicalError, tokenize
+from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize
 
 
 def set_autosave_enabled(window, enabled: bool, *, persist: bool = True) -> None:

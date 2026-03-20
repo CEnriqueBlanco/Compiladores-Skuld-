@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
+
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QFontDatabase, QFontMetrics
+from PyQt5.QtGui import QColor, QFont, QFontDatabase, QFontMetrics
 from PyQt5.QtWidgets import (
     QApplication,
+    QColorDialog,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
@@ -12,13 +15,18 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QListWidget,
     QListWidgetItem,
+    QMessageBox,
     QPlainTextEdit,
+    QPushButton,
+    QScrollArea,
+    QTabWidget,
     QVBoxLayout,
     QWidget,
 )
 
 from ide.code_editor import CodeEditor
 from ide.theme import steins_gate_theme
+from ide.theme.steins_gate_theme import ErrorColors, ThemeColors
 
 
 def select_code_font(window) -> None:
@@ -161,7 +169,7 @@ def select_code_font(window) -> None:
 
     def update_preview() -> None:
         candidate_font = selected_font()
-        preview_text = "AaBbYyZz 0123"
+        preview_text = "Skuld Preview 0123 // El Psy Kongroo"
         metrics = QFontMetrics(candidate_font)
         supports_preview = all(metrics.inFont(char) for char in preview_text if char != " ")
 
@@ -264,7 +272,8 @@ def apply_theme(window, theme_key: str, *, persist: bool = True, show_status: bo
 def open_theme_dialog(window) -> None:
     dialog = QDialog(window)
     dialog.setWindowTitle("Temas")
-    dialog.resize(920, 500)
+    dialog.resize(1280, 760)
+    dialog.setMinimumSize(1140, 680)
     colors = steins_gate_theme.get_colors()
     dialog.setStyleSheet(
         f"""
@@ -274,6 +283,26 @@ def open_theme_dialog(window) -> None:
         }}
         QLabel {{
             color: {colors.foreground};
+        }}
+        QLabel#theme_title {{
+            font-size: 15px;
+            font-weight: 600;
+            padding: 4px 0;
+        }}
+        QLabel#section_title {{
+            font-size: 12px;
+            font-weight: 600;
+            color: {colors.accent};
+            padding-top: 4px;
+        }}
+        QLabel#color_chip {{
+            border: 1px solid {colors.border};
+            border-radius: 3px;
+            min-height: 24px;
+            padding: 2px 6px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 12px;
+            font-weight: 600;
         }}
         QListWidget {{
             background-color: {colors.background};
@@ -290,6 +319,13 @@ def open_theme_dialog(window) -> None:
             border: 1px solid {colors.border};
             selection-background-color: {colors.selection};
         }}
+        QLineEdit {{
+            background-color: {colors.background};
+            color: {colors.foreground};
+            border: 1px solid {colors.border};
+            selection-background-color: {colors.selection};
+            min-height: 24px;
+        }}
         QPushButton {{
             background-color: {colors.background};
             color: {colors.foreground};
@@ -303,13 +339,355 @@ def open_theme_dialog(window) -> None:
     )
 
     root_layout = QHBoxLayout(dialog)
+    root_layout.setSpacing(12)
 
-    theme_list = QListWidget(dialog)
-    theme_list.setMinimumWidth(250)
+    left_panel = QWidget(dialog)
+    left_layout = QVBoxLayout(left_panel)
+    left_layout.setContentsMargins(0, 0, 0, 0)
+
+    left_title = QLabel("Temas disponibles", left_panel)
+    left_title.setObjectName("section_title")
+    theme_list = QListWidget(left_panel)
+    theme_list.setMinimumWidth(290)
+
     for theme_key, theme_name in steins_gate_theme.list_themes():
         item = QListWidgetItem(theme_name)
         item.setData(Qt.UserRole, theme_key)
         theme_list.addItem(item)
+
+    left_layout.addWidget(left_title)
+    left_layout.addWidget(theme_list, 1)
+
+    right_panel = QWidget(dialog)
+    right_layout = QVBoxLayout(right_panel)
+    right_layout.setContentsMargins(0, 0, 0, 0)
+    right_layout.setSpacing(8)
+
+    selected_theme_label = QLabel(right_panel)
+    selected_theme_label.setObjectName("theme_title")
+    right_layout.addWidget(selected_theme_label)
+
+    actions_row = QHBoxLayout()
+    reset_button = QPushButton("Restablecer tema seleccionado", right_panel)
+    actions_row.addWidget(reset_button)
+    actions_row.addStretch(1)
+    right_layout.addLayout(actions_row)
+
+    tabs = QTabWidget(right_panel)
+    right_layout.addWidget(tabs, 1)
+
+    tab_active = QWidget(tabs)
+    tab_base = QWidget(tabs)
+    tab_errors = QWidget(tabs)
+    tabs.addTab(tab_active, "Paleta activa")
+    tabs.addTab(tab_base, "Paleta base")
+    tabs.addTab(tab_errors, "Colores de error")
+
+    active_layout = QVBoxLayout(tab_active)
+    active_layout.setContentsMargins(8, 8, 8, 8)
+    active_layout.setSpacing(8)
+
+    active_group_title = QLabel("Colores aplicados", tab_active)
+    active_group_title.setObjectName("section_title")
+    active_layout.addWidget(active_group_title)
+
+    active_scroll = QScrollArea(tab_active)
+    active_scroll.setWidgetResizable(True)
+    active_scroll_content = QWidget(active_scroll)
+    active_form = QFormLayout(active_scroll_content)
+    active_form.setContentsMargins(6, 6, 6, 6)
+    active_form.setSpacing(6)
+    active_scroll.setWidget(active_scroll_content)
+    active_layout.addWidget(active_scroll, 1)
+
+    preview_code = QPlainTextEdit(tab_active)
+    preview_code.setReadOnly(True)
+    preview_code.setMinimumHeight(180)
+    preview_code.setPlainText(
+        "<> Vista previa de tema\n"
+        "labmem worldline mensaje = \"El Psy Kongroo\";\n"
+        "gate {\n"
+        "    dmail(mensaje);\n"
+        "}\n"
+    )
+    active_layout.addWidget(preview_code)
+
+    base_layout = QVBoxLayout(tab_base)
+    base_layout.setContentsMargins(8, 8, 8, 8)
+    base_layout.setSpacing(8)
+    base_form = QFormLayout()
+    base_layout.addLayout(base_form)
+    base_layout.addStretch(1)
+
+    error_layout = QVBoxLayout(tab_errors)
+    error_layout.setContentsMargins(8, 8, 8, 8)
+    error_layout.setSpacing(8)
+    error_form = QFormLayout()
+    error_layout.addLayout(error_form)
+    error_layout.addStretch(1)
+
+    buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=dialog)
+    buttons.accepted.connect(dialog.accept)
+    buttons.rejected.connect(dialog.reject)
+    right_layout.addWidget(buttons)
+
+    color_field_labels = [
+        ("background", "Fondo"),
+        ("foreground", "Texto"),
+        ("keywords", "Palabras clave"),
+        ("strings", "Cadenas"),
+        ("comments", "Comentarios"),
+        ("numbers", "Números"),
+        ("operators", "Operadores"),
+        ("selection", "Selección"),
+        ("accent", "Acento"),
+        ("panel_bg", "Panel"),
+        ("border", "Borde"),
+        ("hover", "Hover"),
+    ]
+    error_field_labels = [
+        ("err_underline", "Error subrayado"),
+        ("err_background", "Error fondo"),
+        ("err_text", "Error texto"),
+        ("err_border", "Error borde"),
+    ]
+
+    active_chips: dict[str, QLabel] = {}
+    edit_fields: dict[str, QLineEdit] = {}
+    edit_chips: dict[str, QLabel] = {}
+    edit_buttons: dict[str, QPushButton] = {}
+    current_payload: dict[str, str] = {}
+    selected_theme_key = {"value": steins_gate_theme.get_theme_key()}
+
+    def contrast_text(hex_color: str) -> str:
+        color = QColor(hex_color)
+        if not color.isValid():
+            return colors.foreground
+        return "#111111" if color.lightness() > 140 else "#f8f8f8"
+
+    def style_color_chip(chip: QLabel, color_hex: str, *, border_color: str | None = None) -> None:
+        valid = QColor(color_hex).isValid()
+        border = border_color or colors.border
+        chip.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        if not valid:
+            chip.setText(" INVALIDO")
+            chip.setStyleSheet(
+                f"background-color: {colors.panel_bg}; color: {colors.foreground}; border: 1px dashed {border};"
+            )
+            return
+
+        normalized = QColor(color_hex).name().upper()
+        chip.setText(f" {normalized}")
+        chip.setStyleSheet(
+            f"background-color: {QColor(color_hex).name()}; color: {contrast_text(color_hex)}; border: 1px solid {border};"
+        )
+
+    for key, label in [*color_field_labels, *error_field_labels]:
+        chip = QLabel(active_scroll_content)
+        chip.setObjectName("color_chip")
+        chip.setMinimumWidth(260)
+        chip.setMinimumHeight(24)
+        active_form.addRow(f"{label}:", chip)
+        active_chips[key] = chip
+
+    def create_editor_row(layout: QFormLayout, key: str, label: str, parent: QWidget) -> None:
+        row_widget = QWidget(parent)
+        row_layout = QHBoxLayout(row_widget)
+        row_layout.setContentsMargins(0, 0, 0, 0)
+        row_layout.setSpacing(6)
+
+        chip = QLabel(row_widget)
+        chip.setObjectName("color_chip")
+        chip.setFixedWidth(120)
+        chip.setMinimumHeight(24)
+
+        line = QLineEdit(row_widget)
+        line.setPlaceholderText("#RRGGBB")
+
+        button = QPushButton("Color", row_widget)
+        button.setFixedWidth(66)
+
+        def pick_color() -> None:
+            initial = QColor(line.text().strip() or "#000000")
+            picked = QColorDialog.getColor(initial, dialog, f"Seleccionar color: {label}")
+            if not picked.isValid():
+                return
+            line.setText(picked.name().upper())
+
+        def on_changed(_text: str) -> None:
+            style_color_chip(chip, line.text().strip())
+            payload = read_payload_from_fields()
+            if payload is not None:
+                apply_preview(payload, selected_theme_key["value"])
+
+        button.clicked.connect(pick_color)
+        line.textChanged.connect(on_changed)
+
+        row_layout.addWidget(chip)
+        row_layout.addWidget(line, 1)
+        row_layout.addWidget(button)
+        layout.addRow(f"{label}:", row_widget)
+
+        edit_fields[key] = line
+        edit_chips[key] = chip
+        edit_buttons[key] = button
+
+    def theme_payload(theme_key: str) -> dict[str, str]:
+        theme_colors = steins_gate_theme.get_colors_for_theme(theme_key)
+        error_colors = steins_gate_theme.get_error_colors_for_theme(theme_key)
+        return {
+            "background": theme_colors.background,
+            "foreground": theme_colors.foreground,
+            "keywords": theme_colors.keywords,
+            "strings": theme_colors.strings,
+            "comments": theme_colors.comments,
+            "numbers": theme_colors.numbers,
+            "operators": theme_colors.operators,
+            "selection": theme_colors.selection,
+            "accent": theme_colors.accent,
+            "panel_bg": theme_colors.panel_bg,
+            "border": theme_colors.border,
+            "hover": theme_colors.hover,
+            "err_underline": error_colors.underline,
+            "err_background": error_colors.background,
+            "err_text": error_colors.text,
+            "err_border": error_colors.border,
+        }
+
+    def default_theme_payload(theme_key: str) -> dict[str, str]:
+        theme_colors = steins_gate_theme.get_default_colors_for_theme(theme_key)
+        error_colors = steins_gate_theme.get_default_error_colors_for_theme(theme_key)
+        return {
+            "background": theme_colors.background,
+            "foreground": theme_colors.foreground,
+            "keywords": theme_colors.keywords,
+            "strings": theme_colors.strings,
+            "comments": theme_colors.comments,
+            "numbers": theme_colors.numbers,
+            "operators": theme_colors.operators,
+            "selection": theme_colors.selection,
+            "accent": theme_colors.accent,
+            "panel_bg": theme_colors.panel_bg,
+            "border": theme_colors.border,
+            "hover": theme_colors.hover,
+            "err_underline": error_colors.underline,
+            "err_background": error_colors.background,
+            "err_text": error_colors.text,
+            "err_border": error_colors.border,
+        }
+
+    def payload_to_objects(payload: dict[str, str]) -> tuple[ThemeColors, ErrorColors]:
+        return (
+            ThemeColors(
+                background=payload["background"],
+                foreground=payload["foreground"],
+                keywords=payload["keywords"],
+                strings=payload["strings"],
+                comments=payload["comments"],
+                numbers=payload["numbers"],
+                operators=payload["operators"],
+                selection=payload["selection"],
+                accent=payload["accent"],
+                panel_bg=payload["panel_bg"],
+                border=payload["border"],
+                hover=payload["hover"],
+            ),
+            ErrorColors(
+                underline=payload["err_underline"],
+                background=payload["err_background"],
+                text=payload["err_text"],
+                border=payload["err_border"],
+            ),
+        )
+
+    def read_payload_from_fields() -> dict[str, str] | None:
+        payload: dict[str, str] = {}
+        for key, line in edit_fields.items():
+            value = line.text().strip()
+            if not QColor(value).isValid():
+                return None
+            payload[key] = QColor(value).name().upper()
+        return payload
+
+    def fill_fields(payload: dict[str, str]) -> None:
+        for key, line in edit_fields.items():
+            line.setText(payload.get(key, ""))
+            style_color_chip(edit_chips[key], payload.get(key, ""))
+
+    def apply_preview(payload: dict[str, str], theme_key: str) -> None:
+        theme_name = steins_gate_theme.get_theme_name(theme_key)
+        selected_theme_label.setText(f"Tema en vista: {theme_name}  ({theme_key})")
+
+        tabs.setStyleSheet(
+            f""
+            f"QTabWidget::pane {{"
+            f"border: 1px solid {payload['border']};"
+            f"background-color: {payload['panel_bg']};"
+            f"}}"
+            f"QTabBar::tab {{"
+            f"background-color: {payload['panel_bg']};"
+            f"color: {payload['foreground']};"
+            f"border: 1px solid {payload['border']};"
+            f"padding: 5px 10px;"
+            f"}}"
+            f"QTabBar::tab:selected {{"
+            f"background-color: {payload['background']};"
+            f"color: {payload['accent']};"
+            f"}}"
+        )
+        tab_active.setStyleSheet(f"background-color: {payload['panel_bg']};")
+        tab_base.setStyleSheet(f"background-color: {payload['panel_bg']};")
+        tab_errors.setStyleSheet(f"background-color: {payload['panel_bg']};")
+        active_scroll.setStyleSheet(
+            f""
+            f"QScrollArea {{"
+            f"background-color: {payload['panel_bg']};"
+            f"border: 1px solid {payload['border']};"
+            f"}}"
+        )
+        active_scroll_content.setStyleSheet(f"background-color: {payload['panel_bg']};")
+
+        for key, chip in active_chips.items():
+            style_color_chip(chip, payload.get(key, ""), border_color=payload.get("border", colors.border))
+
+        preview_code.setStyleSheet(
+            f""
+            f"QPlainTextEdit {{"
+            f"background-color: {payload['background']};"
+            f"color: {payload['foreground']};"
+            f"selection-background-color: {payload['selection']};"
+            f"border: 1px solid {payload['border']};"
+            f"}}"
+        )
+
+    for key, label in color_field_labels:
+        create_editor_row(base_form, key, label, tab_base)
+    for key, label in error_field_labels:
+        create_editor_row(error_form, key, label, tab_errors)
+
+    def on_theme_selected() -> None:
+        selected_item = theme_list.currentItem()
+        if selected_item is None:
+            return
+        theme_key = str(selected_item.data(Qt.UserRole))
+        selected_theme_key["value"] = theme_key
+
+        payload = theme_payload(theme_key)
+        current_payload.clear()
+        current_payload.update(payload)
+        fill_fields(payload)
+        apply_preview(payload, theme_key)
+
+    def on_reset_selected_theme() -> None:
+        theme_key = selected_theme_key["value"]
+        payload = default_theme_payload(theme_key)
+        current_payload.clear()
+        current_payload.update(payload)
+        fill_fields(payload)
+        apply_preview(payload, theme_key)
+
+    reset_button.clicked.connect(on_reset_selected_theme)
+    theme_list.currentRowChanged.connect(lambda _row: on_theme_selected())
 
     current_theme_key = steins_gate_theme.get_theme_key()
     for row in range(theme_list.count()):
@@ -317,79 +695,24 @@ def open_theme_dialog(window) -> None:
         if item.data(Qt.UserRole) == current_theme_key:
             theme_list.setCurrentRow(row)
             break
-
-    right_panel = QWidget(dialog)
-    right_layout = QVBoxLayout(right_panel)
-
-    preview_code = QPlainTextEdit(right_panel)
-    preview_code.setReadOnly(True)
-    preview_code.setPlainText(
-        "// Vista previa de tema\n"
-        "gate {\n"
-        "    let mensaje = \"El Psy Kongroo\";\n"
-        "    dmail(mensaje);\n"
-        "}\n"
-    )
-
-    preview_info = QFormLayout()
-    label_background = QLabel(right_panel)
-    label_foreground = QLabel(right_panel)
-    label_accent = QLabel(right_panel)
-    label_selection = QLabel(right_panel)
-    preview_info.addRow("Fondo:", label_background)
-    preview_info.addRow("Texto:", label_foreground)
-    preview_info.addRow("Acento:", label_accent)
-    preview_info.addRow("Selección:", label_selection)
-
-    def apply_preview(theme_key: str) -> None:
-        colors = steins_gate_theme.get_colors_for_theme(theme_key)
-        swatch_style = "padding: 4px 8px; border: 1px solid {}; background-color: {}; color: {};"
-
-        label_background.setText(colors.background)
-        label_background.setStyleSheet(swatch_style.format(colors.border, colors.background, colors.foreground))
-        label_foreground.setText(colors.foreground)
-        label_foreground.setStyleSheet(swatch_style.format(colors.border, colors.panel_bg, colors.foreground))
-        label_accent.setText(colors.accent)
-        label_accent.setStyleSheet(swatch_style.format(colors.border, colors.accent, colors.background))
-        label_selection.setText(colors.selection)
-        label_selection.setStyleSheet(swatch_style.format(colors.border, colors.selection, colors.foreground))
-
-        preview_code.setStyleSheet(
-            f""
-            f"QPlainTextEdit {{"
-            f"background-color: {colors.background};"
-            f"color: {colors.foreground};"
-            f"selection-background-color: {colors.selection};"
-            f"border: 1px solid {colors.border};"
-            f"}}"
-        )
-
-    def on_theme_selected() -> None:
-        selected_item = theme_list.currentItem()
-        if selected_item is None:
-            return
-        selected_key = str(selected_item.data(Qt.UserRole))
-        apply_preview(selected_key)
-
-    theme_list.currentRowChanged.connect(lambda _row: on_theme_selected())
     on_theme_selected()
 
-    buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, parent=dialog)
-    buttons.accepted.connect(dialog.accept)
-    buttons.rejected.connect(dialog.reject)
-
-    right_layout.addLayout(preview_info)
-    right_layout.addWidget(preview_code, 1)
-    right_layout.addWidget(buttons)
-
-    root_layout.addWidget(theme_list)
+    root_layout.addWidget(left_panel)
     root_layout.addWidget(right_panel, 1)
 
     if dialog.exec_() != QDialog.Accepted:
         return
 
-    selected_item = theme_list.currentItem()
-    if selected_item is None:
+    payload = read_payload_from_fields()
+    if payload is None:
+        QMessageBox.warning(window, "Temas", "Hay colores inválidos. Usa formato #RRGGBB.")
         return
-    selected_key = str(selected_item.data(Qt.UserRole))
-    apply_theme(window, selected_key)
+
+    theme_key = selected_theme_key["value"]
+    new_theme_colors, new_error_colors = payload_to_objects(payload)
+    steins_gate_theme.set_theme_palette(theme_key, new_theme_colors, new_error_colors)
+
+    overrides = steins_gate_theme.export_theme_overrides_payload()
+    window._settings.setValue("session/theme_overrides_payload", json.dumps(overrides))
+
+    apply_theme(window, theme_key)

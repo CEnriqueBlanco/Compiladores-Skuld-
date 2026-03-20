@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from PyQt5.QtGui import QColor, QTextCharFormat, QSyntaxHighlighter
 
-from skuld_lexer import KEYWORDS, WORD_LOGIC_TO_OPERATOR
+from analizadores.analisis_lexico.skuld_lexer import KEYWORDS, WORD_LOGIC_TO_OPERATOR
 from ide.theme import steins_gate_theme
 
 
