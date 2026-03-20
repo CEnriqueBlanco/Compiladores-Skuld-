@@ -16,6 +16,7 @@ class CompilerResult:
     stderr: str
     error_line: int | None = None
     error_column: int | None = None
+    error_column_end: int | None = None
 
 
 PHASE_ARGS = {
@@ -40,12 +41,17 @@ def _format_lex_tokens(source_path: str) -> CompilerResult:
     except OSError as exc:
         return CompilerResult(returncode=1, stdout="", stderr=f"No se pudo leer el archivo: {exc}")
     except LexicalError as exc:
+        raw_lexeme = exc.lexeme or ""
+        # Highlight up to the first line of the invalid lexeme; fallback to one character.
+        first_line_lexeme = raw_lexeme.splitlines()[0] if raw_lexeme else ""
+        span_len = max(1, len(first_line_lexeme))
         return CompilerResult(
             returncode=1,
             stdout="",
             stderr=str(exc),
             error_line=exc.line,
             error_column=exc.column,
+            error_column_end=exc.column + span_len - 1,
         )
 
     lines = [

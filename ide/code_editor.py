@@ -155,10 +155,11 @@ class CodeEditor(QPlainTextEdit):
 
         line_start = block.position()
         start_col_zero = max(0, column_start - 1)
-        end_col_zero = max(start_col_zero + 1, (column_end - 1) if column_end is not None else start_col_zero + 1)
+        # column_end is treated as 1-based inclusive, then converted to zero-based exclusive.
+        end_col_exclusive = max(start_col_zero + 1, column_end if column_end is not None else start_col_zero + 1)
 
         start_pos = line_start + start_col_zero
-        end_pos = min(line_start + len(block.text()), line_start + end_col_zero)
+        end_pos = min(line_start + len(block.text()), line_start + end_col_exclusive)
         if end_pos <= start_pos:
             end_pos = min(line_start + len(block.text()), start_pos + 1)
 
