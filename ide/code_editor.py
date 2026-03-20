@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QRect, QSize, Qt
-from PyQt5.QtGui import QColor, QPainter, QTextCursor, QTextFormat
+from PyQt5.QtGui import QColor, QPainter, QTextCharFormat, QTextCursor, QTextFormat
 from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
 from ide.skuld_syntax_highlighter import SkuldSyntaxHighlighter
@@ -23,7 +23,9 @@ class CodeEditor(QPlainTextEdit):
         super().__init__()
         self._line_number_area = LineNumberArea(self)
         self._search_selections: list[QTextEdit.ExtraSelection] = []
+        self._error_selections: list[QTextEdit.ExtraSelection] = []
         self._syntax_highlighter = SkuldSyntaxHighlighter(self.document())
+        self._selection_lexical_callback = None
 
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
@@ -118,7 +120,62 @@ class CodeEditor(QPlainTextEdit):
             selection.cursor.clearSelection()
             extra_selections.append(selection)
         extra_selections.extend(self._search_selections)
+        extra_selections.extend(self._error_selections)
         self.setExtraSelections(extra_selections)
 
     def refresh_syntax_theme(self) -> None:
         self._syntax_highlighter.refresh_theme()
+
+    def set_selection_lexical_callback(self, callback) -> None:
+        self._selection_lexical_callback = callback
+
+    def contextMenuEvent(self, event) -> None:  # type: ignore[override]
+        menu = self.createStandardContextMenu()
+        menu.addSeparator()
+        lex_action = menu.addAction("Analisis lexico (seleccion)")
+        selection_text = self.textCursor().selectedText()
+        has_selection = bool(selection_text.strip())
+        lex_action.setEnabled(has_selection and self._selection_lexical_callback is not None)
+
+        if self._selection_lexical_callback is not None:
+            lex_action.triggered.connect(lambda txt=selection_text: self._selection_lexical_callback(txt))
+
+        menu.exec_(event.globalPos())
+
+    def clear_error_highlights(self) -> None:
+        self._error_selections = []
+        self._apply_extra_selections()
+
+    def highlight_error_range(self, line: int, column_start: int, column_end: int | None = None) -> None:
+        block = self.document().findBlockByNumber(max(0, line - 1))
+        if not block.isValid():
+            return
+
+        line_start = block.position()
+        start_col_zero = max(0, column_start - 1)
+        end_col_zero = max(start_col_zero + 1, (column_end - 1) if column_end is not None else start_col_zero + 1)
+
+        start_pos = line_start + start_col_zero
+        end_pos = min(line_start + len(block.text()), line_start + end_col_zero)
+        if end_pos <= start_pos:
+            end_pos = min(line_start + len(block.text()), start_pos + 1)
+
+        selection = QTextEdit.ExtraSelection()
+        cursor = QTextCursor(self.document())
+        cursor.setPosition(start_pos)
+        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        selection.cursor = cursor
+
+        colors = steins_gate_theme.get_colors()
+        error_underline = QColor(colors.numbers)
+        error_background = QColor(colors.accent)
+        error_background.setAlpha(80)
+        selection.format.setUnderlineStyle(QTextCharFormat.WaveUnderline)
+        selection.format.setUnderlineColor(error_underline)
+        selection.format.setBackground(error_background)
+
+        self._error_selections = [selection]
+        self._apply_extra_selections()
+
+        self.setTextCursor(cursor)
+        self.centerCursor()

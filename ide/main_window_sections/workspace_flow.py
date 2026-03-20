@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
 from ide.theme import steins_gate_theme
+from skuld_lexer import LexicalError, tokenize
 
 
 def set_autosave_enabled(window, enabled: bool, *, persist: bool = True) -> None:
@@ -468,6 +469,8 @@ def run_phase(window, phase: str) -> None:
     if not editor:
         return
 
+    editor.clear_error_highlights()
+
     current_file = get_active_file_path(window)
     if not current_file:
         save_file_as(window)
@@ -479,6 +482,10 @@ def run_phase(window, phase: str) -> None:
     result = run_compiler(phase, str(current_file))
 
     if result.returncode != 0:
+        if phase == "lexico":
+            window._analysis_panel.set_tokens(result.stderr or "Error lexico.")
+            if result.error_line is not None and result.error_column is not None:
+                editor.highlight_error_range(result.error_line, result.error_column)
         if window._console_panel is not None:
             window._console_panel.append_errors(result.stderr or "Error ejecutando el compilador.")
         return
@@ -498,6 +505,34 @@ def run_phase(window, phase: str) -> None:
 
     if window._console_panel is not None:
         window._console_panel.append_console(f"Fase ejecutada: {phase}")
+
+
+def run_lexical_selection(window, selected_text: str) -> None:
+    editor = get_active_editor(window)
+    if not editor:
+        return
+
+    editor.clear_error_highlights()
+
+    source_text = selected_text.replace("\u2029", "\n")
+    if not source_text.strip():
+        if window._console_panel is not None:
+            window._console_panel.append_errors("No hay texto seleccionado para analisis lexico.")
+        return
+
+    try:
+        tokens = tokenize(source_text)
+        output_text = "\n".join(
+            f"[{tok.token_type}:{tok.lexeme!r}] @ {tok.line}:{tok.column_start}-{tok.column_end}"
+            for tok in tokens
+        )
+        window._analysis_panel.set_tokens(output_text or "(sin salida)")
+        if window._console_panel is not None:
+            window._console_panel.append_console("Fase ejecutada: lexico (seleccion)")
+    except LexicalError as exc:
+        window._analysis_panel.set_tokens(str(exc))
+        if window._console_panel is not None:
+            window._console_panel.append_errors(str(exc))
 
 
 def open_file_from_explorer(window, file_path: str) -> None:

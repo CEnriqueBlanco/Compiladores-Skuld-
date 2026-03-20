@@ -14,6 +14,8 @@ class CompilerResult:
     returncode: int
     stdout: str
     stderr: str
+    error_line: int | None = None
+    error_column: int | None = None
 
 
 PHASE_ARGS = {
@@ -38,7 +40,13 @@ def _format_lex_tokens(source_path: str) -> CompilerResult:
     except OSError as exc:
         return CompilerResult(returncode=1, stdout="", stderr=f"No se pudo leer el archivo: {exc}")
     except LexicalError as exc:
-        return CompilerResult(returncode=1, stdout="", stderr=str(exc))
+        return CompilerResult(
+            returncode=1,
+            stdout="",
+            stderr=str(exc),
+            error_line=exc.line,
+            error_column=exc.column,
+        )
 
     lines = [
         f"[{tok.token_type}:{tok.lexeme!r}] @ {tok.line}:{tok.column_start}-{tok.column_end}"

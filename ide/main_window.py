@@ -74,6 +74,7 @@ from ide.main_window_sections import (
     restore_layout_state,
     restore_session,
     run_phase,
+    run_lexical_selection,
     save_editor,
     save_editor_as,
     save_file,
@@ -304,6 +305,7 @@ class MainWindow(QMainWindow):
     def _bind_editor_events(self, editor: CodeEditor) -> None:
         editor.cursorPositionChanged.connect(self._update_cursor_status)
         editor.textChanged.connect(self._on_text_changed)
+        editor.set_selection_lexical_callback(self._run_lexical_selection)
 
     def _fit_editor_to_content(self) -> None:
         if self._editor_tabs is None:
@@ -751,6 +753,9 @@ class MainWindow(QMainWindow):
 
     def _run_phase(self, phase: str) -> None:
         run_phase(self, phase)
+
+    def _run_lexical_selection(self, selected_text: str) -> None:
+        run_lexical_selection(self, selected_text)
 
     def _open_file_from_explorer(self, file_path: str) -> None:
         open_file_from_explorer(self, file_path)
