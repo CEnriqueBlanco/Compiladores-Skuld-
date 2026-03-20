@@ -24,6 +24,7 @@ class LexicalError(Exception):
 
 
 KEYWORDS: Dict[str, str] = {
+    # Skuld
     "labmem": "KW_LABMEM",
     "worldline": "KW_WORLDLINE",
     "divergence": "KW_DIVERGENCE",
@@ -45,6 +46,25 @@ KEYWORDS: Dict[str, str] = {
     "void": "KW_VOID",
     "true": "KW_TRUE",
     "false": "KW_FALSE",
+    # Basico / aliases tradicionales
+    "int": "KW_INT",
+    "float": "KW_FLOAT",
+    "real": "KW_REAL",
+    "string": "KW_STRING",
+    "bool": "KW_BOOL",
+    "if": "KW_IF",
+    "then": "KW_THEN",
+    "switch": "KW_SWITCH",
+    "case": "KW_CASE",
+    "main": "KW_MAIN",
+    "while": "KW_WHILE",
+    "do": "KW_DO",
+    "end": "KW_END",
+    "until": "KW_UNTIL",
+    "cin": "KW_CIN",
+    "cout": "KW_COUT",
+    "read": "KW_READ",
+    "write": "KW_WRITE",
 }
 
 WORD_LOGIC_TO_OPERATOR: Dict[str, str] = {
@@ -236,6 +256,14 @@ class SkuldLexer:
                 continue
 
             next_ch = self._peek_char()
+
+            if ch == "/" and next_ch == "/":
+                self._advance()
+                self._advance()
+                while not self._is_at_end() and self._current_char() not in ("\n", "\r"):
+                    self._advance()
+                continue
+
             if ch == "<" and next_ch == ">":
                 self._advance()
                 self._advance()

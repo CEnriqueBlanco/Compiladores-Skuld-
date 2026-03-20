@@ -5,6 +5,7 @@ from typing import List, Tuple
 
 from PyQt5.QtGui import QColor, QTextCharFormat, QSyntaxHighlighter
 
+from skuld_lexer import KEYWORDS, WORD_LOGIC_TO_OPERATOR
 from ide.theme import steins_gate_theme
 
 
@@ -12,7 +13,7 @@ class SkuldSyntaxHighlighter(QSyntaxHighlighter):
     def __init__(self, document) -> None:
         super().__init__(document)
         self._rules: List[Tuple[re.Pattern[str], QTextCharFormat]] = []
-        self._line_comment_re = re.compile(r"<>[^\n]*|<[^>\n]*>")
+        self._line_comment_re = re.compile(r"//[^\n]*|<>[^\n]*|<[^>\n]*>")
         self._block_start_re = re.compile(r"/\*")
         self._block_end_re = re.compile(r"\*/")
         self._angle_start_re = re.compile(r"^\s*<(?!=|>)")
@@ -28,31 +29,8 @@ class SkuldSyntaxHighlighter(QSyntaxHighlighter):
         number_fmt = self._fmt(colors.numbers)
         operator_fmt = self._fmt(colors.operators)
 
-        keywords = [
-            "labmem",
-            "worldline",
-            "divergence",
-            "dmail",
-            "sphone",
-            "reading",
-            "choice",
-            "else",
-            "fork",
-            "path",
-            "gate",
-            "loop",
-            "pulse",
-            "seal",
-            "shift",
-            "jump",
-            "return",
-            "steiner",
-            "void",
-            "true",
-            "false",
-        ]
-
-        logic_words = ["and", "or", "not"]
+        keywords = sorted(KEYWORDS.keys(), key=len, reverse=True)
+        logic_words = sorted(WORD_LOGIC_TO_OPERATOR.keys(), key=len, reverse=True)
 
         self._rules = []
 
