@@ -77,18 +77,25 @@ DÍA 3: Pulido y Entrega
 
 PALETA DE COLORES
 -----------------
-BACKGROUND:  #1a1a1a  (Negro oscuro - fondo principal)
-FOREGROUND:  #e8e8e8  (Blanco suave - texto)
-KEYWORDS:    #c41e3a  (Rojo Kurisu - palabras clave)
-STRINGS:     #8fbc8f  (Verde suave - strings)
-COMMENTS:    #696969  (Gris - comentarios)
-NUMBERS:     #ff6b6b  (Rojo claro - números)
-OPERATORS:   #ffffff  (Blanco - operadores)
-SELECTION:   #4a0e0e  (Rojo oscuro - selección)
-ACCENT:      #c41e3a  (Rojo - botones y acentos)
-PANEL_BG:    #252525  (Fondo de paneles laterales)
-BORDER:      #3a3a3a  (Bordes)
-HOVER:       #5a1e1e  (Hover rojo oscuro)
+Color 1  BACKGROUND:  #1a1a1a  (Negro oscuro - fondo principal)
+Color 2  FOREGROUND:  #e8e8e8  (Blanco suave - texto)
+Color 3  COMMENTS:    #696969  (Gris - comentarios de una y múltiple línea)
+Color 4  KEYWORDS:    #c41e3a  (Rojo Kurisu - palabras reservadas)
+         Aplica a: labmem, worldline, divergence, dmail, sphone,
+                   reading, choice, else, fork, path, gate, loop,
+                   pulse, seal, shift, jump, return, steiner,
+                   and, or, not, void, true, false
+Color 5  STRINGS:     #8fbc8f  (Verde suave - strings)
+Color 6  OPERATORS:   #ffffff  (Blanco - todos los operadores)
+         Aplica a: aritméticos (+,-,*,/,%), relacionales (==,!=,<,<=,>,>=),
+                   asignación (=,+=,-=,*=,/=,%=), incremento (++,--),
+                   lógicos simbólicos (&&, ||, !)
+Color 7  NUMBERS:     #ff6b6b  (Rojo claro - números)
+Color 8  SELECTION:   #4a0e0e  (Rojo oscuro - selección)
+         ACCENT:      #c41e3a  (Rojo - botones y acentos)
+         PANEL_BG:    #252525  (Fondo de paneles laterales)
+         BORDER:      #3a3a3a  (Bordes)
+         HOVER:       #5a1e1e  (Hover rojo oscuro)
 
 ELEMENTOS VISUALES CLAVE
 -------------------------
@@ -214,20 +221,25 @@ PANEL INFERIOR: Consola/Errores
                         GRAMÁTICA DEL LENGUAJE SKULD
 ================================================================================
 
-PALABRAS CLAVE TEMÁTICAS
--------------------------
+PALABRAS CLAVE TEMÁTICAS  (Color 4 → KEYWORDS #c41e3a)
+-------------------------------------------------------
 Declaraciones:
   - labmem      (declaración de variable)
-  - worldline   (tipo entero)
-  - divergence  (tipo flotante)
-  - dmail       (tipo string / función de salida)
-  - sphone      (entrada estándar temática, estilo cin)
+  - worldline   (tipo entero)                  ← reemplaza: int
+  - divergence  (tipo flotante)                ← reemplaza: float
+  - dmail       (tipo string / salida estándar) ← reemplaza: cout
+  - sphone      (entrada estándar)             ← reemplaza: cin
   - reading     (tipo booleano)
 
 Estructuras de Control:
-  - choice      (condicional if)
-  - gate        (punto de entrada main)
-  - loop        (bucle while)
+  - choice      (condicional)                  ← reemplaza: if
+  - else        (rama alternativa)
+  - fork        (selección múltiple)           ← reemplaza: switch
+  - path        (rama de fork)                 ← reemplaza: case
+  - gate        (punto de entrada)             ← reemplaza: main
+  - loop        (bucle while)                  ← reemplaza: while
+  - pulse       (bucle do-while)               ← reemplaza: do
+  - seal        (cierre de bloque explícito)   ← reemplaza: end
   - shift       (bucle for)
   - jump        (break)
   - return      (return)
@@ -235,8 +247,20 @@ Estructuras de Control:
 Funciones:
   - steiner     (definición de función)
 
-Operadores Lógicos:
-  - and, or, not
+Operadores Lógicos:  (Color 6 → OPERATORS #ffffff)
+  ⚠ CASO ESPECIAL: Son los Únicos operadores que aceptan tanto la forma
+  de palabra como la forma simbólica. Ambas son equivalentes e intercambiables.
+  El resto de operadores SOLO aceptan su símbolo.
+  - and  / &&   (AND lógico)
+  - or   / ||   (OR lógico)
+  - not  / !    (NOT lógico)
+  Nota: "and", "or", "not" también figuran en la tabla de palabras reservadas,
+        pero en su rol de operador se resaltan con Color 6.
+  Ejemplos válidos (ambas formas):
+      choice (x > 0 and y > 0) { ... }   // forma palabra
+      choice (x > 0 && y > 0) { ... }    // forma símbolo
+      choice (not listo)       { ... }   // forma palabra
+      choice (!listo)          { ... }   // forma símbolo
 
 SINTAXIS LÉXICA COMPLETA (RECONOCIMIENTO DE TOKENS)
 ---------------------------------------------------
@@ -256,22 +280,27 @@ SINTAXIS LÉXICA COMPLETA (RECONOCIMIENTO DE TOKENS)
   8. Delimitadores
 - Espacios, tabs y saltos de línea se ignoran, pero actualizan fila/columna.
 
-2) TOKENS IGNORADOS
--------------------
+2) TOKENS IGNORADOS / COMENTARIOS  (Color 3 → COMMENTS #696969)
+-------------------------------------------------------------------
 WHITESPACE:
   - Regex: [ \t\r\n]+
   - Acción: Ignorar (actualizar posición).
 
-COMMENT_LINE:
-  - Sintaxis: // ... hasta fin de línea
+COMMENT_LINE  (una línea, estilo C):
+  - Sintaxis: // texto hasta fin de línea
   - Regex: //[^\n]*
-  - Acción: Ignorar.
+  - Acción: Ignorar. Resaltar con Color 3.
+  - Ejemplo: // El Psy Kongroo
 
-COMMENT_BLOCK (opcional recomendado):
-  - Sintaxis: /* ... */
+COMMENT_BLOCK  (múltiples líneas, estilo C):
+  - Sintaxis: /* texto en varias líneas */
   - Regex aproximada: /\*([^*]|\*+[^*/])*\*+/
-  - Acción: Ignorar.
-  - Error: si no cierra con */ → ERROR_LEXICO.
+  - Acción: Ignorar. Resaltar con Color 3.
+  - Error: si no cierra con */ antes de EOF → ERROR_LEXICO.
+  - Ejemplo:
+      /* Esto es un
+         comentario
+         de bloque */
 
 3) PALABRAS RESERVADAS (KEYWORDS)
 ---------------------------------
@@ -279,33 +308,37 @@ Regex base de palabra clave exacta:
   - Debe coincidir completa, no como prefijo de identificador.
   - Ejemplo: "gate" es KEYWORD, "gateway" es IDENTIFIER.
 
-Lista completa:
+Lista completa (todas con Color 4 — KEYWORDS #c41e3a):
   - labmem
-  - worldline
-  - divergence
-  - dmail
-  - sphone
+  - worldline      (= int)
+  - divergence     (= float)
+  - dmail          (= cout)
+  - sphone         (= cin)
   - reading
-  - choice
-  - gate
-  - loop
+  - choice         (= if)
+  - else
+  - fork           (= switch)
+  - path           (= case)
+  - gate           (= main)
+  - loop           (= while)
+  - pulse          (= do)
+  - seal           (= end)
   - shift
   - jump
   - return
   - steiner
-  - and
-  - or
-  - not
-  - else
+  - and            (también acepta &&  — Color 6 como operador)
+  - or             (también acepta ||  — Color 6 como operador)
+  - not            (también acepta !   — Color 6 como operador)
   - void
   - true
   - false
 
 Tokens sugeridos:
   - KW_LABMEM, KW_WORLDLINE, KW_DIVERGENCE, KW_DMAIL, KW_SPHONE, KW_READING
-  - KW_CHOICE, KW_GATE, KW_LOOP, KW_SHIFT, KW_JUMP, KW_RETURN
-  - KW_STEINER, KW_AND, KW_OR, KW_NOT, KW_ELSE, KW_VOID
-  - KW_TRUE, KW_FALSE
+  - KW_CHOICE, KW_ELSE, KW_FORK, KW_PATH, KW_GATE, KW_LOOP, KW_PULSE, KW_SEAL
+  - KW_SHIFT, KW_JUMP, KW_RETURN, KW_STEINER
+  - KW_AND, KW_OR, KW_NOT, KW_VOID, KW_TRUE, KW_FALSE
 
 4) IDENTIFICADORES
 ------------------
@@ -340,64 +373,70 @@ BOOLEAN_LITERAL (reading):
 6) OPERADORES
 -------------
 ARITMÉTICOS:
-  - +   (PLUS)
-  - -   (MINUS)
-  - *   (STAR)
-  - /   (SLASH)
-  - %   (PERCENT)
+  - +  
+  - -  
+  - *   
+  - /   
+  - %   
 
 ASIGNACIÓN:
-  - =   (ASSIGN)
-  - +=  (PLUS_ASSIGN)
-  - -=  (MINUS_ASSIGN)
-  - *=  (MUL_ASSIGN)
-  - /=  (DIV_ASSIGN)
-  - %=  (MOD_ASSIGN)
+  - =   
+  - +=  
+  - -=  
+  - *=  
+  - /=  
+  - %= 
 
 INCREMENTO/DECREMENTO:
-  - ++  (INC)
-  - --  (DEC)
+  - ++  
+  - -- 
 
 RELACIONALES:
-  - ==  (EQ)
-  - !=  (NEQ)
-  - <   (LT)
-  - <=  (LTE)
-  - >   (GT)
-  - >=  (GTE)
+  - ==  
+  - != 
+  - <   
+  - <=  
+  - >   
+  - >= 
 
-E/S ESTILO STREAM (cin/cout para Skuld):
-  - <<  (STREAM_OUT)   -> salida con dmail
-  - >>  (STREAM_IN)    -> entrada con sphone
+E/S CON PARÉNTESIS (estilo función):
+  ⚠ ÚNICA forma válida. No se usan operadores stream << ni >>.
+  - dmail("texto")   (STREAM_OUT)  -> salida estándar
+  - dmail(variable)  (STREAM_OUT)  -> salida de variable
+  - sphone(variable) (STREAM_IN)   -> entrada estándar
+  Ejemplos:
+      dmail("Hola mundo");
+      dmail(x);
+      sphone(nombre);
+      sphone(x);
 
-LÓGICOS (simbólicos y/o por keyword):
-  - &&  (AND_OP)  [opcional, si decides soportarlo]
-  - ||  (OR_OP)   [opcional, si decides soportarlo]
-  - !   (NOT_OP)  [opcional, si decides soportarlo]
-  - and, or, not  (keywords lógicas ya definidas)
+LÓGICOS  (Color 6 → OPERATORS #ffffff):
+  ⚠ ÚNICOS operadores que aceptan tanto forma de palabra como símbolo.
+  El resto de operadores del lenguaje SOLO aceptan su forma simbólica.
+  - and  / &&   (AND_OP)  → ambas formas válidas
+  - or   / ||   (OR_OP)   → ambas formas válidas
+  - not  / !    (NOT_OP)  → ambas formas válidas
+  Regla de prioridad: "&&", "||", "!" se reconocen como operador;
+  "and", "or", "not" se dectectan como keyword y mapean al mismo token.
 
-Sintaxis propuesta de uso:
-  - cout equivalente:
-      dmail << "Hola";
-      dmail << "x = " << x;
-    (También válido el estilo función existente: dmail("Hola");)
-
-  - cin equivalente:
-      sphone >> x;
-      sphone >> nombre;
+Sintaxis de E/S en Skuld:
+  - Salida:  dmail("Hola");
+             dmail(x);
+  - Entrada: sphone(x);
+             sphone(nombre);
 
 7) DELIMITADORES Y SIGNOS DE PUNTUACIÓN
 ----------------------------------------
-  - (   LPAREN
-  - )   RPAREN
-  - {   LBRACE
-  - }   RBRACE
-  - [   LBRACKET
-  - ]   RBRACKET
-  - ;   SEMICOLON
-  - ,   COMMA
-  - .   DOT
-  - :   COLON
+  - (  
+  - )   
+  - {  
+  - }   
+  - [   
+  - ]   
+  - ;   
+  - ,   
+  - .   
+  - :   
 
 8) TABLA RESUMEN DE REGEX PRIORITARIA
 -------------------------------------
@@ -408,7 +447,7 @@ Orden sugerido de matching (de mayor a menor prioridad):
   4. ([0-9]+\.[0-9]+)([eE][+-]?[0-9]+)?
   5. 0|[1-9][0-9]*
   6. [A-Za-z_][A-Za-z0-9_]*           (luego validar keyword)
-  7. ==|!=|<=|>=|<<|>>|\+\+|--|\+=|-=|\*=|/=|%=|&&|\|\|
+  7. ==|!=|<=|>=|\+\+|--|\+=|-=|\*=|/=|%=|&&|\|\|
   8. [=+\-*/%<>!(){}\[\];,.:]
   9. [ \t\r\n]+
 
@@ -545,7 +584,8 @@ INSPIRACIÓN VISUAL:
                                 FIN DEL PLAN
 ================================================================================
 
-Creado: 2026-02-17
+Creación: 2026-02-17
+Autores: Alan Gael Gallardo Jimenez y Carlos Enrique Blanco Ortiz
 Proyecto: IDE Reading Steiner para lenguaje Skuld
 Tema: Lab Member 004 (Steins;Gate)
 Primera Entrega: Solo interfaz visual (mockup)
