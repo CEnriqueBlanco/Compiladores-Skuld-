@@ -2,6 +2,7 @@ from PyQt5.QtCore import QRect, QSize, Qt
 from PyQt5.QtGui import QColor, QPainter, QTextCursor, QTextFormat
 from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
 
+from ide.skuld_syntax_highlighter import SkuldSyntaxHighlighter
 from ide.theme import steins_gate_theme
 
 
@@ -22,6 +23,7 @@ class CodeEditor(QPlainTextEdit):
         super().__init__()
         self._line_number_area = LineNumberArea(self)
         self._search_selections: list[QTextEdit.ExtraSelection] = []
+        self._syntax_highlighter = SkuldSyntaxHighlighter(self.document())
 
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
@@ -117,3 +119,6 @@ class CodeEditor(QPlainTextEdit):
             extra_selections.append(selection)
         extra_selections.extend(self._search_selections)
         self.setExtraSelections(extra_selections)
+
+    def refresh_syntax_theme(self) -> None:
+        self._syntax_highlighter.refresh_theme()

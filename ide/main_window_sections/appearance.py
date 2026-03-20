@@ -246,6 +246,7 @@ def apply_theme(window, theme_key: str, *, persist: bool = True, show_status: bo
             editor = window._editor_tabs.widget(index)
             if not isinstance(editor, CodeEditor):
                 continue
+            editor.refresh_syntax_theme()
             editor.highlight_current_line()
             editor.viewport().update()
             editor.update()

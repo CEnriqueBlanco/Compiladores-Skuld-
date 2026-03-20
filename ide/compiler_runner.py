@@ -6,6 +6,8 @@ import subprocess
 from dataclasses import dataclass
 from typing import List
 
+from skuld_lexer import LexicalError, tokenize_file
+
 
 @dataclass
 class CompilerResult:
@@ -30,7 +32,25 @@ def _get_compiler_command() -> List[str] | None:
     return None
 
 
+def _format_lex_tokens(source_path: str) -> CompilerResult:
+    try:
+        tokens = tokenize_file(source_path)
+    except OSError as exc:
+        return CompilerResult(returncode=1, stdout="", stderr=f"No se pudo leer el archivo: {exc}")
+    except LexicalError as exc:
+        return CompilerResult(returncode=1, stdout="", stderr=str(exc))
+
+    lines = [
+        f"[{tok.token_type}:{tok.lexeme!r}] @ {tok.line}:{tok.column_start}-{tok.column_end}"
+        for tok in tokens
+    ]
+    return CompilerResult(returncode=0, stdout="\n".join(lines), stderr="")
+
+
 def run_compiler(phase: str, source_path: str) -> CompilerResult:
+    if phase == "lexico":
+        return _format_lex_tokens(source_path)
+
     command = _get_compiler_command()
     if not command:
         return CompilerResult(
