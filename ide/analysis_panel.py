@@ -82,6 +82,16 @@ class AnalysisPanel(QTabWidget):
             "AND_OP": colors.operators,
             "OR_OP": colors.operators,
             "NOT_OP": colors.operators,
+            "LPAREN": colors.operators,
+            "RPAREN": colors.operators,
+            "LBRACE": colors.operators,
+            "RBRACE": colors.operators,
+            "LBRACKET": colors.operators,
+            "RBRACKET": colors.operators,
+            "SEMICOLON": colors.operators,
+            "COMMA": colors.operators,
+            "DOT": colors.operators,
+            "COLON": colors.operators,
         }
 
         row_re = re.compile(r"^\[(?P<ttype>[A-Z_]+):(?P<lex>.*)\] @ (?P<pos>.+)$")

@@ -13,7 +13,8 @@ class SkuldSyntaxHighlighter(QSyntaxHighlighter):
     def __init__(self, document) -> None:
         super().__init__(document)
         self._rules: List[Tuple[re.Pattern[str], QTextCharFormat]] = []
-        self._line_comment_re = re.compile(r"//[^\n]*|<>[^\n]*|<[^>\n]*>")
+        # Keep only unambiguous one-line comments here to avoid conflicts with <= and >=.
+        self._line_comment_re = re.compile(r"//[^\n]*|<>[^\n]*")
         self._block_start_re = re.compile(r"/\*")
         self._block_end_re = re.compile(r"\*/")
         self._angle_start_re = re.compile(r"^\s*<(?!=|>)")
