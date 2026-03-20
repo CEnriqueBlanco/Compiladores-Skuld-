@@ -3,7 +3,7 @@ main sumar 3.14+main)if{32;
 {
 int x,y,z;
 real a,b,c;
- suma=45;
+ 32suma=45;
 x=32.32;
 x=23;
 y=2+3-1;

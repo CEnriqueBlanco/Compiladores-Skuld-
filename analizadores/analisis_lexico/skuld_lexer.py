@@ -216,6 +216,10 @@ class SkuldLexer:
             self._advance()
             raise LexicalError(start_line, start_col, "Numero mal formado", bad_lexeme)
 
+        if self._current_char().isalpha() or self._current_char() == "_":
+            suffix = self._consume_while(lambda c: c.isalnum() or c == "_")
+            raise LexicalError(start_line, start_col, "Identificador mal formado", lexeme + suffix)
+
         token_type = "FLOAT_LITERAL" if is_float else "INTEGER_LITERAL"
         return Token(token_type, lexeme, start_line, start_col, self.column - 1)
 
