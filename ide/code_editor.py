@@ -157,7 +157,7 @@ class CodeEditor(QPlainTextEdit):
         self._error_selections = []
         self._apply_extra_selections()
 
-    def highlight_error_range(self, line: int, column_start: int, column_end: int | None = None) -> None:
+    def highlight_error_range(self, line: int, column_start: int, column_end: int | None = None, apply_immediate: bool = True) -> None:
         block = self.document().findBlockByNumber(max(0, line - 1))
         if not block.isValid():
             return
@@ -187,8 +187,9 @@ class CodeEditor(QPlainTextEdit):
         selection.format.setBackground(error_background)
         selection.format.setForeground(QColor(error_colors.text))
 
-        self._error_selections = [selection]
-        self._apply_extra_selections()
-
-        self.setTextCursor(cursor)
-        self.centerCursor()
+        self._error_selections.append(selection)
+        
+        if apply_immediate:
+            self._apply_extra_selections()
+            self.setTextCursor(cursor)
+            self.centerCursor()

@@ -567,10 +567,15 @@ def run_lexical_force(window) -> None:
     window._analysis_panel.set_tokens("\n".join(report_lines))
 
     if errors:
-        first_error = errors[0]
-        first_line_lexeme = first_error.lexeme.splitlines()[0] if first_error.lexeme else ""
-        span_len = max(1, len(first_line_lexeme))
-        editor.highlight_error_range(first_error.line, first_error.column, first_error.column + span_len - 1)
+        # Marcar todos los errores en el editor
+        for error in errors:
+            error_line_lexeme = error.lexeme.splitlines()[0] if error.lexeme else ""
+            span_len = max(1, len(error_line_lexeme))
+            editor.highlight_error_range(error.line, error.column, error.column + span_len - 1, apply_immediate=False)
+        
+        # Aplicar todas las selecciones de una sola vez
+        editor._apply_extra_selections()
+        
         if window._console_panel is not None:
             window._console_panel.append_errors(
                 f"Analisis lexico (forzar): {len(errors)} error(es) detectado(s)."

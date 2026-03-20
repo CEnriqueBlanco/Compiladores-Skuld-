@@ -1,9 +1,9 @@
-main sumar 3.14+main)if{32;
+main sum@r 3.14+main)if{32.algo
 34.34.34.34
 {
 int x,y,z;
 real a,b,c;
- 32suma=45;
+ suma=45;
 x=32.32;
 x=23;
 y=2+3-1;
@@ -49,6 +49,8 @@ do
     cout x;
 };
 }
+
+
 
  
  
