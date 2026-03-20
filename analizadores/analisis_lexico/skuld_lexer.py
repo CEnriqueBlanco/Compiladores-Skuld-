@@ -130,6 +130,27 @@ class SkuldLexer:
                 break
         return tokens
 
+    def tokenize_with_recovery(self) -> tuple[List[Token], List[LexicalError]]:
+        tokens: List[Token] = []
+        errors: List[LexicalError] = []
+
+        while True:
+            start_index = self.index
+            try:
+                token = self.next_token()
+                tokens.append(token)
+                if token.token_type == "ENDFILE":
+                    break
+            except LexicalError as exc:
+                errors.append(exc)
+                if self._is_at_end():
+                    break
+                # Guarantee forward progress if the failing scan did not consume input.
+                if self.index <= start_index:
+                    self._advance()
+
+        return tokens, errors
+
     def next_token(self) -> Token:
         self._skip_whitespace_and_comments()
         if self._is_at_end():
@@ -349,6 +370,11 @@ class SkuldLexer:
 def tokenize(source_code: str) -> List[Token]:
     lexer = SkuldLexer(source_code)
     return lexer.tokenize()
+
+
+def tokenize_with_recovery(source_code: str) -> tuple[List[Token], List[LexicalError]]:
+    lexer = SkuldLexer(source_code)
+    return lexer.tokenize_with_recovery()
 
 
 def tokenize_file(file_path: str, encoding: str = "utf-8") -> List[Token]:

@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
 from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
 from ide.theme import steins_gate_theme
-from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize
+from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize, tokenize_with_recovery
 
 
 def set_autosave_enabled(window, enabled: bool, *, persist: bool = True) -> None:
@@ -533,6 +533,52 @@ def run_lexical_selection(window, selected_text: str) -> None:
         window._analysis_panel.set_tokens(str(exc))
         if window._console_panel is not None:
             window._console_panel.append_errors(str(exc))
+
+
+def run_lexical_force(window) -> None:
+    editor = get_active_editor(window)
+    if not editor:
+        return
+
+    editor.clear_error_highlights()
+
+    source_text = editor.toPlainText()
+    if not source_text.strip():
+        if window._console_panel is not None:
+            window._console_panel.append_errors("No hay contenido para analisis lexico forzado.")
+        return
+
+    tokens, errors = tokenize_with_recovery(source_text)
+
+    token_lines = [
+        f"[{tok.token_type}:{tok.lexeme!r}] @ {tok.line}:{tok.column_start}-{tok.column_end}"
+        for tok in tokens
+    ]
+
+    report_lines: list[str] = ["TOKENS RECONOCIDOS:"]
+    report_lines.extend(token_lines if token_lines else ["(ninguno)"])
+    report_lines.append("")
+    report_lines.append("ERRORES LEXICOS:")
+    if errors:
+        report_lines.extend(str(err) for err in errors)
+    else:
+        report_lines.append("(ninguno)")
+
+    window._analysis_panel.set_tokens("\n".join(report_lines))
+
+    if errors:
+        first_error = errors[0]
+        first_line_lexeme = first_error.lexeme.splitlines()[0] if first_error.lexeme else ""
+        span_len = max(1, len(first_line_lexeme))
+        editor.highlight_error_range(first_error.line, first_error.column, first_error.column + span_len - 1)
+        if window._console_panel is not None:
+            window._console_panel.append_errors(
+                f"Analisis lexico (forzar): {len(errors)} error(es) detectado(s)."
+            )
+            for err in errors:
+                window._console_panel.append_errors(str(err))
+    elif window._console_panel is not None:
+        window._console_panel.append_console("Analisis lexico (forzar): sin errores lexicos.")
 
 
 def open_file_from_explorer(window, file_path: str) -> None:

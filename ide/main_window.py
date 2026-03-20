@@ -74,6 +74,7 @@ from ide.main_window_sections import (
     reload_editor_from_disk,
     restore_layout_state,
     restore_session,
+    run_lexical_force,
     run_phase,
     run_lexical_selection,
     save_editor,
@@ -307,6 +308,7 @@ class MainWindow(QMainWindow):
         editor.cursorPositionChanged.connect(self._update_cursor_status)
         editor.textChanged.connect(self._on_text_changed)
         editor.set_selection_lexical_callback(self._run_lexical_selection)
+        editor.set_force_lexical_callback(self._run_lexical_force)
 
     def _fit_editor_to_content(self) -> None:
         if self._editor_tabs is None:
@@ -775,6 +777,9 @@ class MainWindow(QMainWindow):
 
     def _run_lexical_selection(self, selected_text: str) -> None:
         run_lexical_selection(self, selected_text)
+
+    def _run_lexical_force(self) -> None:
+        run_lexical_force(self)
 
     def _open_file_from_explorer(self, file_path: str) -> None:
         open_file_from_explorer(self, file_path)
