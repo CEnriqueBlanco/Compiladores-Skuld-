@@ -120,6 +120,7 @@ class SkuldLexer:
         self.index = 0
         self.line = 1
         self.column = 1
+        self.last_token_was_number = False
 
     def tokenize(self) -> List[Token]:
         tokens: List[Token] = []
@@ -143,6 +144,7 @@ class SkuldLexer:
                     break
             except LexicalError as exc:
                 errors.append(exc)
+                self.last_token_was_number = False
                 if self._is_at_end():
                     break
                 # Guarantee forward progress if the failing scan did not consume input.
@@ -154,6 +156,7 @@ class SkuldLexer:
     def next_token(self) -> Token:
         self._skip_whitespace_and_comments()
         if self._is_at_end():
+            self.last_token_was_number = False
             return Token("ENDFILE", "", self.line, self.column, self.column)
 
         ch = self._current_char()
@@ -161,23 +164,41 @@ class SkuldLexer:
         start_col = self.column
 
         if ch == '"':
+            self.last_token_was_number = False
             return self._scan_string(start_line, start_col)
 
+        # Detectar punto extra después de número: .34 no es válido si ultimo token fue número
+        if (ch == "." and self._peek_char() and self._peek_char().isdigit() 
+            and self.last_token_was_number):
+            # Punto extra después de número: es error
+            self._advance()
+            raise LexicalError(start_line, start_col, "Punto inesperado en numero", ".")
+
         if ch.isdigit() or (ch == "." and self._peek_char() and self._peek_char().isdigit()):
-            return self._scan_number(start_line, start_col)
+            token = self._scan_number(start_line, start_col)
+            self.last_token_was_number = True
+            return token
 
         if ch.isalpha() or ch == "_":
+            self.last_token_was_number = False
             return self._scan_identifier_or_keyword(start_line, start_col)
 
         two_chars = ch + (self._peek_char() or "")
         if two_chars in MULTI_CHAR_OPERATORS:
             self._advance()
             self._advance()
+            self.last_token_was_number = False
             token_type = MULTI_CHAR_OPERATORS[two_chars]
             return Token(token_type, two_chars, start_line, start_col, self.column - 1)
 
         if ch in SINGLE_CHAR_TOKENS:
+            # Detectar punto adicional después de número flotante
+            if ch == "." and self.last_token_was_number:
+                self._advance()
+                raise LexicalError(start_line, start_col, "Punto inesperado en numero", ".")
+            
             self._advance()
+            self.last_token_was_number = False
             token_type = SINGLE_CHAR_TOKENS[ch]
             return Token(token_type, ch, start_line, start_col, self.column - 1)
 
@@ -232,10 +253,8 @@ class SkuldLexer:
                 raise LexicalError(start_line, start_col, "Numero mal formado", lexeme)
             lexeme += exp_digits
 
-        if self._current_char() == ".":
-            bad_lexeme = lexeme + "."
-            self._advance()
-            raise LexicalError(start_line, start_col, "Numero mal formado", bad_lexeme)
+        # El punto extra será detectado como error en el siguiente ciclo de next_token()
+        # cuando se procese como SINGLE_CHAR_TOKEN y vea que el carácter anterior es dígito
 
         if self._current_char().isalpha() or self._current_char() == "_":
             suffix = self._consume_while(lambda c: c.isalnum() or c == "_")
@@ -380,6 +399,12 @@ def tokenize_with_recovery(source_code: str) -> tuple[List[Token], List[LexicalE
 def tokenize_file(file_path: str, encoding: str = "utf-8") -> List[Token]:
     with open(file_path, "r", encoding=encoding) as f:
         return tokenize(f.read())
+
+
+def tokenize_file_with_recovery(file_path: str, encoding: str = "utf-8") -> tuple[List[Token], List[LexicalError]]:
+    """Tokenize a file with error recovery - returns all tokens and ALL errors."""
+    with open(file_path, "r", encoding=encoding) as f:
+        return tokenize_with_recovery(f.read())
 
 
 if __name__ == "__main__":

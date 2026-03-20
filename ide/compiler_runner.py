@@ -6,7 +6,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import List
 
-from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize_file
+from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize_file_with_recovery
 
 
 @dataclass
@@ -37,10 +37,13 @@ def _get_compiler_command() -> List[str] | None:
 
 def _format_lex_tokens(source_path: str) -> CompilerResult:
     try:
-        tokens = tokenize_file(source_path)
+        tokens, errors = tokenize_file_with_recovery(source_path)
     except OSError as exc:
         return CompilerResult(returncode=1, stdout="", stderr=f"No se pudo leer el archivo: {exc}")
-    except LexicalError as exc:
+
+    # Si hay errores, reportar el primero
+    if errors:
+        exc = errors[0]
         raw_lexeme = exc.lexeme or ""
         # Highlight up to the first line of the invalid lexeme; fallback to one character.
         first_line_lexeme = raw_lexeme.splitlines()[0] if raw_lexeme else ""
