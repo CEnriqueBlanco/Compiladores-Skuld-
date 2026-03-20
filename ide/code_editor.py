@@ -138,7 +138,9 @@ class CodeEditor(QPlainTextEdit):
         lex_action.setEnabled(has_selection and self._selection_lexical_callback is not None)
 
         if self._selection_lexical_callback is not None:
-            lex_action.triggered.connect(lambda txt=selection_text: self._selection_lexical_callback(txt))
+            lex_action.triggered.connect(
+                lambda _checked=False, txt=selection_text: self._selection_lexical_callback(txt)
+            )
 
         menu.exec_(event.globalPos())
 
@@ -166,13 +168,14 @@ class CodeEditor(QPlainTextEdit):
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         selection.cursor = cursor
 
-        colors = steins_gate_theme.get_colors()
-        error_underline = QColor(colors.numbers)
-        error_background = QColor(colors.accent)
-        error_background.setAlpha(80)
+        error_colors = steins_gate_theme.get_error_colors()
+        error_underline = QColor(error_colors.underline)
+        error_background = QColor(error_colors.background)
+        error_background.setAlpha(140)
         selection.format.setUnderlineStyle(QTextCharFormat.WaveUnderline)
         selection.format.setUnderlineColor(error_underline)
         selection.format.setBackground(error_background)
+        selection.format.setForeground(QColor(error_colors.text))
 
         self._error_selections = [selection]
         self._apply_extra_selections()

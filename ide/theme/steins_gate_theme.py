@@ -17,6 +17,14 @@ class ThemeColors:
     hover: str = "#5a1e1e"
 
 
+@dataclass(frozen=True)
+class ErrorColors:
+    underline: str
+    background: str
+    text: str
+    border: str
+
+
 THEMES: dict[str, tuple[str, ThemeColors]] = {
     "labmem_001": (
         "LabMem 001 · Okabe",
@@ -129,6 +137,16 @@ THEMES: dict[str, tuple[str, ThemeColors]] = {
 DEFAULT_THEME_KEY = "labmem_004"
 _current_theme_key = DEFAULT_THEME_KEY
 
+ERROR_THEMES: dict[str, ErrorColors] = {
+    "labmem_001": ErrorColors(underline="#ff5f56", background="#4a1818", text="#ffb4ad", border="#8b2d2a"),
+    "labmem_002": ErrorColors(underline="#ff6b9e", background="#3a1730", text="#ffb8d2", border="#7a2a59"),
+    "labmem_003": ErrorColors(underline="#ff5c8a", background="#4a1730", text="#ffc1d6", border="#8a2d58"),
+    "labmem_004": ErrorColors(underline="#ff4d4d", background="#4a1414", text="#ffb3b3", border="#8c2a2a"),
+    "labmem_005": ErrorColors(underline="#ff6a6a", background="#3f1a1f", text="#ffc0c8", border="#7e323d"),
+    "labmem_006": ErrorColors(underline="#ff7f50", background="#4a2718", text="#ffd2bf", border="#915236"),
+    "labmem_007": ErrorColors(underline="#ff6ed3", background="#3e1f45", text="#ffc8f0", border="#7c3a8a"),
+}
+
 
 def list_themes() -> list[tuple[str, str]]:
     return [(key, data[0]) for key, data in THEMES.items()]
@@ -155,6 +173,10 @@ def set_theme(theme_key: str) -> bool:
 
 def get_colors() -> ThemeColors:
     return THEMES[_current_theme_key][1]
+
+
+def get_error_colors() -> ErrorColors:
+    return ERROR_THEMES.get(_current_theme_key, ERROR_THEMES[DEFAULT_THEME_KEY])
 
 
 def get_colors_for_theme(theme_key: str) -> ThemeColors:
