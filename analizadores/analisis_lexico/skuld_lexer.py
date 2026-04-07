@@ -167,17 +167,19 @@ class SkuldLexer:
             self.last_token_was_number = False
             return self._scan_string(start_line, start_col)
 
-        # Detectar punto extra después de número: .34 no es válido si ultimo token fue número
-        if (ch == "." and self._peek_char() and self._peek_char().isdigit() 
-            and self.last_token_was_number):
-            # Punto extra después de número: es error
+        if ch == "." and self._peek_char() and self._peek_char().isdigit():
             self._advance()
-            raise LexicalError(start_line, start_col, "Punto inesperado en numero", ".")
+            raise LexicalError(start_line, start_col, "Numero mal formado", ".")
 
-        if ch.isdigit() or (ch == "." and self._peek_char() and self._peek_char().isdigit()):
+        if ch.isdigit():
             token = self._scan_number(start_line, start_col)
             self.last_token_was_number = True
             return token
+
+        compound_token = self._match_compound_operator_with_whitespace(start_line, start_col)
+        if compound_token is not None:
+            self.last_token_was_number = False
+            return compound_token
 
         if ch.isalpha() or ch == "_":
             self.last_token_was_number = False
@@ -192,11 +194,6 @@ class SkuldLexer:
             return Token(token_type, two_chars, start_line, start_col, self.column - 1)
 
         if ch in SINGLE_CHAR_TOKENS:
-            # Detectar punto adicional después de número flotante
-            if ch == "." and self.last_token_was_number:
-                self._advance()
-                raise LexicalError(start_line, start_col, "Punto inesperado en numero", ".")
-            
             self._advance()
             self.last_token_was_number = False
             token_type = SINGLE_CHAR_TOKENS[ch]
@@ -221,6 +218,12 @@ class SkuldLexer:
         lexeme = ""
         is_float = False
 
+        integer_part = self._consume_while(str.isdigit)
+        lexeme += integer_part
+
+        if len(integer_part) > 1 and integer_part[0] == "0":
+            raise LexicalError(start_line, start_col, "Numero mal formado (cero a la izquierda)", integer_part)
+
         if self._current_char() == ".":
             is_float = True
             lexeme += self._advance() or ""
@@ -228,20 +231,6 @@ class SkuldLexer:
             if not fractional:
                 raise LexicalError(start_line, start_col, "Numero mal formado", lexeme)
             lexeme += fractional
-        else:
-            integer_part = self._consume_while(str.isdigit)
-            lexeme += integer_part
-
-            if len(integer_part) > 1 and integer_part[0] == "0":
-                raise LexicalError(start_line, start_col, "Numero mal formado (cero a la izquierda)", integer_part)
-
-            if self._current_char() == ".":
-                is_float = True
-                lexeme += self._advance() or ""
-                fractional = self._consume_while(str.isdigit)
-                if not fractional:
-                    raise LexicalError(start_line, start_col, "Numero mal formado", lexeme)
-                lexeme += fractional
 
         if self._current_char() in ("e", "E"):
             is_float = True
@@ -300,13 +289,6 @@ class SkuldLexer:
 
             next_ch = self._peek_char()
 
-            if ch == "/" and next_ch == "/":
-                self._advance()
-                self._advance()
-                while not self._is_at_end() and self._current_char() not in ("\n", "\r"):
-                    self._advance()
-                continue
-
             if ch == "<" and next_ch == ">":
                 self._advance()
                 self._advance()
@@ -314,30 +296,19 @@ class SkuldLexer:
                     self._advance()
                 continue
 
-            if ch == "<" and next_ch not in ("=", ">") and self._is_line_comment_start():
-                start_line = self.line
-                start_col = self.column
-                self._advance()
-                while not self._is_at_end() and self._current_char() != ">":
-                    self._advance()
-                if self._is_at_end():
-                    raise LexicalError(start_line, start_col, "Comentario entre < > no terminado", "<")
-                self._advance()
-                continue
-
-            if ch == "/" and next_ch == "*":
+            if ch == "<" and next_ch == "!":
                 start_line = self.line
                 start_col = self.column
                 self._advance()
                 self._advance()
                 while not self._is_at_end():
-                    if self._current_char() == "*" and self._peek_char() == "/":
+                    if self._current_char() == "!" and self._peek_char() == ">":
                         self._advance()
                         self._advance()
                         break
                     self._advance()
                 else:
-                    raise LexicalError(start_line, start_col, "Comentario de bloque no terminado", "/*")
+                    raise LexicalError(start_line, start_col, "Comentario de varias lineas no terminado", "<!")
                 continue
 
             break
@@ -351,15 +322,6 @@ class SkuldLexer:
     def _is_at_end(self) -> bool:
         return self.index >= self.length
 
-    def _is_line_comment_start(self) -> bool:
-        # Permite comentarios <...> cuando el '<' aparece al inicio logico de linea.
-        i = self.index - 1
-        while i >= 0 and self.source[i] not in ("\n", "\r"):
-            if self.source[i] not in (" ", "\t"):
-                return False
-            i -= 1
-        return True
-
     def _current_char(self) -> str:
         if self._is_at_end():
             return ""
@@ -369,6 +331,44 @@ class SkuldLexer:
         if self.index + 1 >= self.length:
             return None
         return self.source[self.index + 1]
+
+    def _peek_non_whitespace_char(self) -> Optional[str]:
+        i = self.index + 1
+        while i < self.length and self.source[i] in (" ", "\t", "\n", "\r"):
+            i += 1
+        if i >= self.length:
+            return None
+        return self.source[i]
+
+    def _peek_next_non_whitespace_index(self) -> Optional[int]:
+        i = self.index + 1
+        while i < self.length and self.source[i] in (" ", "\t", "\n", "\r"):
+            i += 1
+        if i >= self.length:
+            return None
+        return i
+
+    def _match_compound_operator_with_whitespace(self, start_line: int, start_col: int) -> Optional[Token]:
+        ch = self._current_char()
+        if ch not in {"=", "!", "<", ">", "+", "-", "*", "/", "%", "&", "|"}:
+            return None
+
+        next_index = self._peek_next_non_whitespace_index()
+        if next_index is None:
+            return None
+
+        next_ch = self.source[next_index]
+        two_chars = ch + next_ch
+        if two_chars not in MULTI_CHAR_OPERATORS:
+            return None
+
+        self._advance()
+        while not self._is_at_end() and self._current_char() in (" ", "\t", "\n", "\r"):
+            self._advance()
+        self._advance()
+
+        token_type = MULTI_CHAR_OPERATORS[two_chars]
+        return Token(token_type, two_chars, start_line, start_col, self.column - 1)
 
     def _advance(self) -> Optional[str]:
         if self._is_at_end():

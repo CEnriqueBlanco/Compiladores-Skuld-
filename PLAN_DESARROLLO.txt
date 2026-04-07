@@ -278,29 +278,29 @@ SINTAXIS LÉXICA COMPLETA (RECONOCIMIENTO DE TOKENS)
   6. Operadores compuestos
   7. Operadores simples
   8. Delimitadores
-- Espacios, tabs y saltos de línea se ignoran, pero actualizan fila/columna.
+- Espacios, tabs y saltos de línea se ignoran; el lexer actúa como si todo estuviera en una sola línea.
 
 2) TOKENS IGNORADOS / COMENTARIOS  (Color 3 → COMMENTS #696969)
 -------------------------------------------------------------------
 WHITESPACE:
-  - Regex: [ \t\r\n]+
-  - Acción: Ignorar (actualizar posición).
+  - Regla: ignorado por completo.
+  - Acción: avanzar posición sin producir tokens.
 
 COMMENT_LINE  (una línea, estilo C):
-  - Sintaxis: // texto hasta fin de línea
-  - Regex: //[^\n]*
+  - Sintaxis: <> texto hasta fin de línea
+  - Regex: <>[^\n]*
   - Acción: Ignorar. Resaltar con Color 3.
-  - Ejemplo: // El Psy Kongroo
+  - Ejemplo: <> El Psy Kongroo
 
 COMMENT_BLOCK  (múltiples líneas, estilo C):
-  - Sintaxis: /* texto en varias líneas */
-  - Regex aproximada: /\*([^*]|\*+[^*/])*\*+/
+  - Sintaxis: <! texto en varias líneas !>
+  - Regex aproximada: <!([^!]|!(?!>))*!>
   - Acción: Ignorar. Resaltar con Color 3.
-  - Error: si no cierra con */ antes de EOF → ERROR_LEXICO.
+  - Error: si no cierra con !> antes de EOF → ERROR_LEXICO.
   - Ejemplo:
-      /* Esto es un
+      <! Esto es un
          comentario
-         de bloque */
+         de bloque !>
 
 3) PALABRAS RESERVADAS (KEYWORDS)
 ---------------------------------
@@ -356,8 +356,8 @@ INTEGER_LITERAL (worldline):
 
 FLOAT_LITERAL (divergence):
   - Regex recomendada: ([0-9]+\.[0-9]+)([eE][+-]?[0-9]+)?
-  - Opcional extendida: ([0-9]+\.[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?
-  - Ejemplos: 1.048596, 0.0, 2.5e-3
+  - Regla adicional: si es menor que 1, debe escribirse con 0 antes del punto.
+  - Ejemplos: 1.048596, 0.0, 0.32, 2.5e-3
 
 STRING_LITERAL (dmail):
   - Delimitador: comillas dobles
@@ -441,22 +441,22 @@ Sintaxis de E/S en Skuld:
 8) TABLA RESUMEN DE REGEX PRIORITARIA
 -------------------------------------
 Orden sugerido de matching (de mayor a menor prioridad):
-  1. //[^\n]*
-  2. /\*([^*]|\*+[^*/])*\*+/         (si habilitas bloque)
+  1. <>[^\n]*
+  2. <!([^!]|!(?!>))*!>              (si habilitas bloque)
   3. "([^"\\]|\\["\\nrt])*"
   4. ([0-9]+\.[0-9]+)([eE][+-]?[0-9]+)?
   5. 0|[1-9][0-9]*
   6. [A-Za-z_][A-Za-z0-9_]*           (luego validar keyword)
   7. ==|!=|<=|>=|\+\+|--|\+=|-=|\*=|/=|%=|&&|\|\|
   8. [=+\-*/%<>!(){}\[\];,.:]
-  9. [ \t\r\n]+
+  9. [ \t\r\n]+         (ignorado)
 
 9) ERRORES LÉXICOS A REPORTAR
 -----------------------------
 - Carácter no reconocido (ej: @, #, `) fuera de strings/comentarios.
 - Cadena no terminada.
 - Comentario de bloque no terminado (si se habilita).
-- Número mal formado (ej: 12..3, 1e, 09 si prohíbes ceros a la izquierda).
+- Número mal formado (ej: 12..3, 1e, .32, 09 si prohíbes ceros a la izquierda).
 - Secuencia de escape inválida en string (ej: \q).
 
 Formato recomendado de error:
@@ -484,8 +484,8 @@ Salida de tokens:
 
 EJEMPLO DE CÓDIGO SKULD
 ------------------------
-// Programa: Calculadora de Divergencia
-// El Psy Kongroo!
+<> Programa: Calculadora de Divergencia
+<> El Psy Kongroo!
 
 labmem divergence alpha = 1.048596;
 labmem divergence beta = 0.0;

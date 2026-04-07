@@ -1,5 +1,5 @@
-// Programa: Calculadora de Divergencia
-// El Psy Kongroo!
+<> Programa: Calculadora de Divergencia
+<> El Psy Kongroo!
 
 labmem divergence alpha = 1.048596;
 labmem divergence beta = 0.0;

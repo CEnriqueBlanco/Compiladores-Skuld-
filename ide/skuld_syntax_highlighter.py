@@ -13,12 +13,9 @@ class SkuldSyntaxHighlighter(QSyntaxHighlighter):
     def __init__(self, document) -> None:
         super().__init__(document)
         self._rules: List[Tuple[re.Pattern[str], QTextCharFormat]] = []
-        # Keep only unambiguous one-line comments here to avoid conflicts with <= and >=.
-        self._line_comment_re = re.compile(r"//[^\n]*|<>[^\n]*")
-        self._block_start_re = re.compile(r"/\*")
-        self._block_end_re = re.compile(r"\*/")
-        self._angle_start_re = re.compile(r"^\s*<(?!=|>)")
-        self._angle_end_re = re.compile(r">")
+        self._line_comment_re = re.compile(r"<>[^\n]*")
+        self._block_start_re = re.compile(r"<!")
+        self._block_end_re = re.compile(r"!>")
         self._build_rules()
 
     def _build_rules(self) -> None:
@@ -66,54 +63,30 @@ class SkuldSyntaxHighlighter(QSyntaxHighlighter):
 
         self.setCurrentBlockState(0)
 
-        if self.previousBlockState() == 2:
-            self._apply_multiline_comment(text, 0, self._angle_end_re, 2)
-            if self.currentBlockState() == 2:
-                return
-        elif self._try_start_angle_comment(text):
-            return
-
-        start_index = 0
-        if self.previousBlockState() != 1:
-            start_match = self._block_start_re.search(text)
-            start_index = start_match.start() if start_match else -1
-        else:
-            start_index = 0
-
-        while start_index >= 0:
-            end_match = self._block_end_re.search(text, start_index)
+        search_index = 0
+        if self.previousBlockState() == 1:
+            end_match = self._block_end_re.search(text)
             if end_match is None:
                 self.setCurrentBlockState(1)
-                comment_length = len(text) - start_index
-            else:
-                comment_length = end_match.end() - start_index
+                self.setFormat(0, len(text), self._block_comment_format)
+                return
 
-            self.setFormat(start_index, comment_length, self._block_comment_format)
+            self.setFormat(0, end_match.end(), self._block_comment_format)
+            search_index = end_match.end()
 
-            if end_match is None:
+        while True:
+            start_match = self._block_start_re.search(text, search_index)
+            if start_match is None:
                 break
 
-            next_match = self._block_start_re.search(text, start_index + comment_length)
-            start_index = next_match.start() if next_match else -1
+            end_match = self._block_end_re.search(text, start_match.end())
+            if end_match is None:
+                self.setCurrentBlockState(1)
+                self.setFormat(start_match.start(), len(text) - start_match.start(), self._block_comment_format)
+                break
 
-    def _try_start_angle_comment(self, text: str) -> bool:
-        start_match = self._angle_start_re.search(text)
-        if start_match is None:
-            return False
-
-        start_index = start_match.start() + text[start_match.start() : start_match.end()].rfind("<")
-        self._apply_multiline_comment(text, start_index, self._angle_end_re, 2)
-        return self.currentBlockState() == 2 or start_index >= 0
-
-    def _apply_multiline_comment(self, text: str, start_index: int, end_re: re.Pattern[str], state_id: int) -> None:
-        end_match = end_re.search(text, start_index + 1)
-        if end_match is None:
-            self.setCurrentBlockState(state_id)
-            comment_length = len(text) - start_index
-        else:
-            comment_length = end_match.end() - start_index
-
-        self.setFormat(start_index, comment_length, self._block_comment_format)
+            self.setFormat(start_match.start(), end_match.end() - start_match.start(), self._block_comment_format)
+            search_index = end_match.end()
 
     @staticmethod
     def _fmt(color_hex: str) -> QTextCharFormat:
