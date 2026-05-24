@@ -154,7 +154,7 @@ def build_menu(window) -> None:
     action_exec = QAction("Ejecución", window)
     action_clear = QAction("Limpiar", window)
 
-    action_lex.triggered.connect(lambda: window._run_phase("lexico"))
+    action_lex.triggered.connect(window._run_lexical_force)
     action_syn.triggered.connect(lambda: window._run_phase("sintactico"))
     action_sem.triggered.connect(lambda: window._run_phase("semantico"))
     action_inter.triggered.connect(lambda: window._run_phase("intermedio"))
@@ -221,7 +221,7 @@ def build_toolbar(window) -> None:
     action_toggle_analysis.triggered.connect(window._toggle_analysis_panel)
     action_toggle_terminal.triggered.connect(window._toggle_terminal_panel)
     action_toggle_explorer.triggered.connect(window._toggle_explorer_panel)
-    action_lex.triggered.connect(lambda: window._run_phase("lexico"))
+    action_lex.triggered.connect(window._run_lexical_force)
     action_syn.triggered.connect(lambda: window._run_phase("sintactico"))
     action_sem.triggered.connect(lambda: window._run_phase("semantico"))
     action_inter.triggered.connect(lambda: window._run_phase("intermedio"))

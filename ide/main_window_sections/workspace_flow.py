@@ -484,8 +484,13 @@ def run_phase(window, phase: str) -> None:
     if result.returncode != 0:
         if phase == "lexico":
             window._analysis_panel.set_tokens(result.stderr or "Error lexico.")
+        elif phase == "sintactico":
+            window._analysis_panel.set_syntax(result.stderr or "Error sintactico.")
+
+        if phase in {"lexico", "sintactico"}:
             if result.error_line is not None and result.error_column is not None:
                 editor.highlight_error_range(result.error_line, result.error_column, result.error_column_end)
+
         if window._console_panel is not None:
             window._console_panel.append_errors(result.stderr or "Error ejecutando el compilador.")
         return

@@ -308,7 +308,6 @@ class MainWindow(QMainWindow):
         editor.cursorPositionChanged.connect(self._update_cursor_status)
         editor.textChanged.connect(self._on_text_changed)
         editor.set_selection_lexical_callback(self._run_lexical_selection)
-        editor.set_force_lexical_callback(self._run_lexical_force)
 
     def _fit_editor_to_content(self) -> None:
         if self._editor_tabs is None:

@@ -1,0 +1,16 @@
+<> Archivo de prueba Skuld - Fase 2 (Analizador Sintáctico con Errores)
+<> El Psy Kongroo!
+
+labmem worldline x = ;  <> Error 1: Falta la expresión de inicialización
+labmem divergence ratio = 1.048596;
+
+gate {
+    x = 10
+    dmail("Hola");     <> Error 2: Falta el punto y coma ';' en la asignación de x
+
+    choice (ratio > 1.0) {
+        dmail("Divergencia correcta");
+    else {              <> Error 3: Falta cerrar la llave '}' de la rama choice (then) antes del else
+        dmail("Divergencia incorrecta");
+    }
+}

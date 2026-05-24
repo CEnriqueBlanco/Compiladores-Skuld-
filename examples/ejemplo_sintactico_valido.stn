@@ -1,0 +1,33 @@
+<> Archivo de prueba Skuld - Fase 2 (Analizador Sintáctico Válido)
+<> El Psy Kongroo!
+
+labmem worldline x = 5, y = 15;
+labmem divergence ratio = 1.048596;
+labmem reading es_activo = true;
+
+steiner worldline duplicar(worldline valor) {
+    labmem worldline resultado = valor * 2;
+    return resultado;
+}
+
+gate {
+    dmail("--- Calculando Divergencia ---");
+    x = duplicar(x);
+    
+    choice (x < y) {
+        dmail("Valor duplicado es menor que y.");
+        dmail("x = " + x);
+    } else {
+        dmail("Valor duplicado es mayor o igual que y.");
+        dmail("x = " + x);
+    }
+
+    loop (x > 0) {
+        dmail("Decrementando x: " + x);
+        x = x - 1;
+    }
+
+    do {
+        dmail("Bucle pulse ejecutado una vez");
+    } while (x != 0);
+}

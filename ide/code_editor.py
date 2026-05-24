@@ -26,7 +26,6 @@ class CodeEditor(QPlainTextEdit):
         self._error_selections: list[QTextEdit.ExtraSelection] = []
         self._syntax_highlighter = SkuldSyntaxHighlighter(self.document())
         self._selection_lexical_callback = None
-        self._force_lexical_callback = None
 
         self.blockCountChanged.connect(self.update_line_number_area_width)
         self.updateRequest.connect(self.update_line_number_area)
@@ -130,26 +129,18 @@ class CodeEditor(QPlainTextEdit):
     def set_selection_lexical_callback(self, callback) -> None:
         self._selection_lexical_callback = callback
 
-    def set_force_lexical_callback(self, callback) -> None:
-        self._force_lexical_callback = callback
-
     def contextMenuEvent(self, event) -> None:  # type: ignore[override]
         menu = self.createStandardContextMenu()
         menu.addSeparator()
         lex_action = menu.addAction("Analisis lexico (seleccion)")
-        force_lex_action = menu.addAction("Analisis lexico (forzar)")
         selection_text = self.textCursor().selectedText()
         has_selection = bool(selection_text.strip())
         lex_action.setEnabled(has_selection and self._selection_lexical_callback is not None)
-        force_lex_action.setEnabled(self._force_lexical_callback is not None)
 
         if self._selection_lexical_callback is not None:
             lex_action.triggered.connect(
                 lambda _checked=False, txt=selection_text: self._selection_lexical_callback(txt)
             )
-
-        if self._force_lexical_callback is not None:
-            force_lex_action.triggered.connect(lambda _checked=False: self._force_lexical_callback())
 
         menu.exec_(event.globalPos())
 

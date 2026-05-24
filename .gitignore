@@ -1,0 +1,61 @@
+# =====================================================================
+# GITIGNORE — COMPILADORES SKULD (IDE READING STEINER)
+# =====================================================================
+
+# --- Entornos Virtuales de Python ---
+.venv/
+.venv311/
+venv/
+env/
+ENV/
+bin/
+include/
+lib/
+share/
+pyvenv.cfg
+pip-selfcheck.json
+
+# --- Archivos de Caché y Compilados de Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+nosetests.xml
+*.cover
+*.gcov
+.hypothesis/
+
+# --- Configuraciones del IDE y Sistema ---
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# --- Compilados en C (tiny-master / TM) ---
+*.exe
+*.o
+*.obj
+*.out
+tiny-master/TINY.EXE
+tiny-master/TM.EXE
+tiny-master/*.o
+
+# --- Salidas de Compilación y Empaquetado (PyInstaller) ---
+build/
+dist/
+*.spec
+ReadingSteiner.spec
+
+# --- Archivos Temporales de Prueba ---
+scratch/
+test_errors.stn
+*.log

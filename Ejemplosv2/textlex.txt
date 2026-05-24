@@ -1,16 +1,7 @@
-0.32
-.32+98.54+.45
-<>main sum@r 3.14+main)if{32.algo
-<>
-<!hola mundo
-
-
-!>
-<>+++++-----=====
-0.54+76.78%2
-34.34+0.34-0.34.
+main sumar 3.14+main)if{32.1
+34.34+34.34
 {
-<!int x,y,z;
+int x,y,z;
 real a,b,c;
  suma=45;
 x=32.32;
@@ -23,16 +14,16 @@ x=(5-3)*(8/2);
 y=5+3-2*4/7-9;
 z=8/2+15*4;
 y=14.54;
-if(2 >3)then
+if(2>3)then
         y=a+3;
   else
-      if(4>2 && )then>
+      if(4>2 && )then
              b=3.2;
        else
            b=5.0;
        end;
        y=y+1;
-end;	
+end;
 a+
 
 +;
@@ -54,7 +45,7 @@ do
 
 5);
  while(y==0){
-    cin mas;!>
+    cin mas;
     cout x;
 };
 }

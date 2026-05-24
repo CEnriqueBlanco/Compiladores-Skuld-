@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 import subprocess
+import sys
 from dataclasses import dataclass
 from typing import List
 
@@ -32,6 +33,12 @@ def _get_compiler_command() -> List[str] | None:
     env_command = os.getenv("SKULD_COMPILER_CMD")
     if env_command:
         return shlex.split(env_command)
+    
+    # Fallback automático al skuld_compiler.py del proyecto root
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    compiler_path = os.path.join(root_dir, "skuld_compiler.py")
+    if os.path.exists(compiler_path):
+        return [sys.executable, compiler_path]
     return None
 
 
@@ -79,12 +86,40 @@ def run_compiler(phase: str, source_path: str) -> CompilerResult:
             ),
         )
 
+    import re
     phase_arg = PHASE_ARGS.get(phase, "")
     full_command = [*command, phase_arg, source_path] if phase_arg else [*command, source_path]
     result = subprocess.run(
         full_command,
         capture_output=True,
-        text=True,
         check=False,
     )
-    return CompilerResult(result.returncode, result.stdout, result.stderr)
+
+    # Decodificar de forma robusta con fallback en caso de error
+    stdout_decoded = result.stdout.decode('utf-8', errors='replace') if result.stdout else ""
+    stderr_decoded = result.stderr.decode('utf-8', errors='replace') if result.stderr else ""
+
+    error_line = None
+    error_column = None
+    error_column_end = None
+
+    if result.returncode != 0 and stderr_decoded:
+        match = re.search(r"ERROR_SINTACTICO\((\d+),\s*(\d+)\): (.*)", stderr_decoded)
+        if match:
+            error_line = int(match.group(1))
+            error_column = int(match.group(2))
+            
+            lex_match = re.search(r" -> '(.*)'$", stderr_decoded.strip())
+            span_len = 1
+            if lex_match:
+                span_len = max(1, len(lex_match.group(1).splitlines()[0] if lex_match.group(1) else ""))
+            error_column_end = error_column + span_len - 1
+
+    return CompilerResult(
+        result.returncode,
+        stdout_decoded,
+        stderr_decoded,
+        error_line=error_line,
+        error_column=error_column,
+        error_column_end=error_column_end,
+    )

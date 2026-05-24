@@ -49,6 +49,7 @@ KEYWORDS: Dict[str, str] = {
     # Basico / aliases tradicionales
     "int": "KW_INT",
     "float": "KW_FLOAT",
+    "real": "KW_FLOAT",
     "string": "KW_STRING",
     "bool": "KW_BOOL",
     "if": "KW_IF",
