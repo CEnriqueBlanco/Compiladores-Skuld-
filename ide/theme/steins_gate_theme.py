@@ -546,19 +546,21 @@ def build_stylesheet() -> str:
         selection-background-color: {colors.selection};
         border: 1px solid {colors.border};
     }}
-    QTreeWidget, QListWidget {{
+    QTreeWidget, QListWidget, QListView {{
         background-color: {colors.panel_bg};
         color: {colors.foreground};
         border: 1px solid {colors.border};
     }}
-    QTreeWidget::item:selected, QListWidget::item:selected {{
+    QTreeWidget::item:selected, QListWidget::item:selected, QListView::item:selected {{
         background-color: {colors.selection};
         color: {colors.foreground};
     }}
     QTreeWidget::item:selected:active,
     QTreeWidget::item:selected:!active,
     QListWidget::item:selected:active,
-    QListWidget::item:selected:!active {{
+    QListWidget::item:selected:!active,
+    QListView::item:selected:active,
+    QListView::item:selected:!active {{
         color: {colors.foreground};
     }}
     QTabWidget::pane {{

@@ -685,12 +685,19 @@ class SkuldParser:
 
         rel_ops = {"LT", "GT", "LTE", "GTE", "EQ", "NEQ"}
         if self._check(rel_ops):
-            op_tok = self._match(rel_ops)
-            p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
-            p.op = op_tok.lexeme
-            p.child.append(t)
-            p.child.append(self._parse_expr_simple())
-            t = p
+            # Si el token es '<' (LT) y el siguiente también es '<' (LT), no es un operador relacional,
+            # sino que es parte del operador de flujo '<<' de cout/dmail.
+            is_stream_op = False
+            if self._check("LT") and self.index + 1 < len(self.tokens) and self.tokens[self.index + 1].token_type == "LT":
+                is_stream_op = True
+
+            if not is_stream_op:
+                op_tok = self._match(rel_ops)
+                p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
+                p.op = op_tok.lexeme
+                p.child.append(t)
+                p.child.append(self._parse_expr_simple())
+                t = p
         return t
 
     def _parse_expr_simple(self) -> TreeNode:

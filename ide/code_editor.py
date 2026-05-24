@@ -1,9 +1,17 @@
 from PyQt5.QtCore import QRect, QSize, Qt
 from PyQt5.QtGui import QColor, QPainter, QTextCharFormat, QTextCursor, QTextFormat
-from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget
+from PyQt5.QtWidgets import QPlainTextEdit, QTextEdit, QWidget, QCompleter
 
 from ide.skuld_syntax_highlighter import SkuldSyntaxHighlighter
 from ide.theme import steins_gate_theme
+
+COMPLETION_KEYWORDS = [
+    "and", "bool", "case", "choice", "cin", "cout", "divergence", "dmail", "do",
+    "else", "end", "false", "float", "fork", "gate", "if", "int", "jump",
+    "labmem", "loop", "main", "not", "or", "path", "pulse", "read", "reading",
+    "real", "return", "seal", "shift", "sphone", "steiner", "string", "switch",
+    "then", "true", "until", "void", "while", "worldline", "write"
+]
 
 
 class LineNumberArea(QWidget):
@@ -34,6 +42,88 @@ class CodeEditor(QPlainTextEdit):
         self.update_line_number_area_width(0)
         self.highlight_current_line()
         self.setLineWrapMode(QPlainTextEdit.NoWrap)
+
+        # Configurar Autocompletado (QCompleter)
+        self._completer = QCompleter(COMPLETION_KEYWORDS, self)
+        self._completer.setWidget(self)
+        self._completer.setCompletionMode(QCompleter.PopupCompletion)
+        self._completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self._completer.activated.connect(self.insert_completion)
+
+        popup = self._completer.popup()
+        popup.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    def text_under_cursor(self) -> str:
+        tc = self.textCursor()
+        block_text = tc.block().text()
+        pos_in_block = tc.positionInBlock()
+        
+        start = pos_in_block
+        while start > 0 and (block_text[start - 1].isalnum() or block_text[start - 1] == '_'):
+            start -= 1
+        return block_text[start:pos_in_block]
+
+    def insert_completion(self, completion: str) -> None:
+        if self._completer.widget() is not self:
+            return
+        tc = self.textCursor()
+        prefix = self._completer.completionPrefix()
+        tc.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor, len(prefix))
+        tc.insertText(completion)
+        self.setTextCursor(tc)
+
+    def keyPressEvent(self, event) -> None:  # type: ignore[override]
+        if self._completer and self._completer.popup().isVisible():
+            if event.key() in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab, Qt.Key_Escape):
+                if event.key() in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab):
+                    current_index = self._completer.popup().currentIndex()
+                    completion_text = ""
+                    if current_index.isValid():
+                        completion_text = self._completer.popup().model().data(current_index, Qt.DisplayRole)
+                    if not completion_text:
+                        completion_text = self._completer.currentCompletion()
+                    
+                    if completion_text:
+                        self.insert_completion(completion_text)
+                    self._completer.popup().hide()
+                    event.accept()
+                    return
+                elif event.key() == Qt.Key_Escape:
+                    self._completer.popup().hide()
+                    event.accept()
+                    return
+
+        super().keyPressEvent(event)
+
+        if not self._completer:
+            return
+
+        has_modifier = (event.modifiers() != Qt.NoModifier) and (event.modifiers() != Qt.ShiftModifier)
+        if has_modifier:
+            self._completer.popup().hide()
+            return
+
+        completion_prefix = self.text_under_cursor()
+
+        if not completion_prefix or not event.text():
+            self._completer.popup().hide()
+            return
+
+        last_char = event.text()[-1]
+        if not (last_char.isalnum() or last_char == '_'):
+            self._completer.popup().hide()
+            return
+
+        self._completer.setCompletionPrefix(completion_prefix)
+        cr = self.cursorRect()
+        popup_width = self._completer.popup().sizeHintForColumn(0) + self._completer.popup().verticalScrollBar().sizeHint().width()
+        cr.setWidth(max(150, popup_width))
+        self._completer.complete(cr)
+
+        # Seleccionar automáticamente la primera opción de la lista filtrada
+        first_index = self._completer.completionModel().index(0, 0)
+        if first_index.isValid():
+            self._completer.popup().setCurrentIndex(first_index)
 
     def line_number_area_width(self) -> int:
         digits = max(1, len(str(self.blockCount())))

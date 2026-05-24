@@ -2,7 +2,7 @@
 import sys
 import os
 
-from analizadores.analisis_lexico.skuld_lexer import tokenize_file_with_recovery, LexicalError
+from analizadores.analisis_lexico.skuld_lexer import tokenize_file_with_recovery, LexicalError, Token
 from analizadores.analisis_sintactico.skuld_parser import SkuldParser, print_tree_graphical, SyntaxError
 
 

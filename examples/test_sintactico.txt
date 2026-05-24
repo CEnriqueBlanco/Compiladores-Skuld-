@@ -1,0 +1,11 @@
+main {
+    int a, b, c;
+    a = 10;
+    b = 20;
+    c = a + b * 2;
+    if (c > 30) then
+        cout << "C es mayor que 30: " << c;
+    else
+        cout << "C es menor o igual: " << c;
+    end;
+}
