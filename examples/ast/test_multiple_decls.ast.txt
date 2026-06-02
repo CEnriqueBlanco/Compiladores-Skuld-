@@ -1,0 +1,7 @@
+└── [Bloque de Código / Programa] @ 1
+    └── [Bloque de Código / gate] @ 1
+        └── [Declaración de Variable] Tipo: int @ 2
+            ├── [Variable] ID: x @ 2
+            ├── [Variable] ID: y @ 2
+            └── [Variable] ID: z (Inicializada) @ 2
+                └── [Constante] Valor: 10 @ 2

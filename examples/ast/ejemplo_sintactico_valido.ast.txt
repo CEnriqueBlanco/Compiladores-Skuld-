@@ -1,17 +1,21 @@
 └── [Bloque de Código / Programa] @ 1
-    ├── [Declaración de Variable] Tipo: worldline, ID: x (Inicializada) @ 3
-    │   └── [Constante] Valor: 5 @ 3
-    ├── [Declaración de Variable] Tipo: worldline, ID: y (Inicializada) @ 3
-    │   └── [Constante] Valor: 15 @ 3
-    ├── [Declaración de Variable] Tipo: divergence, ID: ratio (Inicializada) @ 4
-    │   └── [Constante] Valor: 1.048596 @ 4
-    ├── [Declaración de Variable] Tipo: reading, ID: es_activo (Inicializada) @ 5
-    │   └── [Constante] Valor: True @ 5
+    ├── [Declaración de Variable] Tipo: worldline @ 3
+    │   ├── [Variable] ID: x (Inicializada) @ 3
+    │   │   └── [Constante] Valor: 5 @ 3
+    │   └── [Variable] ID: y (Inicializada) @ 3
+    │       └── [Constante] Valor: 15 @ 3
+    ├── [Declaración de Variable] Tipo: divergence @ 4
+    │   └── [Variable] ID: ratio (Inicializada) @ 4
+    │       └── [Constante] Valor: 1.048596 @ 4
+    ├── [Declaración de Variable] Tipo: reading @ 5
+    │   └── [Variable] ID: es_activo (Inicializada) @ 5
+    │       └── [Constante] Valor: True @ 5
     ├── [Definición de Función] Tipo: worldline, Nombre: duplicar(worldline valor) @ 7
-    │   ├── [Declaración de Variable] Tipo: worldline, ID: resultado (Inicializada) @ 8
-    │   │   └── [Operador] '*' @ 8
-    │   │       ├── [Variable / ID] Nombre: valor @ 8
-    │   │       └── [Constante] Valor: 2 @ 8
+    │   ├── [Declaración de Variable] Tipo: worldline @ 8
+    │   │   └── [Variable] ID: resultado (Inicializada) @ 8
+    │   │       └── [Operador] '*' @ 8
+    │   │           ├── [Variable / ID] Nombre: valor @ 8
+    │   │           └── [Constante] Valor: 2 @ 8
     │   └── [Retorno / return] @ 9
     │       └── [Variable / ID] Nombre: resultado @ 9
     └── [Bloque de Código / gate] @ 12

@@ -115,17 +115,11 @@ def run_syntax(source_path: str):
     parser = SkuldParser(tokens)
     ast = parser.parse()
 
-    # 3. Reportar cualquier error sintáctico (Requisito 4)
-    if parser.errors:
-        for err in parser.errors:
-            print(str(err), file=sys.stderr)
-        sys.exit(1)
-
-    # 4. Imprimir la visualización gráfica de carpeta del AST (Requisito 3)
+    # 3. Imprimir la visualización gráfica de carpeta del AST (Requisito 3)
     ast_tree_visual = print_tree_graphical(ast)
     print(ast_tree_visual)
 
-    # 5. Guardar la visualización en un archivo de texto con el mismo nombre y extensión .ast.txt en una subcarpeta 'ast'
+    # 4. Guardar la visualización en un archivo de texto con el mismo nombre y extensión .ast.txt en una subcarpeta 'ast'
     try:
         source_dir = os.path.dirname(source_path)
         ast_dir = os.path.join(source_dir, "ast")
@@ -138,6 +132,12 @@ def run_syntax(source_path: str):
             f.write(ast_tree_visual)
     except Exception as e:
         print(f"\n[Error] No se pudo guardar el archivo del árbol en la carpeta 'ast': {e}", file=sys.stderr)
+
+    # 5. Reportar cualquier error sintáctico (Requisito 4)
+    if parser.errors:
+        for err in parser.errors:
+            print(str(err), file=sys.stderr)
+        sys.exit(1)
 
     sys.exit(0)
 

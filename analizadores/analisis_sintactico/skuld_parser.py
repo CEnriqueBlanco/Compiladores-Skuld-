@@ -48,6 +48,83 @@ class TreeNode:
 
 
 # =====================================================================
+# DICCIONARIO DE TRADUCCIÓN DE TOKENS PARA REPORTES AMIGABLES
+# =====================================================================
+
+TOKEN_TRANSLATIONS = {
+    # Palabras clave
+    "KW_STEINER": "'steiner'",
+    "KW_LABMEM": "'labmem'",
+    "KW_WORLDLINE": "'worldline'",
+    "KW_DIVERGENCE": "'divergence'",
+    "KW_READING": "'reading'",
+    "KW_INT": "'int'",
+    "KW_FLOAT": "'float'",
+    "KW_BOOL": "'bool'",
+    "KW_STRING": "'string'",
+    "KW_VOID": "'void'",
+    "KW_GATE": "'gate'",
+    "KW_MAIN": "'main'",
+    "KW_CHOICE": "'choice'",
+    "KW_IF": "'if'",
+    "KW_LOOP": "'loop'",
+    "KW_WHILE": "'while'",
+    "KW_PULSE": "'pulse'",
+    "KW_DO": "'do'",
+    "KW_SPHONE": "'sphone'",
+    "KW_CIN": "'cin'",
+    "KW_DMAIL": "'dmail'",
+    "KW_COUT": "'cout'",
+    "KW_RETURN": "'return'",
+    "KW_TRUE": "'true'",
+    "KW_FALSE": "'false'",
+    "KW_THEN": "'then'",
+    "KW_ELSE": "'else'",
+    "KW_END": "'end'",
+    "KW_SEAL": "'seal'",
+    "KW_UNTIL": "'until'",
+    
+    # Símbolos y Operadores
+    "SEMICOLON": "';'",
+    "COMMA": "','",
+    "LPAREN": "'('",
+    "RPAREN": "')'",
+    "LBRACE": "'{'",
+    "RBRACE": "'}'",
+    "ASSIGN": "'='",
+    "PLUS_ASSIGN": "'+='",
+    "MINUS_ASSIGN": "'-='",
+    "TIMES_ASSIGN": "'*='",
+    "DIV_ASSIGN": "'/='",
+    "MOD_ASSIGN": "'%='",
+    "INC": "'++'",
+    "DEC": "'--'",
+    "LT": "'<'",
+    "GT": "'>'",
+    "LTE": "'<='",
+    "GTE": "'>='",
+    "EQ": "'=='",
+    "NEQ": "'!='",
+    "PLUS": "'+'",
+    "MINUS": "'-'",
+    "TIMES": "'*'",
+    "DIV": "'/'",
+    "MOD": "'%'",
+    "AND_OP": "'&&'",
+    "OR_OP": "'||'",
+    "NOT_OP": "'!'",
+    "DOT": "'.'",
+    
+    # Identificadores y Literales
+    "IDENTIFIER": "un identificador (nombre de variable o función)",
+    "INTEGER_LITERAL": "un número entero",
+    "FLOAT_LITERAL": "un número real",
+    "STRING_LITERAL": "una cadena de texto",
+    "ENDFILE": "el fin del archivo"
+}
+
+
+# =====================================================================
 # ANALIZADOR SINTÁCTICO (PARSER) DESCENDENTE RECURSIVO
 # =====================================================================
 
@@ -138,12 +215,23 @@ class SkuldParser:
             self.index += 1  # Consumir el token y avanzar
             return tok
         else:
-            expected_str = " o ".join(expected_set)
+            # Traducir los tipos esperados para que sean más legibles en español
+            translated_expected = [TOKEN_TRANSLATIONS.get(t_type, f"'{t_type}'") for t_type in expected_set]
+            expected_str = " o ".join(translated_expected)
+            
+            # Traducir el tipo de token encontrado
+            found_desc = TOKEN_TRANSLATIONS.get(tok.token_type, f"'{tok.token_type}'")
+            
+            # Evitar redundancia si la descripción traducida es exactamente igual al lexema (ej. ';' -> ';')
+            lexeme_suffix = tok.lexeme
+            if found_desc == f"'{tok.lexeme}'":
+                lexeme_suffix = ""
+            
             raise SyntaxError(
                 tok.line,
                 tok.column_start,
-                f"Se esperaba {expected_str}, pero se encontró '{tok.token_type}'",
-                tok.lexeme
+                f"Se esperaba {expected_str}, pero se encontró {found_desc}",
+                lexeme_suffix
             )
 
     def _check(self, expected_types: Union[str, Set[str], List[str]]) -> bool:
@@ -205,30 +293,27 @@ class SkuldParser:
         })
         var_type = type_tok.lexeme
 
-        first_decl = None
-        last_decl = None
+        # Crear el nodo padre para la declaración del tipo
+        decl_node = TreeNode("DeclK", "DeclVarK", lineno=type_tok.line)
+        decl_node.name = var_type
+        decl_node.type = var_type
 
         # Bucle para procesar variables declaradas separadas por comas (ej. x, y, z)
         while True:
             id_tok = self._match("IDENTIFIER")
             var_name = id_tok.lexeme
 
-            # Crear un nodo de declaración
-            decl_node = TreeNode("DeclK", "DeclVarK", lineno=id_tok.line)
-            decl_node.name = var_name
-            decl_node.type = var_type
+            # Crear un nodo para cada variable declarada
+            var_node = TreeNode("DeclK", "VarK", lineno=id_tok.line)
+            var_node.name = var_name
 
             # Inicialización opcional: '= expresión'
             if self._check("ASSIGN"):
                 self._match("ASSIGN")
-                decl_node.child.append(self._parse_expr())
+                var_node.child.append(self._parse_expr())
 
-            # Enlazar los hermanos en la secuencia de declaraciones
-            if first_decl is None:
-                first_decl = decl_node
-            else:
-                last_decl.sibling = decl_node
-            last_decl = decl_node
+            # Agregar var_node como hijo del nodo declaración de tipo
+            decl_node.child.append(var_node)
 
             # Si hay una coma, continuamos declarando en el mismo bloque
             if self._check("COMMA"):
@@ -238,7 +323,7 @@ class SkuldParser:
 
         # Cada línea de declaración finaliza obligatoriamente con punto y coma ';'
         self._match("SEMICOLON")
-        return first_decl
+        return decl_node
 
     def _parse_function_decl(self) -> TreeNode:
         """
@@ -389,7 +474,7 @@ class SkuldParser:
             raise SyntaxError(
                 tok.line,
                 tok.column_start,
-                "Sentencia o expresión no reconocida",
+                "Se esperaba el inicio de una sentencia (como 'if', 'choice', 'while', 'loop', 'do', 'pulse', 'cin', 'cout', 'return', '{' o un identificador de variable/función)",
                 tok.lexeme
             )
 
@@ -503,6 +588,8 @@ class SkuldParser:
             has_braces = True
         elif self._check("KW_THEN"):
             self._match("KW_THEN")
+        else:
+            self._match({"LBRACE", "KW_THEN"})
 
         if has_braces:
             then_branch = self._parse_stmt_sequence("RBRACE")
@@ -557,6 +644,8 @@ class SkuldParser:
             has_braces = True
         elif self._check("KW_DO"):
             self._match("KW_DO")
+        else:
+            self._match({"LBRACE", "KW_DO"})
 
         if has_braces:
             body = self._parse_stmt_sequence("RBRACE")
@@ -821,7 +910,7 @@ class SkuldParser:
             raise SyntaxError(
                 tok.line,
                 tok.column_start,
-                "Componente de expresión inválido",
+                "Se esperaba un identificador, un valor constante (entero, real, booleano, cadena), un operador unario ('!', '-', '+') o un paréntesis de apertura '('",
                 tok.lexeme
             )
 
@@ -851,8 +940,10 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
     desc = ""
     if node.nodekind == "DeclK":
         if node.kind == "DeclVarK":
+            desc = f"[Declaración de Variable] Tipo: {node.type}"
+        elif node.kind == "VarK":
             init_suffix = " (Inicializada)" if node.child else ""
-            desc = f"[Declaración de Variable] Tipo: {node.type}, ID: {node.name}{init_suffix}"
+            desc = f"[Variable] ID: {node.name}{init_suffix}"
         elif node.kind == "FuncK":
             params_str = ", ".join(f"{t} {n}" for t, n in node.params)
             desc = f"[Definición de Función] Tipo: {node.type}, Nombre: {node.name}({params_str})"

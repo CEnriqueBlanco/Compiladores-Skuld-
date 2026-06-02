@@ -470,6 +470,8 @@ def run_phase(window, phase: str) -> None:
         return
 
     editor.clear_error_highlights()
+    if window._console_panel is not None:
+        window._console_panel.clear_all()
 
     current_file = get_active_file_path(window)
     if not current_file:
@@ -485,7 +487,10 @@ def run_phase(window, phase: str) -> None:
         if phase == "lexico":
             window._analysis_panel.set_tokens(result.stderr or "Error lexico.")
         elif phase == "sintactico":
-            window._analysis_panel.set_syntax(result.stderr or "Error sintactico.")
+            if result.stdout and result.stdout.strip():
+                window._analysis_panel.set_syntax(result.stdout)
+            else:
+                window._analysis_panel.set_syntax(result.stderr or "Error sintactico.")
 
         if phase in {"lexico", "sintactico"}:
             if result.error_line is not None and result.error_column is not None:
@@ -518,6 +523,8 @@ def run_lexical_selection(window, selected_text: str) -> None:
         return
 
     editor.clear_error_highlights()
+    if window._console_panel is not None:
+        window._console_panel.clear_all()
 
     source_text = selected_text.replace("\u2029", "\n")
     if not source_text.strip():
@@ -546,6 +553,8 @@ def run_lexical_force(window) -> None:
         return
 
     editor.clear_error_highlights()
+    if window._console_panel is not None:
+        window._console_panel.clear_all()
 
     source_text = editor.toPlainText()
     if not source_text.strip():
