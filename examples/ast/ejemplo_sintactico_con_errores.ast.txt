@@ -14,9 +14,19 @@
             │   └── [Operador] '>' @ 10
             │       ├── [Variable / ID] Nombre: ratio @ 10
             │       └── [Constante] Valor: 1.0 @ 10
-            ├── [Bloque de Código / Then Branch] @ 10
-            │   └── [Salida / dmail (cout)] @ 11
-            │       └── [Cadena] "Divergencia correcta" @ 11
-            └── [Bloque de Código / Else Branch] @ 10
-                └── [Salida / dmail (cout)] @ 13
-                    └── [Cadena] "Divergencia incorrecta" @ 13
+            ├── [Bloque de Código / Then] @ 10
+            │   └── [Condicional / choice (if)] @ 11
+            │       ├── [Bloque de Código / Condition] @ 11
+            │       │   └── [Operador] '>' @ 11
+            │       │       ├── [Constante] Valor: 4 @ 11
+            │       │       └── [Operador] '&&' @ 11
+            │       │           └── [Constante] Valor: 2 @ 11
+            │       ├── [Bloque de Código / Then] @ 11
+            │       │   └── [Asignación] ID: b @ 12
+            │       │       └── [Constante] Valor: 3.2 @ 12
+            │       └── [Bloque de Código / Else] @ 11
+            │           └── [Asignación] ID: b @ 14
+            │               └── [Constante] Valor: 5.0 @ 14
+            └── [Bloque de Código / Else] @ 10
+                └── [Salida / dmail (cout)] @ 17
+                    └── [Cadena] "Divergencia incorrecta" @ 17

@@ -25,18 +25,18 @@
         │   └── [Llamada a Función en Expresión] Nombre: duplicar @ 14
         │       └── [Variable / ID] Nombre: x @ 14
         ├── [Condicional / choice (if)] @ 16
-        │   ├── [Bloque de Código / Condición] @ 16
+        │   ├── [Bloque de Código / Condition] @ 16
         │   │   └── [Operador] '<' @ 16
         │   │       ├── [Variable / ID] Nombre: x @ 16
         │   │       └── [Variable / ID] Nombre: y @ 16
-        │   ├── [Bloque de Código / Rama Entonces] @ 16
+        │   ├── [Bloque de Código / Then] @ 16
         │   │   ├── [Salida / dmail (cout)] @ 17
         │   │   │   └── [Cadena] "Valor duplicado es menor que y." @ 17
         │   │   └── [Salida / dmail (cout)] @ 18
         │   │       └── [Operador] '+' @ 18
         │   │           ├── [Cadena] "x = " @ 18
         │   │           └── [Variable / ID] Nombre: x @ 18
-        │   └── [Bloque de Código / Rama Sino] @ 16
+        │   └── [Bloque de Código / Else] @ 16
         │       ├── [Salida / dmail (cout)] @ 20
         │       │   └── [Cadena] "Valor duplicado es mayor o igual que y." @ 20
         │       └── [Salida / dmail (cout)] @ 21
@@ -44,11 +44,11 @@
         │               ├── [Cadena] "x = " @ 21
         │               └── [Variable / ID] Nombre: x @ 21
         ├── [Bucle / loop (while)] @ 24
-        │   ├── [Bloque de Código / Condición] @ 24
+        │   ├── [Bloque de Código / Condition] @ 24
         │   │   └── [Operador] '>' @ 24
         │   │       ├── [Variable / ID] Nombre: x @ 24
         │   │       └── [Constante] Valor: 0 @ 24
-        │   └── [Bloque de Código / Cuerpo del Bucle] @ 24
+        │   └── [Bloque de Código / Loop] @ 24
         │       ├── [Salida / dmail (cout)] @ 25
         │       │   └── [Operador] '+' @ 25
         │       │       ├── [Cadena] "Decrementando x: " @ 25
@@ -58,10 +58,10 @@
         │               ├── [Variable / ID] Nombre: x @ 26
         │               └── [Constante] Valor: 1 @ 26
         └── [Bucle / pulse (do-while)] @ 29
-            ├── [Bloque de Código / Cuerpo del Bucle] @ 29
+            ├── [Bloque de Código / Loop] @ 29
             │   └── [Salida / dmail (cout)] @ 30
             │       └── [Cadena] "Bucle pulse ejecutado una vez" @ 30
-            └── [Bloque de Código / Condición] @ 29
+            └── [Bloque de Código / Condition] @ 29
                 └── [Operador] '!=' @ 31
                     ├── [Variable / ID] Nombre: x @ 31
                     └── [Constante] Valor: 0 @ 31

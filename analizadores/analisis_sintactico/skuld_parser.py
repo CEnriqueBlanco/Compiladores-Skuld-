@@ -978,7 +978,13 @@ class SkuldParser:
                 p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
                 p.op = op_tok.lexeme
                 p.child.append(t)
-                p.child.append(self._parse_expr_simple())
+                try:
+                    p.child.append(self._parse_expr_simple())
+                except SyntaxError as e:
+                    self.errors.append(e)
+                    err_node = TreeNode("ExpK", "IdK", lineno=op_tok.line)
+                    err_node.name = "<error>"
+                    p.child.append(err_node)
                 t = p
         return t
 
@@ -995,7 +1001,13 @@ class SkuldParser:
             p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
             p.op = op_tok.lexeme
             p.child.append(t)
-            p.child.append(self._parse_term())
+            try:
+                p.child.append(self._parse_term())
+            except SyntaxError as e:
+                self.errors.append(e)
+                err_node = TreeNode("ExpK", "IdK", lineno=op_tok.line)
+                err_node.name = "<error>"
+                p.child.append(err_node)
             t = p
         return t
 
@@ -1012,7 +1024,13 @@ class SkuldParser:
             p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
             p.op = op_tok.lexeme
             p.child.append(t)
-            p.child.append(self._parse_factor())
+            try:
+                p.child.append(self._parse_factor())
+            except SyntaxError as e:
+                self.errors.append(e)
+                err_node = TreeNode("ExpK", "IdK", lineno=op_tok.line)
+                err_node.name = "<error>"
+                p.child.append(err_node)
             t = p
         return t
 
@@ -1029,7 +1047,13 @@ class SkuldParser:
             p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
             p.op = "^"
             p.child.append(t)
-            p.child.append(self._parse_componente())
+            try:
+                p.child.append(self._parse_componente())
+            except SyntaxError as e:
+                self.errors.append(e)
+                err_node = TreeNode("ExpK", "IdK", lineno=op_tok.line)
+                err_node.name = "<error>"
+                p.child.append(err_node)
             t = p
         return t
 
@@ -1229,8 +1253,23 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
                 labeled_children.append(child)
         children = labeled_children
 
+    # Filtrar nodos que sean errores de expresión o bloques vacíos de control cuya única expresión fue un error
+    rendered_children = []
+    for child in children:
+        # Si el hijo es un error de expresión, lo omitimos
+        if child.nodekind == "ExpK" and child.name == "<error>":
+            continue
+            
+        # Si es un bloque de etiqueta, verificamos si contiene algún hijo no-error
+        if child.nodekind == "StmtK" and child.kind == "BlockK" and child.name in {"Condition", "Then", "Else", "Loop"}:
+            valid_subchildren = [sc for sc in child.child if sc is not None and not (sc.nodekind == "ExpK" and sc.name == "<error>")]
+            if not valid_subchildren:
+                continue
+                
+        rendered_children.append(child)
+
     # Imprimir recursivamente cada uno de los hijos estructurados
-    for i, child in enumerate(children):
-        result += print_tree_graphical(child, next_prefix, i == len(children) - 1)
+    for i, child in enumerate(rendered_children):
+        result += print_tree_graphical(child, next_prefix, i == len(rendered_children) - 1)
 
     return result

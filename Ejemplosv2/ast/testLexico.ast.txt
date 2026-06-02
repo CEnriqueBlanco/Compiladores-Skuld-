@@ -83,7 +83,10 @@
         │   └── [Bloque de Código / Else] @ 19
         │       ├── [Condicional / choice (if)] @ 22
         │       │   ├── [Bloque de Código / Condition] @ 22
-        │       │   │   └── [Variable / ID] Nombre: <error> @ 22
+        │       │   │   └── [Operador] '>' @ 22
+        │       │   │       ├── [Constante] Valor: 4 @ 22
+        │       │   │       └── [Operador] '&&' @ 22
+        │       │   │           └── [Constante] Valor: 2 @ 22
         │       │   ├── [Bloque de Código / Then] @ 22
         │       │   │   └── [Asignación] ID: b @ 23
         │       │   │       └── [Constante] Valor: 3.2 @ 23
