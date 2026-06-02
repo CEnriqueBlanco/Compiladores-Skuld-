@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import os
+import sys
 
 
 @dataclass(frozen=True)
@@ -418,13 +420,34 @@ def import_theme_overrides_payload(payload: dict[str, dict[str, str]]) -> bool:
     return True
 
 
+def get_resource_path(*parts: str) -> str:
+    if getattr(sys, "frozen", False):
+        base_path = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+    else:
+        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    return os.path.join(base_path, *parts)
+
+
 def build_stylesheet() -> str:
     colors = get_colors()
     
-    # We replace '#' with '%23' because Qt's url() parser interprets '#' as the start of a fragment.
-    # We use double quotes inside the SVG to be standard-compliant for Qt's SVG parser, and wrap the QSS url in single quotes.
-    closed_svg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5l4.5 4.5-4.5 4.5"/></svg>'
-    open_svg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6l4.5 4.5 4.5-4.5"/></svg>'
+    closed_svg_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5l4.5 4.5-4.5 4.5"/></svg>'
+    open_svg_content = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6l4.5 4.5 4.5-4.5"/></svg>'
+
+    closed_path = get_resource_path("resources", "icons", "branch-closed.svg")
+    open_path = get_resource_path("resources", "icons", "branch-open.svg")
+
+    try:
+        os.makedirs(os.path.dirname(closed_path), exist_ok=True)
+        with open(closed_path, "w", encoding="utf-8") as f:
+            f.write(closed_svg_content)
+        with open(open_path, "w", encoding="utf-8") as f:
+            f.write(open_svg_content)
+    except Exception as e:
+        print(f"Error writing branch icons: {e}", file=sys.stderr)
+
+    closed_url = closed_path.replace(os.sep, "/")
+    open_url = open_path.replace(os.sep, "/")
 
     return f"""
     QMainWindow {{
@@ -560,12 +583,12 @@ def build_stylesheet() -> str:
     QTreeView::branch:has-children:!has-siblings:closed,
     QTreeView::branch:closed:has-children:has-siblings {{
         border-image: none;
-        image: url('{closed_svg}');
+        image: url('{closed_url}');
     }}
     QTreeView::branch:open:has-children:!has-siblings,
     QTreeView::branch:open:has-children:has-siblings {{
         border-image: none;
-        image: url('{open_svg}');
+        image: url('{open_url}');
     }}
     QTreeWidget, QListWidget, QListView {{
         background-color: {colors.panel_bg};
