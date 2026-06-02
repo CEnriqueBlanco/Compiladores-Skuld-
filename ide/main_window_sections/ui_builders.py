@@ -269,6 +269,7 @@ def build_layout(window) -> None:
     window._file_explorer.path_deleted.connect(window._on_path_deleted)
     window._analysis_panel = AnalysisPanel()
     window._analysis_panel._syntax.line_selected.connect(window._jump_to_line_from_tree)
+    window._analysis_panel.error_selected.connect(window._jump_to_and_highlight_error)
     window._analysis_container = window._create_panel_container(
         "Analizadores",
         window._analysis_panel,
@@ -288,6 +289,7 @@ def build_layout(window) -> None:
     window._top_sizes_before_analysis_toggle = window._top_splitter.sizes()
 
     window._console_panel = ConsolePanel()
+    window._console_panel.error_selected.connect(window._jump_to_and_highlight_error)
     window._console_container = window._create_panel_container(
         "Terminal",
         window._console_panel,

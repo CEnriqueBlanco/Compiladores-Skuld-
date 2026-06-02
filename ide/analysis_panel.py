@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget, QTextEdit, QStackedWidge
 from PyQt5.QtCore import pyqtSignal, Qt
 
 from ide.theme import steins_gate_theme
+from ide.console_panel import ErrorHoverEventFilter
 
 
 class SyntaxTreeWidget(QStackedWidget):
@@ -102,6 +103,8 @@ class SyntaxTreeWidget(QStackedWidget):
 
 
 class AnalysisPanel(QTabWidget):
+    error_selected = pyqtSignal(int, int, int)  # line, column, length
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -117,6 +120,20 @@ class AnalysisPanel(QTabWidget):
         self.addTab(self._intermediate, "Intermedio")
         self.addTab(self._symbols, "Símbolos")
 
+        # Connect position changes to error navigation
+        self._tokens.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+        self._syntax.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+        self._semantic.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+        self._intermediate.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+        self._symbols.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+
+        # Install pointing hand cursor filter when hovering over error lines
+        self._tokens_hover_filter = ErrorHoverEventFilter(self._tokens)
+        self._syntax_hover_filter = ErrorHoverEventFilter(self._syntax.text_widget)
+        self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic)
+        self._intermediate_hover_filter = ErrorHoverEventFilter(self._intermediate)
+        self._symbols_hover_filter = ErrorHoverEventFilter(self._symbols)
+
     def set_tokens(self, text: str) -> None:
         self._tokens.setHtml(self._tokens_to_html(text))
 
@@ -131,6 +148,30 @@ class AnalysisPanel(QTabWidget):
 
     def set_symbols(self, text: str) -> None:
         self._symbols.setPlainText(text)
+
+    def _on_text_widget_cursor_changed(self) -> None:
+        widget = self.sender()
+        if not isinstance(widget, (QPlainTextEdit, QTextEdit)):
+            return
+
+        cursor = widget.textCursor()
+        line_text = cursor.block().text().strip()
+        if not line_text:
+            return
+
+        import re
+        match = re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text)
+        if match:
+            line_no = int(match.group(2))
+            col_no = int(match.group(3))
+
+            # Extract lexeme length if present (e.g. -> 'lexeme')
+            span_len = 1
+            lex_match = re.search(r" -> '(.*)'\s*$", line_text)
+            if lex_match:
+                span_len = max(1, len(lex_match.group(1)))
+
+            self.error_selected.emit(line_no, col_no, span_len)
 
     @staticmethod
     def _make_output(text: str) -> QPlainTextEdit:

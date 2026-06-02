@@ -483,6 +483,15 @@ class MainWindow(QMainWindow):
         editor.centerCursor()
         self._update_cursor_status()
 
+    def _jump_to_and_highlight_error(self, line: int, column: int, length: int) -> None:
+        editor = self._get_active_editor()
+        if editor is None:
+            return
+
+        editor.clear_error_highlights()
+        editor.highlight_error_range(line, column, column + length - 1, apply_immediate=True)
+        editor.setFocus()
+
     def _undo_active_editor(self) -> None:
         editor = self._get_active_editor()
         if editor is not None:
