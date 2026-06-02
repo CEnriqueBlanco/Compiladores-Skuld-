@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from PyQt5.QtCore import QFileSystemWatcher, QSettings, QSize, Qt, QTimer
-from PyQt5.QtGui import QCloseEvent, QFont, QFontDatabase, QFontMetrics, QIcon, QKeySequence, QTextCursor, QTextDocument
+from PyQt5.QtGui import QCloseEvent, QColor, QFont, QFontDatabase, QFontMetrics, QIcon, QKeySequence, QTextCharFormat, QTextCursor, QTextDocument, QTextFormat
 from PyQt5.QtWidgets import (
     QAction,
     QApplication,
@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (
     QShortcut,
     QStyle,
     QTabWidget,
+    QTextEdit,
     QToolButton,
     QToolBar,
     QVBoxLayout,
@@ -467,7 +468,7 @@ class MainWindow(QMainWindow):
         editor.setFocus()
         self._update_cursor_status()
 
-    def _jump_to_line_from_tree(self, target_line: int) -> None:
+    def _jump_to_line_from_tree(self, target_line: int, search_term: str = "") -> None:
         editor = self._get_active_editor()
         if editor is None:
             return
@@ -475,12 +476,48 @@ class MainWindow(QMainWindow):
         max_line = max(1, editor.blockCount())
         final_line = max(1, min(int(target_line), max_line))
 
-        cursor = editor.textCursor()
-        cursor.movePosition(QTextCursor.Start)
-        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, final_line - 1)
-        cursor.select(QTextCursor.LineUnderCursor)
-        editor.setTextCursor(cursor)
+        from ide.theme import steins_gate_theme
+        colors = steins_gate_theme.get_colors()
+        block = editor.document().findBlockByNumber(final_line - 1)
+        if not block.isValid():
+            return
+
+        # Try to locate the exact token (identifier, value, operator) within this line
+        token_cursor = None
+        if search_term:
+            found = editor.document().find(
+                search_term,
+                block.position(),
+                QTextDocument.FindCaseSensitively | QTextDocument.FindWholeWords,
+            )
+            # Accept only if the match lands on the same line
+            if not found.isNull() and found.block().blockNumber() == block.blockNumber():
+                token_cursor = found
+
+        # Set cursor: at the token if found, otherwise start of line
+        if token_cursor is not None:
+            editor.setTextCursor(token_cursor)
+        else:
+            fallback = QTextCursor(block)
+            fallback.movePosition(QTextCursor.StartOfLine)
+            editor.setTextCursor(fallback)
         editor.centerCursor()
+
+        # Soft accent-color glow on the whole line so the user can see it clearly
+        line_start = block.position()
+        line_end = line_start + len(block.text())
+        sel_cursor = QTextCursor(editor.document())
+        sel_cursor.setPosition(line_start)
+        sel_cursor.setPosition(line_end, QTextCursor.KeepAnchor)
+        highlight = QTextEdit.ExtraSelection()
+        highlight.cursor = sel_cursor
+        accent = QColor(colors.accent)
+        accent.setAlpha(60)
+        highlight.format.setBackground(accent)
+        highlight.format.setProperty(QTextFormat.FullWidthSelection, True)
+        editor.setExtraSelections(editor.extraSelections() + [highlight])
+
+        editor.setFocus()
         self._update_cursor_status()
 
     def _jump_to_and_highlight_error(self, line: int, column: int, length: int) -> None:

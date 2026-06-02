@@ -5,11 +5,11 @@ from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget, QTextEdit, QStackedWidge
 from PyQt5.QtCore import pyqtSignal, Qt
 
 from ide.theme import steins_gate_theme
-from ide.console_panel import ErrorHoverEventFilter
+from ide.console_panel import ErrorHoverEventFilter, TokenHoverEventFilter
 
 
 class SyntaxTreeWidget(QStackedWidget):
-    line_selected = pyqtSignal(int)
+    line_selected = pyqtSignal(int, str)  # line number, search term
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,13 +32,38 @@ class SyntaxTreeWidget(QStackedWidget):
         """Fallback method to keep compatibility with other text-setting mechanisms if any."""
         self.set_syntax_content(text)
 
+    @staticmethod
+    def _extract_search_term(item_text: str) -> str:
+        """Extract the most useful identifier/value from a tree node label to locate it in the source line."""
+        # ID: varname  /  Nombre: funcname
+        m = re.search(r'\bID:\s+(\w+)', item_text)
+        if m:
+            return m.group(1)
+        m = re.search(r'\bNombre:\s+(\w+)', item_text)
+        if m:
+            return m.group(1)
+        # Valor: 42 / Valor: 3.14 / Valor: True
+        m = re.search(r'\bValor:\s+(\S+)', item_text)
+        if m:
+            return m.group(1)
+        # Operador '+', '<=', etc.  →  '[Operador] \'*\''
+        m = re.search(r"'([^']+)'", item_text)
+        if m:
+            return m.group(1)
+        # Cadena "hello"
+        m = re.search(r'"([^"]+)"', item_text)
+        if m:
+            return m.group(1)
+        return ""
+
     def on_selection_changed(self) -> None:
         selected_items = self.tree_widget.selectedItems()
         if selected_items:
             item = selected_items[0]
             line_no = item.data(0, Qt.UserRole)
             if line_no is not None:
-                self.line_selected.emit(line_no)
+                search_term = self._extract_search_term(item.text(0))
+                self.line_selected.emit(line_no, search_term)
 
     def set_syntax_content(self, text: str) -> None:
         text_stripped = text.strip()
@@ -127,8 +152,8 @@ class AnalysisPanel(QTabWidget):
         self._intermediate.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._symbols.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
 
-        # Install pointing hand cursor filter when hovering over error lines
-        self._tokens_hover_filter = ErrorHoverEventFilter(self._tokens)
+        # Install pointing hand cursor filter when hovering over error/token lines
+        self._tokens_hover_filter = TokenHoverEventFilter(self._tokens)
         self._syntax_hover_filter = ErrorHoverEventFilter(self._syntax.text_widget)
         self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic)
         self._intermediate_hover_filter = ErrorHoverEventFilter(self._intermediate)
@@ -159,7 +184,7 @@ class AnalysisPanel(QTabWidget):
         if not line_text:
             return
 
-        import re
+        # --- Error line navigation ---
         match = re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text)
         if match:
             line_no = int(match.group(2))
@@ -167,10 +192,20 @@ class AnalysisPanel(QTabWidget):
 
             # Extract lexeme length if present (e.g. -> 'lexeme')
             span_len = 1
-            lex_match = re.search(r" -> '(.*)'\s*$", line_text)
+            lex_match = re.search(r" -> '(.*)'\ *$", line_text)
             if lex_match:
                 span_len = max(1, len(lex_match.group(1)))
 
+            self.error_selected.emit(line_no, col_no, span_len)
+            return
+
+        # --- Token line navigation: [TYPE:lexeme] @ line,col ---
+        tok_match = re.match(r"^\[([A-Z_]+):(.*)\] @ (\d+),(\d+)$", line_text)
+        if tok_match:
+            lex = tok_match.group(2)
+            line_no = int(tok_match.group(3))
+            col_no = int(tok_match.group(4))
+            span_len = max(1, len(lex))
             self.error_selected.emit(line_no, col_no, span_len)
 
     @staticmethod

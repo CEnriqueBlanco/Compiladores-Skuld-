@@ -1,3 +1,5 @@
+import re
+
 from PyQt5.QtCore import QEvent, QObject, Qt, pyqtSignal
 from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget
 
@@ -20,6 +22,30 @@ class ErrorHoverEventFilter(QObject):
             
             import re
             if re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text):
+                self.widget.viewport().setCursor(Qt.PointingHandCursor)
+            else:
+                self.widget.viewport().setCursor(Qt.IBeamCursor)
+        return super().eventFilter(obj, event)
+
+
+class TokenHoverEventFilter(QObject):
+    """Shows a pointing-hand cursor when hovering over any token line."""
+
+    TOKEN_RE = re.compile(r"^\s*\[[A-Z_]+:.*\] @ \d+,\d+")
+
+    def __init__(self, parent_widget) -> None:
+        super().__init__(parent_widget)
+        self.widget = parent_widget
+        self.widget.setMouseTracking(True)
+        self.widget.viewport().setMouseTracking(True)
+        self.widget.viewport().installEventFilter(self)
+
+    def eventFilter(self, obj, event) -> bool:
+        if event.type() == QEvent.MouseMove:
+            pos = event.pos()
+            cursor = self.widget.cursorForPosition(pos)
+            line_text = cursor.block().text().strip()
+            if self.TOKEN_RE.match(line_text):
                 self.widget.viewport().setCursor(Qt.PointingHandCursor)
             else:
                 self.widget.viewport().setCursor(Qt.IBeamCursor)
