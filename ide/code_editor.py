@@ -274,3 +274,28 @@ class CodeEditor(QPlainTextEdit):
             self._apply_extra_selections()
             self.setTextCursor(cursor)
             self.centerCursor()
+
+    def dragEnterEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            from pathlib import Path
+            for url in event.mimeData().urls():
+                local_path = url.toLocalFile()
+                if local_path:
+                    win = self.window()
+                    if hasattr(win, "_open_file_path"):
+                        win._open_file_path(Path(local_path))
+            event.acceptProposedAction()
+        else:
+            super().dropEvent(event)

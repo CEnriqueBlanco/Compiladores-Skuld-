@@ -1,8 +1,8 @@
-<> Archivo de prueba Skuld - Fase 2 (Corregido y Válido)
+<> Archivo de prueba 
 <> El Psy Kongroo!
 
-<> main sumar 3.14+main)if{32.1
-<> 34.34+34.34
+<> main sum@r 3.14+main)if{32.algo
+<> 34.34.34.34
 
 gate {
     labmem worldline x, y, z;

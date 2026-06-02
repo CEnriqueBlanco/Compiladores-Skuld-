@@ -268,6 +268,7 @@ def build_layout(window) -> None:
     window._file_explorer.path_renamed.connect(window._on_path_renamed)
     window._file_explorer.path_deleted.connect(window._on_path_deleted)
     window._analysis_panel = AnalysisPanel()
+    window._analysis_panel._syntax.line_selected.connect(window._jump_to_line_from_tree)
     window._analysis_container = window._create_panel_container(
         "Analizadores",
         window._analysis_panel,

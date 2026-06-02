@@ -889,7 +889,7 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
 
     # Construir la estructura visual utilizando caracteres tipo carpeta
     marker = "└── " if is_last else "├── "
-    result = f"{prefix}{marker}{desc}\n"
+    result = f"{prefix}{marker}{desc} @ {node.lineno}\n"
 
     next_prefix = prefix + ("    " if is_last else "│   ")
 

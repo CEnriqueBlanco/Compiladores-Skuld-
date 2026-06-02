@@ -32,6 +32,7 @@ class FileExplorer(QTreeWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
         self.itemDoubleClicked.connect(self._on_item_activated)
+        self.setAcceptDrops(True)
         self._build_tree()
 
     def _build_tree(self) -> None:
@@ -425,4 +426,79 @@ class FileExplorer(QTreeWidget):
         item_path_raw = item.data(0, Qt.UserRole + 1)
         if item_type == "file" and item_path_raw:
             self.file_open_requested.emit(str(item_path_raw))
+
+    def dragEnterEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            import shutil
+            from pathlib import Path
+            
+            item = self.itemAt(event.pos())
+            target_dir = None
+            
+            if item:
+                item_type = item.data(0, Qt.UserRole)
+                item_path_raw = item.data(0, Qt.UserRole + 1)
+                if item_path_raw:
+                    path = Path(str(item_path_raw))
+                    if item_type == "folder":
+                        target_dir = path
+                    elif item_type == "file":
+                        target_dir = path.parent
+            
+            if not target_dir and self._root_paths:
+                target_dir = self._root_paths[0]
+                
+            copied_files = []
+            for url in event.mimeData().urls():
+                local_path_str = url.toLocalFile()
+                if local_path_str:
+                    src_path = Path(local_path_str)
+                    if src_path.is_file():
+                        if target_dir and target_dir.exists() and target_dir.is_dir():
+                            dst_path = target_dir / src_path.name
+                            if dst_path.exists():
+                                reply = QMessageBox.question(
+                                    self,
+                                    "Confirmar reemplazo",
+                                    f"Ya existe un archivo llamado '{src_path.name}' en la carpeta '{target_dir.name}'.\n\n¿Deseas reemplazarlo?",
+                                    QMessageBox.Yes | QMessageBox.No,
+                                    QMessageBox.No
+                                )
+                                if reply != QMessageBox.Yes:
+                                    continue
+                            try:
+                                if src_path.resolve() != dst_path.resolve():
+                                    shutil.copy2(src_path, dst_path)
+                                copied_files.append(dst_path)
+                            except OSError as exc:
+                                QMessageBox.warning(
+                                    self,
+                                    "Error al copiar",
+                                    f"No se pudo copiar el archivo:\n{src_path.name}\na\n{target_dir.name}\n\n{exc}"
+                                )
+                        else:
+                            copied_files.append(src_path)
+                            
+            if copied_files:
+                self.refresh()
+                win = self.window()
+                if hasattr(win, "_open_file_path"):
+                    for file_path in copied_files:
+                        win._open_file_path(file_path)
+                        
+            event.acceptProposedAction()
+        else:
+            super().dropEvent(event)
 

@@ -1,0 +1,155 @@
+└── [Bloque de Código / Programa] @ 1
+    └── [Bloque de Código / gate] @ 7
+        ├── [Declaración de Variable] Tipo: worldline, ID: x @ 8
+        ├── [Declaración de Variable] Tipo: worldline, ID: y @ 8
+        ├── [Declaración de Variable] Tipo: worldline, ID: z @ 8
+        ├── [Declaración de Variable] Tipo: divergence, ID: a @ 9
+        ├── [Declaración de Variable] Tipo: divergence, ID: b @ 9
+        ├── [Declaración de Variable] Tipo: divergence, ID: c @ 9
+        ├── [Declaración de Variable] Tipo: worldline, ID: suma (Inicializada) @ 10
+        │   └── [Constante] Valor: 45 @ 10
+        ├── [Declaración de Variable] Tipo: worldline, ID: mas @ 11
+        ├── [Asignación] ID: x @ 13
+        │   └── [Constante] Valor: 32 @ 13
+        ├── [Asignación] ID: x @ 14
+        │   └── [Constante] Valor: 23 @ 14
+        ├── [Asignación] ID: y @ 15
+        │   └── [Operador] '-' @ 15
+        │       ├── [Operador] '+' @ 15
+        │       │   ├── [Constante] Valor: 2 @ 15
+        │       │   └── [Constante] Valor: 3 @ 15
+        │       └── [Constante] Valor: 1 @ 15
+        ├── [Asignación] ID: z @ 16
+        │   └── [Operador] '+' @ 16
+        │       ├── [Variable / ID] Nombre: y @ 16
+        │       └── [Constante] Valor: 7 @ 16
+        ├── [Asignación] ID: y @ 17
+        │   └── [Operador] '+' @ 17
+        │       ├── [Variable / ID] Nombre: y @ 17
+        │       └── [Constante] Valor: 1 @ 17
+        ├── [Asignación] ID: a @ 18
+        │   └── [Operador] '-' @ 18
+        │       ├── [Operador] '+' @ 18
+        │       │   ├── [Operador] '-' @ 18
+        │       │   │   ├── [Operador] '+' @ 18
+        │       │   │   │   ├── [Constante] Valor: 24.0 @ 18
+        │       │   │   │   └── [Constante] Valor: 4.0 @ 18
+        │       │   │   └── [Operador] '*' @ 18
+        │       │   │       ├── [Operador] '/' @ 18
+        │       │   │       │   ├── [Constante] Valor: 1.0 @ 18
+        │       │   │       │   └── [Constante] Valor: 3.0 @ 18
+        │       │   │       └── [Constante] Valor: 2.0 @ 18
+        │       │   └── [Constante] Valor: 34.0 @ 18
+        │       └── [Constante] Valor: 1.0 @ 18
+        ├── [Asignación] ID: x @ 19
+        │   └── [Operador] '*' @ 19
+        │       ├── [Operador] '-' @ 19
+        │       │   ├── [Constante] Valor: 5 @ 19
+        │       │   └── [Constante] Valor: 3 @ 19
+        │       └── [Operador] '/' @ 19
+        │           ├── [Constante] Valor: 8 @ 19
+        │           └── [Constante] Valor: 2 @ 19
+        ├── [Asignación] ID: y @ 20
+        │   └── [Operador] '-' @ 20
+        │       ├── [Operador] '-' @ 20
+        │       │   ├── [Operador] '+' @ 20
+        │       │   │   ├── [Constante] Valor: 5 @ 20
+        │       │   │   └── [Constante] Valor: 3 @ 20
+        │       │   └── [Operador] '/' @ 20
+        │       │       ├── [Operador] '*' @ 20
+        │       │       │   ├── [Constante] Valor: 2 @ 20
+        │       │       │   └── [Constante] Valor: 4 @ 20
+        │       │       └── [Constante] Valor: 7 @ 20
+        │       └── [Constante] Valor: 9 @ 20
+        ├── [Asignación] ID: z @ 21
+        │   └── [Operador] '+' @ 21
+        │       ├── [Operador] '/' @ 21
+        │       │   ├── [Constante] Valor: 8 @ 21
+        │       │   └── [Constante] Valor: 2 @ 21
+        │       └── [Operador] '*' @ 21
+        │           ├── [Constante] Valor: 15 @ 21
+        │           └── [Constante] Valor: 4 @ 21
+        ├── [Asignación] ID: y @ 22
+        │   └── [Constante] Valor: 14 @ 22
+        ├── [Condicional / choice (if)] @ 24
+        │   ├── [Bloque de Código / Condición] @ 24
+        │   │   └── [Operador] '>' @ 24
+        │   │       ├── [Constante] Valor: 2 @ 24
+        │   │       └── [Constante] Valor: 3 @ 24
+        │   ├── [Bloque de Código / Rama Entonces] @ 24
+        │   │   └── [Asignación] ID: y @ 25
+        │   │       └── [Operador] '+' @ 25
+        │   │           ├── [Variable / ID] Nombre: a @ 25
+        │   │           └── [Constante] Valor: 3 @ 25
+        │   └── [Bloque de Código / Rama Sino] @ 24
+        │       ├── [Condicional / choice (if)] @ 27
+        │       │   ├── [Bloque de Código / Condición] @ 27
+        │       │   │   └── [Operador] '>' @ 27
+        │       │   │       ├── [Constante] Valor: 4 @ 27
+        │       │   │       └── [Constante] Valor: 2 @ 27
+        │       │   ├── [Bloque de Código / Rama Entonces] @ 27
+        │       │   │   └── [Asignación] ID: b @ 28
+        │       │   │       └── [Constante] Valor: 3.2 @ 28
+        │       │   └── [Bloque de Código / Rama Sino] @ 27
+        │       │       └── [Asignación] ID: b @ 30
+        │       │           └── [Constante] Valor: 5.0 @ 30
+        │       └── [Asignación] ID: y @ 32
+        │           └── [Operador] '+' @ 32
+        │               ├── [Variable / ID] Nombre: y @ 32
+        │               └── [Constante] Valor: 1 @ 32
+        ├── [Asignación] ID: a @ 35
+        │   └── [Operador] '+' @ 35
+        │       ├── [Variable / ID] Nombre: a @ 35
+        │       └── [Constante] Valor: 1 @ 35
+        ├── [Asignación] ID: c @ 36
+        │   └── [Operador] '-' @ 36
+        │       ├── [Variable / ID] Nombre: c @ 36
+        │       └── [Constante] Valor: 1 @ 36
+        ├── [Asignación] ID: x @ 37
+        │   └── [Operador] '+' @ 37
+        │       ├── [Constante] Valor: 3 @ 37
+        │       └── [Constante] Valor: 4 @ 37
+        ├── [Bucle / pulse (do-until)] @ 39
+        │   ├── [Bloque de Código / Cuerpo del Bucle] @ 39
+        │   │   ├── [Asignación] ID: y @ 40
+        │   │   │   └── [Operador] '+' @ 40
+        │   │   │       ├── [Operador] '*' @ 40
+        │   │   │       │   ├── [Operador] '+' @ 40
+        │   │   │       │   │   ├── [Variable / ID] Nombre: y @ 40
+        │   │   │       │   │   └── [Constante] Valor: 1 @ 40
+        │   │   │       │   └── [Constante] Valor: 2 @ 40
+        │   │   │       └── [Constante] Valor: 1 @ 40
+        │   │   └── [Bucle / loop (while)] @ 41
+        │   │       ├── [Bloque de Código / Condición] @ 41
+        │   │       │   └── [Operador] '>' @ 41
+        │   │       │       ├── [Variable / ID] Nombre: x @ 41
+        │   │       │       └── [Constante] Valor: 7 @ 41
+        │   │       └── [Bloque de Código / Cuerpo del Bucle] @ 41
+        │   │           ├── [Asignación] ID: x @ 42
+        │   │           │   └── [Operador] '+' @ 42
+        │   │           │       ├── [Constante] Valor: 6 @ 42
+        │   │           │       └── [Operador] '/' @ 42
+        │   │           │           ├── [Operador] '*' @ 42
+        │   │           │           │   ├── [Operador] '/' @ 42
+        │   │           │           │   │   ├── [Constante] Valor: 8 @ 42
+        │   │           │           │   │   └── [Constante] Valor: 9 @ 42
+        │   │           │           │   └── [Constante] Valor: 8 @ 42
+        │   │           │           └── [Constante] Valor: 3 @ 42
+        │   │           ├── [Entrada / sphone (cin)] ID: x @ 43
+        │   │           └── [Asignación] ID: mas @ 44
+        │   │               └── [Operador] '/' @ 44
+        │   │                   ├── [Constante] Valor: 36 @ 44
+        │   │                   └── [Constante] Valor: 7 @ 44
+        │   └── [Bloque de Código / Condición] @ 39
+        │       └── [Operador] '==' @ 46
+        │           ├── [Variable / ID] Nombre: y @ 46
+        │           └── [Constante] Valor: 5 @ 46
+        └── [Bucle / loop (while)] @ 48
+            ├── [Bloque de Código / Condición] @ 48
+            │   └── [Operador] '==' @ 48
+            │       ├── [Variable / ID] Nombre: y @ 48
+            │       └── [Constante] Valor: 0 @ 48
+            └── [Bloque de Código / Cuerpo del Bucle] @ 48
+                ├── [Entrada / sphone (cin)] ID: mas @ 49
+                └── [Salida / dmail (cout)] @ 50
+                    └── [Variable / ID] Nombre: x @ 50

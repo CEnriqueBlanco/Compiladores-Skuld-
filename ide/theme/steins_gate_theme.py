@@ -420,6 +420,12 @@ def import_theme_overrides_payload(payload: dict[str, dict[str, str]]) -> bool:
 
 def build_stylesheet() -> str:
     colors = get_colors()
+    
+    # We replace '#' with '%23' because Qt's url() parser interprets '#' as the start of a fragment.
+    # We use double quotes inside the SVG to be standard-compliant for Qt's SVG parser, and wrap the QSS url in single quotes.
+    closed_svg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5l4.5 4.5-4.5 4.5"/></svg>'
+    open_svg = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="%23ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6l4.5 4.5 4.5-4.5"/></svg>'
+
     return f"""
     QMainWindow {{
         background-color: {colors.background};
@@ -545,6 +551,21 @@ def build_stylesheet() -> str:
         color: {colors.foreground};
         selection-background-color: {colors.selection};
         border: 1px solid {colors.border};
+    }}
+    QTreeView {{
+        background-color: {colors.panel_bg};
+        color: {colors.foreground};
+        border: 1px solid {colors.border};
+    }}
+    QTreeView::branch:has-children:!has-siblings:closed,
+    QTreeView::branch:closed:has-children:has-siblings {{
+        border-image: none;
+        image: url('{closed_svg}');
+    }}
+    QTreeView::branch:open:has-children:!has-siblings,
+    QTreeView::branch:open:has-children:has-siblings {{
+        border-image: none;
+        image: url('{open_svg}');
     }}
     QTreeWidget, QListWidget, QListView {{
         background-color: {colors.panel_bg};

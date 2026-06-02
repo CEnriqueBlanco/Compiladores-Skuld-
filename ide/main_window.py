@@ -154,6 +154,7 @@ class MainWindow(QMainWindow):
         self._restore_theme_preference()
         self._build_layout()
         self._set_autosave_enabled(self._autosave_enabled, persist=False)
+        self.setAcceptDrops(True)
 
     def _build_menu(self) -> None:
         build_menu(self)
@@ -464,6 +465,22 @@ class MainWindow(QMainWindow):
         cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, final_line - 1)
         editor.setTextCursor(cursor)
         editor.setFocus()
+        self._update_cursor_status()
+
+    def _jump_to_line_from_tree(self, target_line: int) -> None:
+        editor = self._get_active_editor()
+        if editor is None:
+            return
+
+        max_line = max(1, editor.blockCount())
+        final_line = max(1, min(int(target_line), max_line))
+
+        cursor = editor.textCursor()
+        cursor.movePosition(QTextCursor.Start)
+        cursor.movePosition(QTextCursor.Down, QTextCursor.MoveAnchor, final_line - 1)
+        cursor.select(QTextCursor.LineUnderCursor)
+        editor.setTextCursor(cursor)
+        editor.centerCursor()
         self._update_cursor_status()
 
     def _undo_active_editor(self) -> None:
@@ -831,3 +848,25 @@ class MainWindow(QMainWindow):
 
     def _clear_outputs(self) -> None:
         clear_outputs(self)
+
+    def dragEnterEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event) -> None:
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                local_path = url.toLocalFile()
+                if local_path and os.path.isfile(local_path):
+                    self._open_file_path(Path(local_path))
+            event.acceptProposedAction()
+        else:
+            super().dropEvent(event)

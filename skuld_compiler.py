@@ -124,6 +124,21 @@ def run_syntax(source_path: str):
     # 4. Imprimir la visualización gráfica de carpeta del AST (Requisito 3)
     ast_tree_visual = print_tree_graphical(ast)
     print(ast_tree_visual)
+
+    # 5. Guardar la visualización en un archivo de texto con el mismo nombre y extensión .ast.txt en una subcarpeta 'ast'
+    try:
+        source_dir = os.path.dirname(source_path)
+        ast_dir = os.path.join(source_dir, "ast")
+        os.makedirs(ast_dir, exist_ok=True)
+
+        file_name_without_ext = os.path.splitext(os.path.basename(source_path))[0]
+        ast_file_path = os.path.join(ast_dir, file_name_without_ext + ".ast.txt")
+
+        with open(ast_file_path, "w", encoding="utf-8") as f:
+            f.write(ast_tree_visual)
+    except Exception as e:
+        print(f"\n[Error] No se pudo guardar el archivo del árbol en la carpeta 'ast': {e}", file=sys.stderr)
+
     sys.exit(0)
 
 
