@@ -1,5 +1,4 @@
-<> Archivo de prueba Skuld - Fase 2 (Analizador Sintáctico Válido)
-<> El Psy Kongroo!
+<> Archivo de prueba Skuld (Analizador Sintáctico Válido)
 
 labmem worldline x = 5, y = 15;
 labmem divergence ratio = 1.048596;

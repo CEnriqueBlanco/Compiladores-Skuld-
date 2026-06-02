@@ -1,0 +1,63 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: worldline, ID: x (Inicializada) @ 3
+    │   └── [Constante] Valor: 5 @ 3
+    ├── [Declaración de Variable] Tipo: worldline, ID: y (Inicializada) @ 3
+    │   └── [Constante] Valor: 15 @ 3
+    ├── [Declaración de Variable] Tipo: divergence, ID: ratio (Inicializada) @ 4
+    │   └── [Constante] Valor: 1.048596 @ 4
+    ├── [Declaración de Variable] Tipo: reading, ID: es_activo (Inicializada) @ 5
+    │   └── [Constante] Valor: True @ 5
+    ├── [Definición de Función] Tipo: worldline, Nombre: duplicar(worldline valor) @ 7
+    │   ├── [Declaración de Variable] Tipo: worldline, ID: resultado (Inicializada) @ 8
+    │   │   └── [Operador] '*' @ 8
+    │   │       ├── [Variable / ID] Nombre: valor @ 8
+    │   │       └── [Constante] Valor: 2 @ 8
+    │   └── [Retorno / return] @ 9
+    │       └── [Variable / ID] Nombre: resultado @ 9
+    └── [Bloque de Código / gate] @ 12
+        ├── [Salida / dmail (cout)] @ 13
+        │   └── [Cadena] "--- Calculando Divergencia ---" @ 13
+        ├── [Asignación] ID: x @ 14
+        │   └── [Llamada a Función en Expresión] Nombre: duplicar @ 14
+        │       └── [Variable / ID] Nombre: x @ 14
+        ├── [Condicional / choice (if)] @ 16
+        │   ├── [Bloque de Código / Condición] @ 16
+        │   │   └── [Operador] '<' @ 16
+        │   │       ├── [Variable / ID] Nombre: x @ 16
+        │   │       └── [Variable / ID] Nombre: y @ 16
+        │   ├── [Bloque de Código / Rama Entonces] @ 16
+        │   │   ├── [Salida / dmail (cout)] @ 17
+        │   │   │   └── [Cadena] "Valor duplicado es menor que y." @ 17
+        │   │   └── [Salida / dmail (cout)] @ 18
+        │   │       └── [Operador] '+' @ 18
+        │   │           ├── [Cadena] "x = " @ 18
+        │   │           └── [Variable / ID] Nombre: x @ 18
+        │   └── [Bloque de Código / Rama Sino] @ 16
+        │       ├── [Salida / dmail (cout)] @ 20
+        │       │   └── [Cadena] "Valor duplicado es mayor o igual que y." @ 20
+        │       └── [Salida / dmail (cout)] @ 21
+        │           └── [Operador] '+' @ 21
+        │               ├── [Cadena] "x = " @ 21
+        │               └── [Variable / ID] Nombre: x @ 21
+        ├── [Bucle / loop (while)] @ 24
+        │   ├── [Bloque de Código / Condición] @ 24
+        │   │   └── [Operador] '>' @ 24
+        │   │       ├── [Variable / ID] Nombre: x @ 24
+        │   │       └── [Constante] Valor: 0 @ 24
+        │   └── [Bloque de Código / Cuerpo del Bucle] @ 24
+        │       ├── [Salida / dmail (cout)] @ 25
+        │       │   └── [Operador] '+' @ 25
+        │       │       ├── [Cadena] "Decrementando x: " @ 25
+        │       │       └── [Variable / ID] Nombre: x @ 25
+        │       └── [Asignación] ID: x @ 26
+        │           └── [Operador] '-' @ 26
+        │               ├── [Variable / ID] Nombre: x @ 26
+        │               └── [Constante] Valor: 1 @ 26
+        └── [Bucle / pulse (do-while)] @ 29
+            ├── [Bloque de Código / Cuerpo del Bucle] @ 29
+            │   └── [Salida / dmail (cout)] @ 30
+            │       └── [Cadena] "Bucle pulse ejecutado una vez" @ 30
+            └── [Bloque de Código / Condición] @ 29
+                └── [Operador] '!=' @ 31
+                    ├── [Variable / ID] Nombre: x @ 31
+                    └── [Constante] Valor: 0 @ 31

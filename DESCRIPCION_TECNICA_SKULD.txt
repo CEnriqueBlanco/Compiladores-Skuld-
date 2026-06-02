@@ -1,0 +1,606 @@
+================================================================================
+  SKULD — LENGUAJE Y COMPILADOR
+  Descripcion Tecnica, Gramatica y Especificacion Lexica
+================================================================================
+  Universidad Autonoma de Aguascalientes
+  Materia : Compiladores 1 — Dra. Blanca G. Estrada Renteria
+  Autores  : Alan Gael Gallardo Jimenez | Carlos Enrique Blanco Ortiz
+  Fecha    : 2026
+================================================================================
+
+
+--------------------------------------------------------------------------------
+1. DESCRIPCION GENERAL
+--------------------------------------------------------------------------------
+
+Skuld es un lenguaje de programacion imperativo de alto nivel con sintaxis
+propia inspirada en la serie Steins;Gate. Permite una escritura mixta: el
+programador puede utilizar palabras clave exclusivas de Skuld (worldline, gate,
+choice, loop, etc.) o sus equivalentes en C/TINY clasico (int, main, if, while,
+etc.), lo que hace el lenguaje pedagogicamente accesible.
+
+El compilador esta implementado completamente en Python 3 y sigue el modelo del
+compilador TINY descrito por Kenneth Louden en "Compiler Construction:
+Principles and Practice" (1997). El IDE que lo envuelve fue construido con
+PyQt5.
+
+
+--------------------------------------------------------------------------------
+2. TECNOLOGIAS
+--------------------------------------------------------------------------------
+
+  Componente               Tecnologia
+  -----------------------  ----------------------------------
+  Lenguaje principal       Python 3.11
+  Interfaz grafica (IDE)   PyQt5
+  Analizador lexico        SkuldLexer (manual, sin PLY/ANTLR)
+  Analizador sintactico    SkuldParser (descendente recursivo)
+  Representacion del AST   Clases TreeNode (inspiradas en TINY)
+
+
+--------------------------------------------------------------------------------
+3. ARQUITECTURA DEL SISTEMA
+--------------------------------------------------------------------------------
+
+  +---------------------------------------------------------------+
+  |                        SKULD IDE                              |
+  |          (Python 3 + PyQt5 -- Interfaz Grafica)               |
+  |                                                               |
+  |  Editor de Texto | Menu de Archivos | Botones de Acceso       |
+  |                                                               |
+  |  Paneles de Resultados:                                       |
+  |    Tokens | Sintactico | Semantico | Cod. Intermedio          |
+  |    Tabla de Simbolos | Errores | Ejecucion                    |
+  +-----------------------------+---------------------------------+
+                                | System Call
+                                v
+  +---------------------------------------------------------------+
+  |                COMPILADOR (modulo independiente)              |
+  |                                                               |
+  |  Lexico --> Sintactico --> Semantico --> Generacion Codigo    |
+  +---------------------------------------------------------------+
+
+El IDE y el compilador son modulos completamente separados. El IDE invoca al
+compilador mediante llamadas al sistema (system call) pasando flags de fase:
+
+  --lexico        Ejecutar analisis lexico
+  --sintactico    Ejecutar analisis sintactico
+  --semantico     Ejecutar analisis semantico
+  --intermedio    Generar codigo intermedio
+  --ejecutar      Ejecutar el programa compilado
+
+
+--------------------------------------------------------------------------------
+4. FASES DEL COMPILADOR
+--------------------------------------------------------------------------------
+
+  # | Fase                        | Descripcion
+  --+-----------------------------+--------------------------------------------
+  1 | Analisis Lexico             | Tokenizacion del codigo fuente
+  2 | Analisis Sintactico         | Construccion del AST (arbol abstracto)
+  3 | Analisis Semantico          | Validacion de tipos y semantica
+  4 | Generacion de Cod. Interm.  | Codigo de tres direcciones u otra repr.
+  5 | Ejecucion                   | Ejecucion del programa compilado
+
+
+================================================================================
+5. ESPECIFICACION LEXICA
+================================================================================
+
+
+--------------------------------------------------------------------------------
+5.1 PALABRAS CLAVE DE SKULD
+--------------------------------------------------------------------------------
+
+  Skuld            Token           Significado / Equivalente C
+  ---------------  --------------  ------------------------------------------
+  labmem           KW_LABMEM       Modificador de declaracion de variable
+  worldline        KW_WORLDLINE    Tipo entero (equivale a int)
+  divergence       KW_DIVERGENCE   Tipo flotante/real (equivale a float)
+  reading          KW_READING      Tipo cadena (equivale a string)
+  gate             KW_GATE         Bloque principal del programa (equivale a main)
+  choice           KW_CHOICE       Condicional (equivale a if)
+  else             KW_ELSE         Alternativa del condicional
+  loop             KW_LOOP         Bucle con condicion al inicio (equivale a while)
+  pulse            KW_PULSE        Bucle con condicion al final (equivale a do)
+  seal             KW_SEAL         Cierre de bloque sin llaves (equivale a end)
+  dmail            KW_DMAIL        Salida estandar (equivale a cout / printf)
+  sphone           KW_SPHONE       Entrada estandar (equivale a cin / scanf)
+  steiner          KW_STEINER      Definicion de funcion de usuario
+  void             KW_VOID         Tipo de retorno vacio
+  fork             KW_FORK         (reservado)
+  path             KW_PATH         (reservado)
+  shift            KW_SHIFT        (reservado)
+  jump             KW_JUMP         (reservado)
+  return           KW_RETURN       Retorno de valor en funcion
+  true             KW_TRUE         Literal booleano verdadero
+  false            KW_FALSE        Literal booleano falso
+
+
+--------------------------------------------------------------------------------
+5.2 PALABRAS CLAVE ALIAS (COMPATIBILIDAD CON C/TINY)
+--------------------------------------------------------------------------------
+
+  Alias   Token       Equivalente Skuld
+  ------  ----------  -----------------
+  int     KW_INT      worldline
+  float   KW_FLOAT    divergence
+  real    KW_FLOAT    divergence
+  string  KW_STRING   reading
+  bool    KW_BOOL     (tipo booleano)
+  if      KW_IF       choice
+  then    KW_THEN     (inicio de bloque sin llaves, estilo TINY)
+  while   KW_WHILE    loop
+  do      KW_DO       pulse
+  end     KW_END      seal
+  until   KW_UNTIL    (condicion de terminacion en do-until)
+  main    KW_MAIN     gate
+  cin     KW_CIN      sphone
+  cout    KW_COUT     dmail
+  read    KW_READ     (reservado)
+  write   KW_WRITE    (reservado)
+  switch  KW_SWITCH   (reservado)
+  case    KW_CASE     (reservado)
+
+
+--------------------------------------------------------------------------------
+5.3 OPERADORES LOGICOS (FORMA PALABRA)
+--------------------------------------------------------------------------------
+
+  Lexema  Token
+  ------  -------
+  and     AND_OP
+  or      OR_OP
+  not     NOT_OP
+
+
+--------------------------------------------------------------------------------
+5.4 OPERADORES DE UN CARACTER
+--------------------------------------------------------------------------------
+
+  Caracter  Token
+  --------  ----------
+  =         ASSIGN
+  +         PLUS
+  -         MINUS
+  *         TIMES
+  /         DIV
+  %         MOD
+  <         LT
+  >         GT
+  !         NOT_OP
+  (         LPAREN
+  )         RPAREN
+  {         LBRACE
+  }         RBRACE
+  [         LBRACKET
+  ]         RBRACKET
+  ;         SEMICOLON
+  ,         COMMA
+  .         DOT
+  :         COLON
+
+
+--------------------------------------------------------------------------------
+5.5 OPERADORES DE DOS CARACTERES
+--------------------------------------------------------------------------------
+
+  Lexema  Token
+  ------  -----------
+  ==      EQ
+  !=      NEQ
+  <=      LTE
+  >=      GTE
+  ++      INC
+  --      DEC
+  +=      PLUS_ASSIGN
+  -=      MINUS_ASSIGN
+  *=      TIMES_ASSIGN
+  /=      DIV_ASSIGN
+  %=      MOD_ASSIGN
+  &&      AND_OP
+  ||      OR_OP
+
+
+--------------------------------------------------------------------------------
+5.6 LITERALES
+--------------------------------------------------------------------------------
+
+  Tipo          Token            Ejemplo
+  ------------  ---------------  --------------------------
+  Entero        INTEGER_LITERAL  42, 0, 1024
+  Real/Flotante FLOAT_LITERAL    3.14, 1.0e-3, 24.0
+  Cadena        STRING_LITERAL   "Hola mundo", "El Psy Kongroo"
+  Identificador IDENTIFIER       x, suma, worldline_var
+
+
+--------------------------------------------------------------------------------
+5.7 COMENTARIOS
+--------------------------------------------------------------------------------
+
+  Tipo              Sintaxis             Descripcion
+  ----------------  -------------------  -------------------------------------
+  Linea simple      <> texto             Del token <> hasta fin de linea
+  Bloque            <! texto !>          Multilinea, delimitado por <! y !>
+
+
+--------------------------------------------------------------------------------
+5.8 ERRORES LEXICOS DETECTADOS
+--------------------------------------------------------------------------------
+
+  - Caracter no reconocido
+  - Cadena no terminada (sin comilla de cierre)
+  - Secuencia de escape invalida dentro de una cadena
+  - Numero mal formado (cero a la izquierda, punto sin digitos, sufijo alfa)
+  - Comentario de bloque no terminado
+
+  Formato del error: ERROR_LEXICO(linea, columna): descripcion -> 'lexema'
+
+
+================================================================================
+6. GRAMATICA BASE
+================================================================================
+
+Notacion:
+  [ x ]   →  x es opcional (0 o 1 vez)
+  ε       →  produccion vacia (epsilon)
+  |       →  alternativa
+
+--------------------------------------------------------------------------------
+
+programa            → { definicion_funcion | declaracion_variable } bloque_principal
+
+bloque_principal    → gate { lista_sentencias }
+                    | main ( ) { lista_sentencias }
+
+lista_sentencias    → lista_sentencias sentencia
+                    | lista_sentencias declaracion_variable
+                    | ε
+
+declaracion_variable → [ labmem ] tipo identificador [ = expresion ]
+                         { , identificador [ = expresion ] } ;
+
+identificador       → id | identificador , id
+
+tipo                → worldline | divergence | reading | int | float | real | bool | string
+
+definicion_funcion  → steiner tipo_retorno id ( [ lista_parametros ] ) { lista_sentencias }
+
+tipo_retorno        → tipo | void
+
+lista_parametros    → lista_parametros , tipo id | tipo id
+
+sentencia           → seleccion
+                    | iteracion
+                    | repeticion
+                    | sent_in
+                    | sent_out
+                    | asignacion
+                    | retorno
+                    | llamada_funcion
+                    | ;
+
+asignacion          → id = expresion ;
+                    | id += expresion ;
+                    | id -= expresion ;
+                    | id *= expresion ;
+                    | id /= expresion ;
+                    | id %= expresion ;
+                    | id ++ ;
+                    | id -- ;
+
+seleccion           → choice ( expresion ) { lista_sentencias } [ else { lista_sentencias } ]
+                    | if expresion then lista_sentencias [ else lista_sentencias ] end
+                    | if expresion then lista_sentencias [ else lista_sentencias ] seal
+
+iteracion           → loop ( expresion ) { lista_sentencias }
+                    | while expresion do lista_sentencias end
+                    | while expresion do lista_sentencias seal
+
+repeticion          → pulse { lista_sentencias } while ( expresion ) ;
+                    | do lista_sentencias while ( expresion ) ;
+                    | do lista_sentencias until expresion ;
+
+sent_in             → sphone ( id ) ;
+                    | cin >> id ;
+
+sent_out            → dmail ( salida { , salida } ) ;
+                    | cout << salida { << salida } ;
+
+salida              → expresion | cadena | cadena << expresion | expresion << cadena
+
+retorno             → return [ expresion ] ;
+
+llamada_funcion     → id ( [ lista_args ] ) ;
+
+lista_args          → lista_args , expresion | expresion
+
+expresion           → expresion_simple [ rel_op expresion_simple ]
+
+rel_op              → < | <= | > | >= | == | !=
+
+expresion_simple    → expresion_simple suma_op termino | termino
+
+suma_op             → + | - | or | ||
+
+termino             → termino mult_op factor | factor
+
+mult_op             → * | / | % | and | &&
+
+factor              → factor ^ componente | componente
+
+componente          → ( expresion )
+                    | numero
+                    | id
+                    | id ( [ lista_args ] )
+                    | bool
+                    | cadena
+                    | op_unario componente
+
+op_unario           → ! | - | +
+
+bool                → true | false
+
+numero              → entero | real
+
+entero              → digito { digito }             (sin cero a la izquierda, salvo 0)
+
+real                → entero . digito { digito } [ exponente ]
+
+exponente           → ( e | E ) [ + | - ] digito { digito }
+
+cadena              → " cualquier_texto "           (sin saltos de linea literales)
+
+
+
+================================================================================
+7. ESTRUCTURA DEL AST (ARBOL SINTACTICO ABSTRACTO)
+================================================================================
+
+El AST se modela con la clase TreeNode, inspirada en GLOBALS.H del compilador
+TINY de Louden. Cada nodo contiene:
+
+  Campo       Tipo          Descripcion
+  ----------  ------------  ---------------------------------------------------
+  nodekind    str           Categoria del nodo: "StmtK", "ExpK" o "DeclK"
+  kind        str           Sub-tipo especifico (ver tabla siguiente)
+  lineno      int           Linea del codigo fuente donde se origina el nodo
+  child       list[TreeNode] Hijos directos del nodo
+  sibling     TreeNode|None Enlace al nodo hermano (siguiente sentencia)
+  op          str|None      Operador (para OpK)
+  val         any|None      Valor literal (para ConstK, StringK)
+  name        str|None      Nombre de variable/funcion (para IdK, AssignK, FuncK)
+  type        str|None      Tipo de dato declarado (para DeclVarK)
+  params      list[tuple]   Parametros de funcion [(tipo, nombre), ...]
+
+
+  nodekind  kind           Descripcion
+  --------  -------------  ------------------------------------
+  DeclK     DeclVarK       Declaracion de variable
+  DeclK     FuncK          Definicion de funcion
+  StmtK     BlockK         Bloque de sentencias o bloque principal
+  StmtK     IfK            Condicional (choice/if)
+  StmtK     WhileK         Bucle while (loop/while)
+  StmtK     DoWhileK       Bucle do-while (pulse/do)
+  StmtK     AssignK        Asignacion
+  StmtK     ReadK          Entrada estandar (sphone/cin)
+  StmtK     WriteK         Salida estandar (dmail/cout)
+  StmtK     ReturnK        Retorno de funcion
+  StmtK     CallStmtK      Llamada a funcion como sentencia
+  ExpK      OpK            Operador binario o unario
+  ExpK      ConstK         Literal numerico o booleano
+  ExpK      StringK        Literal de cadena
+  ExpK      IdK            Referencia a variable
+  ExpK      CallK          Llamada a funcion en expresion
+
+
+================================================================================
+8. VISUALIZACION DEL AST (FORMATO DE SALIDA)
+================================================================================
+
+El compilador imprime el AST en formato jerarquico tipo carpeta usando
+caracteres UTF-8. Cada linea tiene la forma:
+
+  [prefijo][marcador][descripcion] @ linea
+
+  marcador: "└── " (ultimo hijo) o "├── " (hijo intermedio)
+  prefijo:  "    " (padre con ultimo hijo) o "│   " (padre con mas hijos)
+
+Ejemplo para:  labmem worldline x = 32;
+
+  └── [Declaracion de Variable] Tipo: worldline, ID: x (Inicializada) @ 14
+      └── [Constante] Valor: 32 @ 14
+
+Ejemplo para:  choice (x > 0) { dmail(x); } else { x = 0; }
+
+  └── [Condicional / choice (if)] @ 23
+      ├── [Bloque de Codigo / Condicion] @ 23
+      │   └── [Operador] '>' @ 23
+      │       ├── [Variable / ID] Nombre: x @ 23
+      │       └── [Constante] Valor: 0 @ 23
+      ├── [Bloque de Codigo / Rama Entonces] @ 23
+      │   └── [Salida / dmail (cout)] @ 23
+      │       └── [Variable / ID] Nombre: x @ 23
+      └── [Bloque de Codigo / Rama Sino] @ 23
+          └── [Asignacion] ID: x @ 23
+              └── [Constante] Valor: 0 @ 23
+
+El archivo del arbol se guarda automaticamente en:
+  <directorio_fuente>/ast/<nombre_archivo>.ast.txt
+
+
+================================================================================
+9. FORMATO DE ERRORES
+================================================================================
+
+  Tipo           Formato de salida
+  -------------  ---------------------------------------------------------
+  Lexico         ERROR_LEXICO(linea, columna): descripcion -> 'lexema'
+  Sintactico     ERROR_SINTACTICO(linea, columna): descripcion -> 'lexema'
+  Semantico      ERROR_SEMANTICO(linea, columna): descripcion -> 'lexema'
+
+Ejemplos:
+  ERROR_LEXICO(5, 12): Caracter no reconocido -> '@'
+  ERROR_SINTACTICO(8, 3): Se esperaba SEMICOLON, pero se encontro RBRACE -> '}'
+
+
+================================================================================
+10. EJEMPLOS DE CODIGO SKULD
+================================================================================
+
+--------------------------------------------------------------------------------
+10.1 Hola Mundo
+--------------------------------------------------------------------------------
+
+  <> El Psy Kongroo
+  gate {
+      dmail("Hola, mundo!");
+  }
+
+
+--------------------------------------------------------------------------------
+10.2 Variables y asignacion
+--------------------------------------------------------------------------------
+
+  labmem worldline x, y, z;
+  labmem divergence pi = 3.14;
+
+  gate {
+      x = 10;
+      y = 20;
+      z = x + y;
+      dmail(z);
+  }
+
+
+--------------------------------------------------------------------------------
+10.3 Condicional
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline n = 5;
+      choice (n > 0) {
+          dmail("Positivo");
+      } else {
+          dmail("No positivo");
+      }
+  }
+
+  <! Equivalente con sintaxis TINY !>
+  gate {
+      labmem worldline n = 5;
+      if n > 0 then
+          dmail("Positivo");
+      else
+          dmail("No positivo");
+      end
+  }
+
+
+--------------------------------------------------------------------------------
+10.4 Bucle while
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline i = 0;
+      loop (i < 10) {
+          dmail(i);
+          i += 1;
+      }
+  }
+
+
+--------------------------------------------------------------------------------
+10.5 Bucle do-while
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline i = 0;
+      pulse {
+          dmail(i);
+          i++;
+      } while (i < 5);
+  }
+
+
+--------------------------------------------------------------------------------
+10.6 Funciones
+--------------------------------------------------------------------------------
+
+  steiner worldline suma(worldline a, worldline b) {
+      return a + b;
+  }
+
+  gate {
+      labmem worldline resultado = suma(3, 7);
+      dmail(resultado);
+  }
+
+
+--------------------------------------------------------------------------------
+10.7 Entrada de usuario
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline edad;
+      sphone(edad);
+      choice (edad >= 18) {
+          dmail("Mayor de edad");
+      } else {
+          dmail("Menor de edad");
+      }
+  }
+
+
+================================================================================
+11. ATAJOS DE TECLADO DEL IDE
+================================================================================
+
+  Atajo    Accion
+  -------  --------------------------------------------------
+  Ctrl+S   Guardar archivo actual
+  Ctrl+G   Guardar como (nuevo nombre/ruta)
+  Ctrl+F   Buscar texto en el editor activo
+  Ctrl+1   Alternar panel de Analizadores (derecha)
+  Ctrl+2   Alternar panel de Terminal (inferior)
+  Ctrl+3   Alternar arbol de archivos (izquierda)
+
+
+================================================================================
+12. ESTRUCTURA DE ARCHIVOS DEL PROYECTO
+================================================================================
+
+  Compiladores-Skuld-/
+  |-- skuld_compiler.py           Punto de entrada CLI del compilador
+  |-- run_ide.ps1                 Script para ejecutar el IDE
+  |-- setup_env.ps1               Script de instalacion del entorno
+  |-- requirements.txt            Dependencias Python
+  |
+  |-- ide/                        Modulo del IDE (PyQt5)
+  |   |-- main.py                 Arranque de la aplicacion
+  |   |-- main_window.py          Ventana principal
+  |   |-- code_editor.py          Editor de texto con numeracion de lineas
+  |   |-- analysis_panel.py       Panel de analizadores (tabs)
+  |   |-- console_panel.py        Panel de terminal/errores
+  |   |-- compiler_runner.py      Invocacion del compilador por fases
+  |   |-- file_explorer.py        Arbol de archivos lateral
+  |   |-- skuld_syntax_highlighter.py  Coloreado de sintaxis
+  |   |-- theme/
+  |   |   |-- steins_gate_theme.py     Tema visual del IDE
+  |   |-- main_window_sections/
+  |       |-- ui_builders.py      Construccion de la UI
+  |       |-- workspace_flow.py   Flujo de compilacion y apertura de archivos
+  |       |-- appearance.py       Gestion de temas y apariencia
+  |
+  |-- analizadores/
+      |-- analisis_lexico/
+      |   |-- skuld_lexer.py      Analizador lexico (SkuldLexer)
+      |
+      |-- analisis_sintactico/
+          |-- skuld_parser.py     Analizador sintactico (SkuldParser + AST)
+
+
+================================================================================
+  Skuld IDE — Compiladores 1 · UAA · 2026
+  "El Psy Kongroo"
+================================================================================

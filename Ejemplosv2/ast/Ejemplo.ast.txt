@@ -1,0 +1,15 @@
+└── [Bloque de Código / Programa] @ 1
+    └── [Bloque de Código / gate] @ 1
+        ├── [Declaración de Variable] Tipo: worldline, ID: edad @ 2
+        ├── [Entrada / sphone (cin)] ID: edad @ 3
+        └── [Condicional / choice (if)] @ 4
+            ├── [Bloque de Código / Condición] @ 4
+            │   └── [Operador] '>=' @ 4
+            │       ├── [Variable / ID] Nombre: edad @ 4
+            │       └── [Constante] Valor: 18 @ 4
+            ├── [Bloque de Código / Rama Entonces] @ 4
+            │   └── [Salida / dmail (cout)] @ 5
+            │       └── [Cadena] "Mayor de edad" @ 5
+            └── [Bloque de Código / Rama Sino] @ 4
+                └── [Salida / dmail (cout)] @ 7
+                    └── [Cadena] "Menor de edad" @ 7

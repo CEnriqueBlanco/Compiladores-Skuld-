@@ -1,0 +1,9 @@
+gate {
+      labmem worldline edad;
+      sphone(edad);
+      choice (edad >= 18) {
+          dmail("Mayor de edad");
+      } else {
+          dmail("Menor de edad");
+      }
+  }

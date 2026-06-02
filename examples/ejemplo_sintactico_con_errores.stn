@@ -1,5 +1,4 @@
-<> Archivo de prueba Skuld - Fase 2 (Analizador Sintáctico con Errores)
-<> El Psy Kongroo!
+<> Archivo de prueba Skuld 
 
 labmem worldline x = ;  <> Error 1: Falta la expresión de inicialización
 labmem divergence ratio = 1.048596;

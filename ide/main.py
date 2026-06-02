@@ -1,44 +1,103 @@
-import os
-import sys
+--------------------------------------------------------------------------------
+10.1 Hola Mundo
+--------------------------------------------------------------------------------
 
-from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QApplication
-
-from ide.main_window import MainWindow
-from ide.splash_screen import SplashScreen
-from ide.theme.steins_gate_theme import build_stylesheet
+  <> El Psy Kongroo
+  gate {
+      dmail("Hola, mundo!");
+  }
 
 
-def _resource_path(*parts: str) -> str:
-    if getattr(sys, "frozen", False):
-        base_path = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
-    else:
-        base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    return os.path.join(base_path, *parts)
+--------------------------------------------------------------------------------
+10.2 Variables y asignacion
+--------------------------------------------------------------------------------
+
+  labmem worldline x, y, z;
+  labmem divergence pi = 3.14;
+
+  gate {
+      x = 10;
+      y = 20;
+      z = x + y;
+      dmail(z);
+  }
 
 
-def main() -> int:
-    app = QApplication(sys.argv)
-    app.setApplicationName("Reading Steiner IDE")
-    app.setStyleSheet(build_stylesheet())
+--------------------------------------------------------------------------------
+10.3 Condicional
+--------------------------------------------------------------------------------
 
-    taskbar_icon_path = _resource_path("resources", "icons", "start.png")
-    if os.path.exists(taskbar_icon_path):
-        app.setWindowIcon(QIcon(taskbar_icon_path))
+  gate {
+      labmem worldline n = 5;
+      choice (n > 0) {
+          dmail("Positivo");
+      } else {
+          dmail("No positivo");
+      }
+  }
 
-    splash = SplashScreen()
-    main_window = MainWindow()
-
-    window_icon_path = _resource_path("resources", "icons", "icon.ico")
-    if os.path.exists(window_icon_path):
-        main_window.setWindowIcon(QIcon(window_icon_path))
-
-    splash.show()
-    QTimer.singleShot(1200, lambda: (splash.close(), main_window.showMaximized()))
-
-    return app.exec_()
+  <! Equivalente con sintaxis TINY !>
+  gate {
+      labmem worldline n = 5;
+      if n > 0 then
+          dmail("Positivo");
+      else
+          dmail("No positivo");
+      end
+  }
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+--------------------------------------------------------------------------------
+10.4 Bucle while
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline i = 0;
+      loop (i < 10) {
+          dmail(i);
+          i += 1;
+      }
+  }
+
+
+--------------------------------------------------------------------------------
+10.5 Bucle do-while
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline i = 0;
+      pulse {
+          dmail(i);
+          i++;
+      } while (i < 5);
+  }
+
+
+--------------------------------------------------------------------------------
+10.6 Funciones
+--------------------------------------------------------------------------------
+
+  steiner worldline suma(worldline a, worldline b) {
+      return a + b;
+  }
+
+  gate {
+      labmem worldline resultado = suma(3, 7);
+      dmail(resultado);
+  }
+
+
+--------------------------------------------------------------------------------
+10.7 Entrada de usuario
+--------------------------------------------------------------------------------
+
+  gate {
+      labmem worldline edad;
+      sphone(edad);
+      choice (edad >= 18) {
+          dmail("Mayor de edad");
+      } else {
+          dmail("Menor de edad");
+      }
+  }
+
