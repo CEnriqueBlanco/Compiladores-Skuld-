@@ -1,15 +1,22 @@
 └── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: worldline @ 3
+    │   └── [Variable] ID: x @ 3
     ├── [Declaración de Variable] Tipo: divergence @ 4
     │   └── [Variable] ID: ratio (Inicializada) @ 4
     │       └── [Constante] Valor: 1.048596 @ 4
     └── [Bloque de Código / gate] @ 6
+        ├── [Asignación] ID: x @ 7
+        │   └── [Constante] Valor: 10 @ 7
+        ├── [Salida / dmail (cout)] @ 8
+        │   └── [Cadena] "Hola" @ 8
         └── [Condicional / choice (if)] @ 10
-            ├── [Bloque de Código / Condición] @ 10
+            ├── [Bloque de Código / Condition] @ 10
             │   └── [Operador] '>' @ 10
             │       ├── [Variable / ID] Nombre: ratio @ 10
             │       └── [Constante] Valor: 1.0 @ 10
-            └── [Bloque de Código / Rama Entonces] @ 10
-                ├── [Salida / dmail (cout)] @ 11
-                │   └── [Cadena] "Divergencia correcta" @ 11
+            ├── [Bloque de Código / Then Branch] @ 10
+            │   └── [Salida / dmail (cout)] @ 11
+            │       └── [Cadena] "Divergencia correcta" @ 11
+            └── [Bloque de Código / Else Branch] @ 10
                 └── [Salida / dmail (cout)] @ 13
                     └── [Cadena] "Divergencia incorrecta" @ 13

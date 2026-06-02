@@ -124,6 +124,12 @@ TOKEN_TRANSLATIONS = {
 }
 
 
+RECOVERABLE_TOKENS = {
+    "SEMICOLON", "RPAREN", "LPAREN", "RBRACE", "LBRACE",
+    "KW_THEN", "KW_DO", "KW_END", "KW_SEAL"
+}
+
+
 # =====================================================================
 # ANALIZADOR SINTÁCTICO (PARSER) DESCENDENTE RECURSIVO
 # =====================================================================
@@ -227,12 +233,33 @@ class SkuldParser:
             if found_desc == f"'{tok.lexeme}'":
                 lexeme_suffix = ""
             
-            raise SyntaxError(
+            err = SyntaxError(
                 tok.line,
                 tok.column_start,
                 f"Se esperaba {expected_str}, pero se encontró {found_desc}",
                 lexeme_suffix
             )
+
+            # Si alguno de los tipos esperados es recuperable, realizamos recuperación suave
+            recoverable_intersection = expected_set.intersection(RECOVERABLE_TOKENS)
+            if recoverable_intersection:
+                self.errors.append(err)
+                simulated_type = list(recoverable_intersection)[0]
+                lex_map = {
+                    "SEMICOLON": ";",
+                    "RPAREN": ")",
+                    "LPAREN": "(",
+                    "RBRACE": "}",
+                    "LBRACE": "{",
+                    "KW_THEN": "then",
+                    "KW_DO": "do",
+                    "KW_END": "end",
+                    "KW_SEAL": "seal"
+                }
+                simulated_lexeme = lex_map.get(simulated_type, "")
+                return Token(simulated_type, simulated_lexeme, tok.line, tok.column_start, tok.column_start)
+            else:
+                raise err
 
     def _check(self, expected_types: Union[str, Set[str], List[str]]) -> bool:
         """Comprueba si el token actual coincide con alguno de los tipos sin consumirlo (Lookahead)."""
@@ -241,6 +268,17 @@ class SkuldParser:
         else:
             expected_set = set(expected_types)
         return self._current_token().token_type in expected_set
+
+    def _recover_to(self, stop_tokens: Set[str]):
+        """
+        Avanza tokens hasta encontrar alguno de los stop_tokens o ENDFILE.
+        No consume el stop_token.
+        """
+        while self.index < len(self.tokens):
+            tok = self._current_token()
+            if tok.token_type in stop_tokens or tok.token_type == "ENDFILE":
+                break
+            self.index += 1
 
     def _synchronize(self):
         """
@@ -300,20 +338,28 @@ class SkuldParser:
 
         # Bucle para procesar variables declaradas separadas por comas (ej. x, y, z)
         while True:
-            id_tok = self._match("IDENTIFIER")
-            var_name = id_tok.lexeme
+            try:
+                id_tok = self._match("IDENTIFIER")
+                var_name = id_tok.lexeme
 
-            # Crear un nodo para cada variable declarada
-            var_node = TreeNode("DeclK", "VarK", lineno=id_tok.line)
-            var_node.name = var_name
+                # Crear un nodo para cada variable declarada
+                var_node = TreeNode("DeclK", "VarK", lineno=id_tok.line)
+                var_node.name = var_name
 
-            # Inicialización opcional: '= expresión'
-            if self._check("ASSIGN"):
-                self._match("ASSIGN")
-                var_node.child.append(self._parse_expr())
+                # Inicialización opcional: '= expresión'
+                if self._check("ASSIGN"):
+                    self._match("ASSIGN")
+                    try:
+                        var_node.child.append(self._parse_expr())
+                    except SyntaxError as e:
+                        self.errors.append(e)
+                        self._recover_to({"COMMA", "SEMICOLON"})
 
-            # Agregar var_node como hijo del nodo declaración de tipo
-            decl_node.child.append(var_node)
+                # Agregar var_node como hijo del nodo declaración de tipo
+                decl_node.child.append(var_node)
+            except SyntaxError as e:
+                self.errors.append(e)
+                self._recover_to({"COMMA", "SEMICOLON"})
 
             # Si hay una coma, continuamos declarando en el mismo bloque
             if self._check("COMMA"):
@@ -333,43 +379,62 @@ class SkuldParser:
         steiner_tok = self._match("KW_STEINER")
 
         # Tipo de retorno de la función
-        type_tok = self._match({
-            "KW_WORLDLINE", "KW_DIVERGENCE", "KW_READING", "KW_VOID",
-            "KW_INT", "KW_FLOAT", "KW_BOOL", "KW_STRING"
-        })
-        ret_type = type_tok.lexeme
+        try:
+            type_tok = self._match({
+                "KW_WORLDLINE", "KW_DIVERGENCE", "KW_READING", "KW_VOID",
+                "KW_INT", "KW_FLOAT", "KW_BOOL", "KW_STRING"
+            })
+            ret_type = type_tok.lexeme
+        except SyntaxError as e:
+            self.errors.append(e)
+            ret_type = "void"
 
         # Nombre de la función
-        name_tok = self._match("IDENTIFIER")
-        func_name = name_tok.lexeme
+        try:
+            name_tok = self._match("IDENTIFIER")
+            func_name = name_tok.lexeme
+        except SyntaxError as e:
+            self.errors.append(e)
+            func_name = "<error>"
 
         func_node = TreeNode("DeclK", "FuncK", lineno=steiner_tok.line)
         func_node.name = func_name
         func_node.type = ret_type
 
         # Parámetros entre paréntesis
-        self._match("LPAREN")
-        params = []
-        if not self._check("RPAREN"):
-            while True:
-                p_type_tok = self._match({
-                    "KW_WORLDLINE", "KW_DIVERGENCE", "KW_READING", 
-                    "KW_INT", "KW_FLOAT", "KW_BOOL", "KW_STRING", "KW_DMAIL"
-                })
-                p_id_tok = self._match("IDENTIFIER")
-                params.append((p_type_tok.lexeme, p_id_tok.lexeme))
-                if self._check("COMMA"):
-                    self._match("COMMA")
-                else:
-                    break
-        self._match("RPAREN")
-        func_node.params = params
+        try:
+            self._match("LPAREN")
+            params = []
+            if not self._check("RPAREN"):
+                while True:
+                    p_type_tok = self._match({
+                        "KW_WORLDLINE", "KW_DIVERGENCE", "KW_READING", 
+                        "KW_INT", "KW_FLOAT", "KW_BOOL", "KW_STRING", "KW_DMAIL"
+                    })
+                    p_id_tok = self._match("IDENTIFIER")
+                    params.append((p_type_tok.lexeme, p_id_tok.lexeme))
+                    if self._check("COMMA"):
+                        self._match("COMMA")
+                    else:
+                        break
+            self._match("RPAREN")
+            func_node.params = params
+        except SyntaxError as e:
+            self.errors.append(e)
+            self._recover_to({"LBRACE", "SEMICOLON", "KW_STEINER", "KW_GATE", "KW_MAIN"})
 
         # Cuerpo encerrado entre llaves '{'
-        self._match("LBRACE")
-        body = self._parse_stmt_sequence("RBRACE")
-        self._match("RBRACE")
-        func_node.child.append(body)
+        try:
+            self._match("LBRACE")
+            body = self._parse_stmt_sequence("RBRACE")
+            self._match("RBRACE")
+            func_node.child.append(body)
+        except SyntaxError as e:
+            self.errors.append(e)
+            body = TreeNode("StmtK", "BlockK", lineno=steiner_tok.line)
+            body.name = "Secuencia de Sentencias"
+            func_node.child.append(body)
+            self._recover_to({"KW_STEINER", "KW_GATE", "KW_MAIN"})
 
         return func_node
 
@@ -382,16 +447,28 @@ class SkuldParser:
 
         # Paréntesis opcionales: main()
         if self._check("LPAREN"):
-            self._match("LPAREN")
-            self._match("RPAREN")
-
-        self._match("LBRACE")
-        body = self._parse_stmt_sequence("RBRACE")
-        self._match("RBRACE")
+            try:
+                self._match("LPAREN")
+                self._match("RPAREN")
+            except SyntaxError as e:
+                self.errors.append(e)
+                self._recover_to({"LBRACE"})
 
         main_node = TreeNode("StmtK", "BlockK", lineno=main_tok.line)
         main_node.name = main_tok.lexeme
-        main_node.child.append(body)
+
+        try:
+            self._match("LBRACE")
+            body = self._parse_stmt_sequence("RBRACE")
+            self._match("RBRACE")
+            main_node.child.append(body)
+        except SyntaxError as e:
+            self.errors.append(e)
+            body = TreeNode("StmtK", "BlockK", lineno=main_tok.line)
+            body.name = "Secuencia de Sentencias"
+            main_node.child.append(body)
+            self._recover_to({"KW_STEINER", "KW_GATE", "KW_MAIN"})
+
         return main_node
 
     # -----------------------------------------------------------------
@@ -412,8 +489,13 @@ class SkuldParser:
         block_node = TreeNode("StmtK", "BlockK", lineno=self._current_token().line)
         block_node.name = "Secuencia de Sentencias"
 
+        boundaries = {"KW_STEINER", "KW_GATE", "KW_MAIN", "KW_ELSE", "KW_END", "KW_SEAL", "RBRACE"}
+
         # Leer sentencias de forma sucesiva hasta el fin de archivo o topar con un token de cierre
         while self.index < len(self.tokens) and not self._check("ENDFILE") and not self._check(end_set):
+            if self._check(boundaries - end_set):
+                break
+
             try:
                 # Permitir declarar variables en cualquier parte de la secuencia
                 if self._check({"KW_LABMEM", "KW_WORLDLINE", "KW_DIVERGENCE", "KW_READING", "KW_INT", "KW_FLOAT", "KW_BOOL"}):
@@ -573,10 +655,19 @@ class SkuldParser:
             self._match("LPAREN")
             has_paren = True
 
-        cond = self._parse_expr()
+        try:
+            cond = self._parse_expr()
+        except SyntaxError as e:
+            self.errors.append(e)
+            cond = TreeNode("ExpK", "IdK", lineno=if_tok.line)
+            cond.name = "<error>"
+            self._recover_to({"RPAREN", "LBRACE", "KW_THEN", "SEMICOLON"})
 
         if has_paren:
-            self._match("RPAREN")
+            try:
+                self._match("RPAREN")
+            except SyntaxError as e:
+                self.errors.append(e)
 
         t = TreeNode("StmtK", "IfK", lineno=if_tok.line)
         t.child.append(cond)
@@ -589,13 +680,28 @@ class SkuldParser:
         elif self._check("KW_THEN"):
             self._match("KW_THEN")
         else:
-            self._match({"LBRACE", "KW_THEN"})
+            try:
+                self._match({"LBRACE", "KW_THEN"})
+                has_braces = False
+            except SyntaxError as e:
+                self.errors.append(e)
+                has_braces = False
 
         if has_braces:
-            then_branch = self._parse_stmt_sequence("RBRACE")
-            self._match("RBRACE")
+            try:
+                then_branch = self._parse_stmt_sequence("RBRACE")
+                self._match("RBRACE")
+            except SyntaxError as e:
+                self.errors.append(e)
+                then_branch = TreeNode("StmtK", "BlockK", lineno=if_tok.line)
+                then_branch.name = "Secuencia de Sentencias"
         else:
-            then_branch = self._parse_stmt_sequence({"KW_ELSE", "KW_END", "KW_SEAL"})
+            try:
+                then_branch = self._parse_stmt_sequence({"KW_ELSE", "KW_END", "KW_SEAL"})
+            except SyntaxError as e:
+                self.errors.append(e)
+                then_branch = TreeNode("StmtK", "BlockK", lineno=if_tok.line)
+                then_branch.name = "Secuencia de Sentencias"
 
         t.child.append(then_branch)
 
@@ -603,18 +709,31 @@ class SkuldParser:
         if self._check("KW_ELSE"):
             self._match("KW_ELSE")
             if has_braces:
-                self._match("LBRACE")
-                else_branch = self._parse_stmt_sequence("RBRACE")
-                self._match("RBRACE")
+                try:
+                    self._match("LBRACE")
+                    else_branch = self._parse_stmt_sequence("RBRACE")
+                    self._match("RBRACE")
+                except SyntaxError as e:
+                    self.errors.append(e)
+                    else_branch = TreeNode("StmtK", "BlockK", lineno=if_tok.line)
+                    else_branch.name = "Secuencia de Sentencias"
             else:
-                else_branch = self._parse_stmt_sequence({"KW_END", "KW_SEAL"})
+                try:
+                    else_branch = self._parse_stmt_sequence({"KW_END", "KW_SEAL"})
+                except SyntaxError as e:
+                    self.errors.append(e)
+                    else_branch = TreeNode("StmtK", "BlockK", lineno=if_tok.line)
+                    else_branch.name = "Secuencia de Sentencias"
             t.child.append(else_branch)
         else:
             t.child.append(None)
 
         # Si no se usaron llaves, esperar palabra clave explícita de cierre 'end' o 'seal'
         if not has_braces:
-            self._match({"KW_END", "KW_SEAL"})
+            try:
+                self._match({"KW_END", "KW_SEAL"})
+            except SyntaxError as e:
+                self.errors.append(e)
 
         return t
 
@@ -630,10 +749,19 @@ class SkuldParser:
             self._match("LPAREN")
             has_paren = True
 
-        cond = self._parse_expr()
+        try:
+            cond = self._parse_expr()
+        except SyntaxError as e:
+            self.errors.append(e)
+            cond = TreeNode("ExpK", "IdK", lineno=while_tok.line)
+            cond.name = "<error>"
+            self._recover_to({"RPAREN", "LBRACE", "KW_DO", "SEMICOLON"})
 
         if has_paren:
-            self._match("RPAREN")
+            try:
+                self._match("RPAREN")
+            except SyntaxError as e:
+                self.errors.append(e)
 
         t = TreeNode("StmtK", "WhileK", lineno=while_tok.line)
         t.child.append(cond)
@@ -645,14 +773,29 @@ class SkuldParser:
         elif self._check("KW_DO"):
             self._match("KW_DO")
         else:
-            self._match({"LBRACE", "KW_DO"})
+            try:
+                self._match({"LBRACE", "KW_DO"})
+                has_braces = False
+            except SyntaxError as e:
+                self.errors.append(e)
+                has_braces = False
 
         if has_braces:
-            body = self._parse_stmt_sequence("RBRACE")
-            self._match("RBRACE")
+            try:
+                body = self._parse_stmt_sequence("RBRACE")
+                self._match("RBRACE")
+            except SyntaxError as e:
+                self.errors.append(e)
+                body = TreeNode("StmtK", "BlockK", lineno=while_tok.line)
+                body.name = "Secuencia de Sentencias"
         else:
-            body = self._parse_stmt_sequence({"KW_END", "KW_SEAL"})
-            self._match({"KW_END", "KW_SEAL"})
+            try:
+                body = self._parse_stmt_sequence({"KW_END", "KW_SEAL"})
+                self._match({"KW_END", "KW_SEAL"})
+            except SyntaxError as e:
+                self.errors.append(e)
+                body = TreeNode("StmtK", "BlockK", lineno=while_tok.line)
+                body.name = "Secuencia de Sentencias"
 
         t.child.append(body)
         return t
@@ -670,29 +813,55 @@ class SkuldParser:
             has_braces = True
 
         if has_braces:
-            body = self._parse_stmt_sequence("RBRACE")
-            self._match("RBRACE")
+            try:
+                body = self._parse_stmt_sequence("RBRACE")
+                self._match("RBRACE")
+            except SyntaxError as e:
+                self.errors.append(e)
+                body = TreeNode("StmtK", "BlockK", lineno=do_tok.line)
+                body.name = "Secuencia de Sentencias"
         else:
-            body = self._parse_stmt_sequence({"KW_WHILE", "KW_UNTIL"})
+            try:
+                body = self._parse_stmt_sequence({"KW_WHILE", "KW_UNTIL"})
+            except SyntaxError as e:
+                self.errors.append(e)
+                body = TreeNode("StmtK", "BlockK", lineno=do_tok.line)
+                body.name = "Secuencia de Sentencias"
 
         # Admite tanto bucle por continuidad (while) como por término (until)
-        cond_tok = self._match({"KW_WHILE", "KW_UNTIL"})
+        try:
+            cond_tok = self._match({"KW_WHILE", "KW_UNTIL"})
+            cond_lexeme = cond_tok.lexeme
+        except SyntaxError as e:
+            self.errors.append(e)
+            cond_lexeme = "while"
 
         has_paren = False
         if self._check("LPAREN"):
             self._match("LPAREN")
             has_paren = True
 
-        cond = self._parse_expr()
+        try:
+            cond = self._parse_expr()
+        except SyntaxError as e:
+            self.errors.append(e)
+            cond = TreeNode("ExpK", "IdK", lineno=do_tok.line)
+            cond.name = "<error>"
+            self._recover_to({"RPAREN", "SEMICOLON"})
 
         if has_paren:
-            self._match("RPAREN")
+            try:
+                self._match("RPAREN")
+            except SyntaxError as e:
+                self.errors.append(e)
 
-        if self._check("SEMICOLON"):
+        try:
             self._match("SEMICOLON")
+        except SyntaxError as e:
+            self.errors.append(e)
 
         t = TreeNode("StmtK", "DoWhileK", lineno=do_tok.line)
-        t.op = cond_tok.lexeme
+        t.op = cond_lexeme
         t.child.append(body)
         t.child.append(cond)
         return t
@@ -704,21 +873,30 @@ class SkuldParser:
         """
         read_tok = self._match({"KW_SPHONE", "KW_CIN"})
 
-        if self._check("LPAREN"):
-            self._match("LPAREN")
-            id_tok = self._match("IDENTIFIER")
-            self._match("RPAREN")
-        else:
-            # Soporte para operador flujo de entrada >> (dos tokens GT consecutivos)
-            if self._check("GT"):
-                self._match("GT")
-                self._match("GT")
-            id_tok = self._match("IDENTIFIER")
+        try:
+            if self._check("LPAREN"):
+                self._match("LPAREN")
+                id_tok = self._match("IDENTIFIER")
+                self._match("RPAREN")
+            else:
+                # Soporte para operador flujo de entrada >> (dos tokens GT consecutivos)
+                if self._check("GT"):
+                    self._match("GT")
+                    self._match("GT")
+                id_tok = self._match("IDENTIFIER")
+            id_name = id_tok.lexeme
+        except SyntaxError as e:
+            self.errors.append(e)
+            id_name = "<error>"
+            self._recover_to({"SEMICOLON"})
 
-        self._match("SEMICOLON")
+        try:
+            self._match("SEMICOLON")
+        except SyntaxError as e:
+            self.errors.append(e)
 
         t = TreeNode("StmtK", "ReadK", lineno=read_tok.line)
-        t.name = id_tok.lexeme
+        t.name = id_name
         return t
 
     def _parse_write_stmt(self) -> TreeNode:
@@ -730,35 +908,50 @@ class SkuldParser:
 
         t = TreeNode("StmtK", "WriteK", lineno=write_tok.line)
 
-        # 1. Estilo función: dmail(arg1, arg2);
-        if self._check("LPAREN"):
-            self._match("LPAREN")
-            while True:
-                t.child.append(self._parse_expr())
+        try:
+            # 1. Estilo función: dmail(arg1, arg2);
+            if self._check("LPAREN"):
+                self._match("LPAREN")
+                while True:
+                    try:
+                        t.child.append(self._parse_expr())
+                    except SyntaxError as e:
+                        self.errors.append(e)
+                        self._recover_to({"COMMA", "RPAREN", "SEMICOLON"})
 
-                if self._check("COMMA"):
-                    self._match("COMMA")
-                elif self._check("LT"):
+                    if self._check("COMMA"):
+                        self._match("COMMA")
+                    elif self._check("LT"):
+                        self._match("LT")
+                        self._match("LT")
+                    else:
+                        break
+                self._match("RPAREN")
+            # 2. Estilo flujo: cout << arg1 << arg2;
+            else:
+                while True:
+                    # Consumir operador flujo salida << (dos tokens LT consecutivos)
                     self._match("LT")
                     self._match("LT")
-                else:
-                    break
-            self._match("RPAREN")
-        # 2. Estilo flujo: cout << arg1 << arg2;
-        else:
-            while True:
-                # Consumir operador flujo salida << (dos tokens LT consecutivos)
-                self._match("LT")
-                self._match("LT")
 
-                t.child.append(self._parse_expr())
+                    try:
+                        t.child.append(self._parse_expr())
+                    except SyntaxError as e:
+                        self.errors.append(e)
+                        self._recover_to({"LT", "SEMICOLON"})
 
-                if self._check("LT") and self.index + 1 < len(self.tokens) and self.tokens[self.index + 1].token_type == "LT":
-                    continue
-                else:
-                    break
+                    if self._check("LT") and self.index + 1 < len(self.tokens) and self.tokens[self.index + 1].token_type == "LT":
+                        continue
+                    else:
+                        break
+        except SyntaxError as e:
+            self.errors.append(e)
+            self._recover_to({"SEMICOLON"})
 
-        self._match("SEMICOLON")
+        try:
+            self._match("SEMICOLON")
+        except SyntaxError as e:
+            self.errors.append(e)
         return t
 
     # -----------------------------------------------------------------
@@ -927,26 +1120,37 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
     if node is None:
         return ""
 
-    # Caso especial pedagógico: omitir la impresión del nodo intermedio 'Secuencia de Sentencias'
+    # Caso especial pedagógico: omitir la impresión del nodo intermedio 'Secuencia de Sentencias' o 'Statement Sequence'
     # para evitar sobrecargar visualmente el árbol y mantenerlo limpio y conciso.
-    if node.nodekind == "StmtK" and node.kind == "BlockK" and node.name == "Secuencia de Sentencias":
+    if node.nodekind == "StmtK" and node.kind == "BlockK" and (node.name == "Secuencia de Sentencias" or node.name == "Statement Sequence"):
         result = ""
         children = [c for c in node.child if c is not None]
         for i, child in enumerate(children):
             result += print_tree_graphical(child, prefix, is_last and (i == len(children) - 1))
         return result
 
-    # Generar la descripción estéticamente formateada según el tipo de nodo
+    # Traducir nombres para visualización en inglés (solo palabras reservadas/conceptos estructurales específicos)
+    display_name = node.name
+    if display_name == "Condición":
+        display_name = "Condition"
+    elif display_name == "Rama Entonces":
+        display_name = "Then"
+    elif display_name == "Rama Sino":
+        display_name = "Else "
+    elif display_name == "Cuerpo del Bucle":
+        display_name = "Loop"
+
+    # Generar la descripción estéticamente formateada según el tipo de nodo en español
     desc = ""
     if node.nodekind == "DeclK":
         if node.kind == "DeclVarK":
             desc = f"[Declaración de Variable] Tipo: {node.type}"
         elif node.kind == "VarK":
             init_suffix = " (Inicializada)" if node.child else ""
-            desc = f"[Variable] ID: {node.name}{init_suffix}"
+            desc = f"[Variable] ID: {display_name}{init_suffix}"
         elif node.kind == "FuncK":
             params_str = ", ".join(f"{t} {n}" for t, n in node.params)
-            desc = f"[Definición de Función] Tipo: {node.type}, Nombre: {node.name}({params_str})"
+            desc = f"[Definición de Función] Tipo: {node.type}, Nombre: {display_name}({params_str})"
     elif node.nodekind == "StmtK":
         if node.kind == "IfK":
             desc = "[Condicional / choice (if)]"
@@ -955,28 +1159,28 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
         elif node.kind == "DoWhileK":
             desc = f"[Bucle / pulse (do-{node.op or 'while'})]"
         elif node.kind == "AssignK":
-            desc = f"[Asignación] ID: {node.name}"
+            desc = f"[Asignación] ID: {display_name}"
         elif node.kind == "ReadK":
-            desc = f"[Entrada / sphone (cin)] ID: {node.name}"
+            desc = f"[Entrada / sphone (cin)] ID: {display_name}"
         elif node.kind == "WriteK":
             desc = "[Salida / dmail (cout)]"
         elif node.kind == "ReturnK":
             desc = "[Retorno / return]"
         elif node.kind == "BlockK":
-            desc = f"[Bloque de Código / {node.name or '{...}'}]"
+            desc = f"[Bloque de Código / {display_name or '{...}'}]"
         elif node.kind == "CallStmtK":
-            desc = f"[Llamada a Función] Nombre: {node.name}"
+            desc = f"[Llamada a Función] Nombre: {display_name}"
     elif node.nodekind == "ExpK":
         if node.kind == "OpK":
             desc = f"[Operador] '{node.op}'"
         elif node.kind == "ConstK":
             desc = f"[Constante] Valor: {node.val}"
         elif node.kind == "IdK":
-            desc = f"[Variable / ID] Nombre: {node.name}"
+            desc = f"[Variable / ID] Nombre: {display_name}"
         elif node.kind == "StringK":
             desc = f"[Cadena] \"{node.val}\""
         elif node.kind == "CallK":
-            desc = f"[Llamada a Función en Expresión] Nombre: {node.name}"
+            desc = f"[Llamada a Función en Expresión] Nombre: {display_name}"
 
     # Construir la estructura visual utilizando caracteres tipo carpeta
     marker = "└── " if is_last else "├── "
@@ -987,9 +1191,9 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
     # Filtrar nodos hijos nulos
     children = [c for c in node.child if c is not None]
     
-    # Agregar etiquetas informativas a los bloques lógicos de sentencias de control
+    # Agregar etiquetas informativas a los bloques lógicos de sentencias de control en inglés (palabras reservadas/estructuras)
     if node.kind == "IfK":
-        labels = ["Condición", "Rama Entonces", "Rama Sino"]
+        labels = ["Condition", "Then", "Else"]
         labeled_children = []
         for idx, child in enumerate(children):
             if idx < len(labels):
@@ -1001,7 +1205,7 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
                 labeled_children.append(child)
         children = labeled_children
     elif node.kind == "WhileK":
-        labels = ["Condición", "Cuerpo del Bucle"]
+        labels = ["Condition", "Loop"]
         labeled_children = []
         for idx, child in enumerate(children):
             if idx < len(labels):
@@ -1013,7 +1217,7 @@ def print_tree_graphical(node: Optional[TreeNode], prefix: str = "", is_last: bo
                 labeled_children.append(child)
         children = labeled_children
     elif node.kind == "DoWhileK":
-        labels = ["Cuerpo del Bucle", "Condición"]
+        labels = ["Loop", "Condition"]
         labeled_children = []
         for idx, child in enumerate(children):
             if idx < len(labels):
