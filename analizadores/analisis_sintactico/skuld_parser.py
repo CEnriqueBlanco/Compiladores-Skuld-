@@ -960,8 +960,52 @@ class SkuldParser:
 
     def _parse_expr(self) -> TreeNode:
         """
-        Nivel 1: Expresiones relacionales
-        expresion -> expresion_simple [ rel_op expresion_simple ]
+        Nivel 1: Expresiones lógicas OR (or, ||)
+        expresion -> expresion_and [ '||' expresion_and ]*
+        """
+        t = self._parse_expr_and()
+
+        while self._check("OR_OP"):
+            op_tok = self._match("OR_OP")
+            p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
+            p.op = op_tok.lexeme
+            p.child.append(t)
+            try:
+                p.child.append(self._parse_expr_and())
+            except SyntaxError as e:
+                self.errors.append(e)
+                err_node = TreeNode("ExpK", "IdK", lineno=op_tok.line)
+                err_node.name = "<error>"
+                p.child.append(err_node)
+            t = p
+        return t
+
+    def _parse_expr_and(self) -> TreeNode:
+        """
+        Nivel 2: Expresiones lógicas AND (and, &&)
+        expresion_and -> expresion_rel [ '&&' expresion_rel ]*
+        """
+        t = self._parse_expr_relational()
+
+        while self._check("AND_OP"):
+            op_tok = self._match("AND_OP")
+            p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
+            p.op = op_tok.lexeme
+            p.child.append(t)
+            try:
+                p.child.append(self._parse_expr_relational())
+            except SyntaxError as e:
+                self.errors.append(e)
+                err_node = TreeNode("ExpK", "IdK", lineno=op_tok.line)
+                err_node.name = "<error>"
+                p.child.append(err_node)
+            t = p
+        return t
+
+    def _parse_expr_relational(self) -> TreeNode:
+        """
+        Nivel 3: Expresiones relacionales
+        expresion_rel -> expresion_simple [ rel_op expresion_simple ]
         """
         t = self._parse_expr_simple()
 
@@ -990,12 +1034,12 @@ class SkuldParser:
 
     def _parse_expr_simple(self) -> TreeNode:
         """
-        Nivel 2: Expresiones aditivas y operadores lógicos aditivos (or)
+        Nivel 4: Expresiones aditivas
         expresion_simple -> termino [ suma_op termino ]*
         """
         t = self._parse_term()
 
-        sum_ops = {"PLUS", "MINUS", "OR_OP"}
+        sum_ops = {"PLUS", "MINUS"}
         while self._check(sum_ops):
             op_tok = self._match(sum_ops)
             p = TreeNode("ExpK", "OpK", lineno=op_tok.line)
@@ -1013,12 +1057,12 @@ class SkuldParser:
 
     def _parse_term(self) -> TreeNode:
         """
-        Nivel 3: Expresiones multiplicativas y lógicas multiplicativas (and)
+        Nivel 5: Expresiones multiplicativas
         termino -> factor [ mult_op factor ]*
         """
         t = self._parse_factor()
 
-        mult_ops = {"TIMES", "DIV", "MOD", "AND_OP"}
+        mult_ops = {"TIMES", "DIV", "MOD"}
         while self._check(mult_ops):
             op_tok = self._match(mult_ops)
             p = TreeNode("ExpK", "OpK", lineno=op_tok.line)

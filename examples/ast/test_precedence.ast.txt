@@ -1,0 +1,14 @@
+└── [Bloque de Código / Programa] @ 1
+    └── [Bloque de Código / gate] @ 1
+        └── [Condicional / choice (if)] @ 2
+            ├── [Bloque de Código / Condition] @ 2
+            │   └── [Operador] '&&' @ 2
+            │       ├── [Operador] '>' @ 2
+            │       │   ├── [Constante] Valor: 4 @ 2
+            │       │   └── [Constante] Valor: 2 @ 2
+            │       └── [Operador] '==' @ 2
+            │           ├── [Variable / ID] Nombre: e @ 2
+            │           └── [Constante] Valor: 2 @ 2
+            └── [Bloque de Código / Then] @ 2
+                └── [Salida / dmail (cout)] @ 3
+                    └── [Cadena] "Hola" @ 3
