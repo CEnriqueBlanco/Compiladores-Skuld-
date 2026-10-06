@@ -1,0 +1,30 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 1
+    │   └── [Variable] ID: x @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: fact @ 2
+    ├── [Entrada / sphone (cin)] ID: x @ 4
+    └── [Condicional / choice (if)] @ 5
+        ├── [Bloque de Código / Condition] @ 5
+        │   └── [Operador] '<' @ 5
+        │       ├── [Constante] Valor: 0 @ 5
+        │       └── [Variable / ID] Nombre: x @ 5
+        └── [Bloque de Código / Then] @ 5
+            ├── [Asignación] ID: fact @ 6
+            │   └── [Constante] Valor: 1 @ 6
+            ├── [Bucle / pulse (do-until)] @ 7
+            │   ├── [Bloque de Código / Loop] @ 7
+            │   │   ├── [Asignación] ID: fact @ 8
+            │   │   │   └── [Operador] '*' @ 8
+            │   │   │       ├── [Variable / ID] Nombre: fact @ 8
+            │   │   │       └── [Variable / ID] Nombre: x @ 8
+            │   │   └── [Asignación] ID: x @ 9
+            │   │       └── [Operador] '-' @ 9
+            │   │           ├── [Variable / ID] Nombre: x @ 9
+            │   │           └── [Constante] Valor: 1 @ 9
+            │   └── [Bloque de Código / Condition] @ 7
+            │       └── [Operador] '==' @ 10
+            │           ├── [Variable / ID] Nombre: x @ 10
+            │           └── [Constante] Valor: 0 @ 10
+            └── [Salida / dmail (cout)] @ 11
+                └── [Variable / ID] Nombre: fact @ 11

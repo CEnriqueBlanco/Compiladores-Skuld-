@@ -1,0 +1,13 @@
++-----------+-----------+--------+-------+------------------+------------+
+| Nombre    | Tipo      | Ámbito | Nivel | Dirección/Offset | Líneas     |
++-----------+-----------+--------+-------+------------------+------------+
+| x         | worldline | global | 0     | 0x0000 (0)       | 5, 6       |
+| total     | worldline | global | 0     | 0x0004 (4)       | 9          |
+| entero    | worldline | global | 0     | 0x0008 (8)       | 13, 14, 18 |
+| bandera   | reading   | global | 0     | 0x000C (12)      | 17, 18     |
+| activo    | reading   | global | 0     | 0x000D (13)      | 21, 22     |
+| suma      | worldline | global | 0     | 0x000E (14)      | 22         |
+| n         | worldline | global | 0     | 0x0012 (18)      | 25, 26     |
+| resultado | reading   | global | 0     | 0x0016 (22)      | 26         |
+| edad      | worldline | gate   | 1     | 0x0017 (23)      | 30, 31     |
++-----------+-----------+--------+-------+------------------+------------+

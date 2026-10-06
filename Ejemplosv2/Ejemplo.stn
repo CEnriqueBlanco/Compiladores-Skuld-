@@ -1,9 +1,7 @@
-gate {
-      labmem worldline edad;
-      sphone(edad);
-      choice (edad >= 18) {
-          dmail("Mayor de edad");
-      } else {
-          dmail("Menor de edad");
-      }
-  }
+int edad;
+cin >> edad;
+if (edad >= 18) then
+    cout << "Mayor de edad";
+else
+    cout << "Menor de edad";
+end

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import os
+import re
 import shlex
 import subprocess
 import sys
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize_file_with_recovery
 
@@ -18,6 +19,9 @@ class CompilerResult:
     error_line: int | None = None
     error_column: int | None = None
     error_column_end: int | None = None
+    # Extra: para la fase semántica, separamos los contenidos del stdout
+    semantic_tree: str = ""    # AST anotado (para pestaña Semántico)
+    symbol_table: str = ""     # Tabla de símbolos formateada (para pestaña Símbolos)
 
 
 PHASE_ARGS = {
@@ -71,9 +75,66 @@ def _format_lex_tokens(source_path: str) -> CompilerResult:
     return CompilerResult(returncode=0, stdout="\n".join(lines), stderr="")
 
 
+def _run_semantic_inline(source_path: str) -> CompilerResult:
+    """
+    Ejecuta el análisis semántico en proceso (sin subprocess) para poder
+    separar el AST anotado de la Tabla de Símbolos y poblar pestañas independientes.
+    """
+    try:
+        from analizadores.analisis_lexico.skuld_lexer import tokenize_file_with_recovery as tokenize
+        from analizadores.analisis_sintactico.skuld_parser import SkuldParser
+        from analizadores.analisis_semantico import SemanticAnalyzer, print_annotated_tree
+
+        tokens, lex_errors = tokenize(source_path)
+        if lex_errors:
+            return CompilerResult(returncode=1, stdout="", stderr="\n".join(str(e) for e in lex_errors))
+
+        parser = SkuldParser(tokens)
+        ast = parser.parse()
+        if parser.errors:
+            return CompilerResult(returncode=1, stdout="", stderr="\n".join(str(e) for e in parser.errors))
+
+        analyzer = SemanticAnalyzer()
+        annotated_ast, symbol_table, sem_errors = analyzer.analyze(ast)
+
+        tree_text = print_annotated_tree(annotated_ast)
+        symbols_text = symbol_table.format_table()
+
+        errors_text = "\n".join(str(e) for e in sem_errors) if sem_errors else ""
+        rc = 1 if sem_errors else 0
+
+        # Extraer línea/columna del primer error semántico para resaltado en el editor
+        error_line = None
+        error_column = None
+        error_column_end = None
+        if sem_errors:
+            first = sem_errors[0]
+            error_line = first.line
+            error_column = first.column
+            lex_m = re.search(r" -> '(.*)'$", str(first).strip())
+            span_len = max(1, len(lex_m.group(1)) if lex_m else 1)
+            error_column_end = error_column + span_len - 1
+
+        return CompilerResult(
+            returncode=rc,
+            stdout=tree_text,
+            stderr=errors_text,
+            error_line=error_line,
+            error_column=error_column,
+            error_column_end=error_column_end,
+            semantic_tree=tree_text,
+            symbol_table=symbols_text,
+        )
+    except Exception as exc:
+        return CompilerResult(returncode=1, stdout="", stderr=f"Error interno en análisis semántico: {exc}")
+
+
 def run_compiler(phase: str, source_path: str) -> CompilerResult:
     if phase == "lexico":
         return _format_lex_tokens(source_path)
+
+    if phase == "semantico":
+        return _run_semantic_inline(source_path)
 
     command = _get_compiler_command()
     if not command:
@@ -86,7 +147,6 @@ def run_compiler(phase: str, source_path: str) -> CompilerResult:
             ),
         )
 
-    import re
     phase_arg = PHASE_ARGS.get(phase, "")
     full_command = [*command, phase_arg, source_path] if phase_arg else [*command, source_path]
     result = subprocess.run(

@@ -1,0 +1,30 @@
+└── [Bloque de Código / Programa] {ámbito: global} @ 1
+    ├── [Declaración de Variable] Tipo: int {tipo: worldline, ámbito: global} @ 1
+    │   └── [Variable] ID: x {tipo: worldline, ámbito: global} @ 1
+    ├── [Declaración de Variable] Tipo: int {tipo: worldline, ámbito: global} @ 2
+    │   └── [Variable] ID: fact {tipo: worldline, ámbito: global} @ 2
+    ├── [Entrada / sphone (cin)] ID: x {tipo: worldline, ámbito: global} @ 4
+    └── [Condicional / choice (if)] {ámbito: global} @ 5
+        ├── [Bloque de Código / Condition] @ 5
+        │   └── [Operador] '<' {tipo: reading} @ 5
+        │       ├── [Constante] Valor: 0 {tipo: worldline, val: 0} @ 5
+        │       └── [Variable / ID] Nombre: x {tipo: worldline} @ 5
+        └── [Bloque de Código / Then] @ 5
+            ├── [Asignación] ID: fact {tipo: worldline, ámbito: global} @ 6
+            │   └── [Constante] Valor: 1 {tipo: worldline, val: 1} @ 6
+            ├── [Bucle / pulse (do-until)] {ámbito: global} @ 7
+            │   ├── [Bloque de Código / Loop] @ 7
+            │   │   ├── [Asignación] ID: fact {tipo: worldline, ámbito: global} @ 8
+            │   │   │   └── [Operador] '*' {tipo: worldline} @ 8
+            │   │   │       ├── [Variable / ID] Nombre: fact {tipo: worldline} @ 8
+            │   │   │       └── [Variable / ID] Nombre: x {tipo: worldline} @ 8
+            │   │   └── [Asignación] ID: x {tipo: worldline, ámbito: global} @ 9
+            │   │       └── [Operador] '-' {tipo: worldline} @ 9
+            │   │           ├── [Variable / ID] Nombre: x {tipo: worldline} @ 9
+            │   │           └── [Constante] Valor: 1 {tipo: worldline, val: 1} @ 9
+            │   └── [Bloque de Código / Condition] @ 7
+            │       └── [Operador] '==' {tipo: reading} @ 10
+            │           ├── [Variable / ID] Nombre: x {tipo: worldline} @ 10
+            │           └── [Constante] Valor: 0 {tipo: worldline, val: 0} @ 10
+            └── [Salida / dmail (cout)] {ámbito: global} @ 11
+                └── [Variable / ID] Nombre: fact {tipo: worldline} @ 11

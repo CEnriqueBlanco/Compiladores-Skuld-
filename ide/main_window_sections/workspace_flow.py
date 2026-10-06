@@ -491,8 +491,14 @@ def run_phase(window, phase: str) -> None:
                 window._analysis_panel.set_syntax(result.stdout)
             else:
                 window._analysis_panel.set_syntax(result.stderr or "Error sintactico.")
+        elif phase == "semantico":
+            # Mostrar AST anotado y tabla incluso cuando hay errores semánticos
+            if result.semantic_tree:
+                window._analysis_panel.set_semantic(result.semantic_tree)
+            if result.symbol_table:
+                window._analysis_panel.set_symbols(result.symbol_table)
 
-        if phase in {"lexico", "sintactico"}:
+        if phase in {"lexico", "sintactico", "semantico"}:
             if result.error_line is not None and result.error_column is not None:
                 editor.highlight_error_range(result.error_line, result.error_column, result.error_column_end)
 
@@ -506,7 +512,11 @@ def run_phase(window, phase: str) -> None:
     elif phase == "sintactico":
         window._analysis_panel.set_syntax(output_text)
     elif phase == "semantico":
-        window._analysis_panel.set_semantic(output_text)
+        # Poblar pestaña Semántico con el AST anotado
+        window._analysis_panel.set_semantic(result.semantic_tree or output_text)
+        # Poblar pestaña Símbolos con la tabla de símbolos generada
+        if result.symbol_table:
+            window._analysis_panel.set_symbols(result.symbol_table)
     elif phase == "intermedio":
         window._analysis_panel.set_intermediate(output_text)
     elif phase == "ejecucion":

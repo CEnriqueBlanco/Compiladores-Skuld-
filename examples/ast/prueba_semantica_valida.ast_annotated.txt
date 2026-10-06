@@ -1,0 +1,62 @@
+└── [Bloque de Código / Programa] {ámbito: global} @ 1
+    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 4
+    │   └── [Variable] ID: temperatura (Inicializada) {tipo: worldline, ámbito: global} @ 4
+    │       └── [Constante] Valor: 37 {tipo: worldline, val: 37} @ 4
+    ├── [Declaración de Variable] Tipo: divergence {tipo: divergence, ámbito: global} @ 5
+    │   └── [Variable] ID: presion (Inicializada) {tipo: divergence, ámbito: global} @ 5
+    │       └── [Constante] Valor: 101.325 {tipo: divergence, val: 101.325} @ 5
+    ├── [Declaración de Variable] Tipo: reading {tipo: reading, ámbito: global} @ 6
+    │   └── [Variable] ID: alarma (Inicializada) {tipo: reading, ámbito: global} @ 6
+    │       └── [Constante] Valor: False {tipo: reading, val: False} @ 6
+    ├── [Definición de Función] Tipo: reading, Nombre: revisar_limite(worldline valor, worldline limite) {tipo: reading, ámbito: global} @ 8
+    │   └── [Retorno / return] {tipo: reading, ámbito: revisar_limite} @ 9
+    │       └── [Operador] '>' {tipo: reading} @ 9
+    │           ├── [Variable / ID] Nombre: valor {tipo: worldline} @ 9
+    │           └── [Variable / ID] Nombre: limite {tipo: worldline} @ 9
+    └── [Bloque de Código / gate] {ámbito: gate} @ 12
+        ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: gate} @ 13
+        │   └── [Variable] ID: umbral (Inicializada) {tipo: worldline, ámbito: gate} @ 13
+        │       └── [Constante] Valor: 40 {tipo: worldline, val: 40} @ 13
+        ├── [Asignación] ID: alarma {tipo: reading, ámbito: gate} @ 14
+        │   └── [Llamada a Función en Expresión] Nombre: revisar_limite {tipo: reading} @ 14
+        │       ├── [Variable / ID] Nombre: temperatura {tipo: worldline, val: 37} @ 14
+        │       └── [Variable / ID] Nombre: umbral {tipo: worldline, val: 40} @ 14
+        ├── [Condicional / choice (if)] {ámbito: gate} @ 16
+        │   ├── [Bloque de Código / Condition] @ 16
+        │   │   └── [Variable / ID] Nombre: alarma {tipo: reading, val: False} @ 16
+        │   ├── [Bloque de Código / Then] @ 16
+        │   │   └── [Salida / dmail (cout)] {ámbito: gate} @ 17
+        │   │       └── [Operador] '+' {tipo: string, val: ¡ALERTA! Temperatura fuera de rango: 37} @ 17
+        │   │           ├── [Cadena] "¡ALERTA! Temperatura fuera de rango: " {tipo: string, val: ¡ALERTA! Temperatura fuera de rango: } @ 17
+        │   │           └── [Variable / ID] Nombre: temperatura {tipo: worldline, val: 37} @ 17
+        │   └── [Bloque de Código / Else] @ 16
+        │       └── [Salida / dmail (cout)] {ámbito: gate} @ 19
+        │           └── [Operador] '+' {tipo: string, val: Temperatura normal: 37} @ 19
+        │               ├── [Cadena] "Temperatura normal: " {tipo: string, val: Temperatura normal: } @ 19
+        │               └── [Variable / ID] Nombre: temperatura {tipo: worldline, val: 37} @ 19
+        ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: gate} @ 22
+        │   └── [Variable] ID: contador (Inicializada) {tipo: worldline, ámbito: gate} @ 22
+        │       └── [Constante] Valor: 0 {tipo: worldline, val: 0} @ 22
+        ├── [Bucle / loop (while)] {ámbito: gate} @ 23
+        │   ├── [Bloque de Código / Condition] @ 23
+        │   │   └── [Operador] '<' {tipo: reading, val: True} @ 23
+        │   │       ├── [Variable / ID] Nombre: contador {tipo: worldline, val: 0} @ 23
+        │   │       └── [Constante] Valor: 5 {tipo: worldline, val: 5} @ 23
+        │   └── [Bloque de Código / Loop] @ 23
+        │       ├── [Salida / dmail (cout)] {ámbito: gate} @ 24
+        │       │   └── [Operador] '+' {tipo: string, val: Iteracion: 0} @ 24
+        │       │       ├── [Cadena] "Iteracion: " {tipo: string, val: Iteracion: } @ 24
+        │       │       └── [Variable / ID] Nombre: contador {tipo: worldline, val: 0} @ 24
+        │       └── [Asignación] ID: contador {tipo: worldline, ámbito: gate} @ 25
+        │           └── [Operador] '+' {tipo: worldline, val: 1} @ 25
+        │               ├── [Variable / ID] Nombre: contador {tipo: worldline, val: 0} @ 25
+        │               └── [Constante] Valor: 1 {tipo: worldline, val: 1} @ 25
+        ├── [Declaración de Variable] Tipo: divergence {tipo: divergence, ámbito: gate} @ 28
+        │   └── [Variable] ID: resultado (Inicializada) {tipo: divergence, ámbito: gate} @ 28
+        │       └── [Operador] '*' {tipo: divergence, val: 202.65} @ 28
+        │           ├── [Variable / ID] Nombre: presion {tipo: divergence, val: 101.325} @ 28
+        │           └── [Constante] Valor: 2 {tipo: worldline, val: 2} @ 28
+        └── [Salida / dmail (cout)] {ámbito: gate} @ 29
+            └── [Operador] '+' {tipo: string, val: Presion duplicada: 202.65} @ 29
+                ├── [Cadena] "Presion duplicada: " {tipo: string, val: Presion duplicada: } @ 29
+                └── [Variable / ID] Nombre: resultado {tipo: divergence, val: 202.65} @ 29

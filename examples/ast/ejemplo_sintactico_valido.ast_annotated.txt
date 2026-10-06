@@ -1,0 +1,67 @@
+└── [Bloque de Código / Programa] {ámbito: global} @ 1
+    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 3
+    │   ├── [Variable] ID: x (Inicializada) {tipo: worldline, ámbito: global} @ 3
+    │   │   └── [Constante] Valor: 5 {tipo: worldline, val: 5} @ 3
+    │   └── [Variable] ID: y (Inicializada) {tipo: worldline, ámbito: global} @ 3
+    │       └── [Constante] Valor: 15 {tipo: worldline, val: 15} @ 3
+    ├── [Declaración de Variable] Tipo: divergence {tipo: divergence, ámbito: global} @ 4
+    │   └── [Variable] ID: ratio (Inicializada) {tipo: divergence, ámbito: global} @ 4
+    │       └── [Constante] Valor: 1.048596 {tipo: divergence, val: 1.048596} @ 4
+    ├── [Declaración de Variable] Tipo: reading {tipo: reading, ámbito: global} @ 5
+    │   └── [Variable] ID: es_activo (Inicializada) {tipo: reading, ámbito: global} @ 5
+    │       └── [Constante] Valor: True {tipo: reading, val: True} @ 5
+    ├── [Definición de Función] Tipo: worldline, Nombre: duplicar(worldline valor) {tipo: worldline, ámbito: global} @ 7
+    │   ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: duplicar} @ 8
+    │   │   └── [Variable] ID: resultado (Inicializada) {tipo: worldline, ámbito: duplicar} @ 8
+    │   │       └── [Operador] '*' {tipo: worldline} @ 8
+    │   │           ├── [Variable / ID] Nombre: valor {tipo: worldline} @ 8
+    │   │           └── [Constante] Valor: 2 {tipo: worldline, val: 2} @ 8
+    │   └── [Retorno / return] {tipo: worldline, ámbito: duplicar} @ 9
+    │       └── [Variable / ID] Nombre: resultado {tipo: worldline} @ 9
+    └── [Bloque de Código / gate] {ámbito: gate} @ 12
+        ├── [Salida / dmail (cout)] {ámbito: gate} @ 13
+        │   └── [Cadena] "--- Calculando Divergencia ---" {tipo: string, val: --- Calculando Divergencia ---} @ 13
+        ├── [Asignación] ID: x {tipo: worldline, ámbito: gate} @ 14
+        │   └── [Llamada a Función en Expresión] Nombre: duplicar {tipo: worldline} @ 14
+        │       └── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 14
+        ├── [Condicional / choice (if)] {ámbito: gate} @ 16
+        │   ├── [Bloque de Código / Condition] @ 16
+        │   │   └── [Operador] '<' {tipo: reading, val: True} @ 16
+        │   │       ├── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 16
+        │   │       └── [Variable / ID] Nombre: y {tipo: worldline, val: 15} @ 16
+        │   ├── [Bloque de Código / Then] @ 16
+        │   │   ├── [Salida / dmail (cout)] {ámbito: gate} @ 17
+        │   │   │   └── [Cadena] "Valor duplicado es menor que y." {tipo: string, val: Valor duplicado es menor que y.} @ 17
+        │   │   └── [Salida / dmail (cout)] {ámbito: gate} @ 18
+        │   │       └── [Operador] '+' {tipo: string, val: x = 5} @ 18
+        │   │           ├── [Cadena] "x = " {tipo: string, val: x = } @ 18
+        │   │           └── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 18
+        │   └── [Bloque de Código / Else] @ 16
+        │       ├── [Salida / dmail (cout)] {ámbito: gate} @ 20
+        │       │   └── [Cadena] "Valor duplicado es mayor o igual que y." {tipo: string, val: Valor duplicado es mayor o igual que y.} @ 20
+        │       └── [Salida / dmail (cout)] {ámbito: gate} @ 21
+        │           └── [Operador] '+' {tipo: string, val: x = 5} @ 21
+        │               ├── [Cadena] "x = " {tipo: string, val: x = } @ 21
+        │               └── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 21
+        ├── [Bucle / loop (while)] {ámbito: gate} @ 24
+        │   ├── [Bloque de Código / Condition] @ 24
+        │   │   └── [Operador] '>' {tipo: reading, val: True} @ 24
+        │   │       ├── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 24
+        │   │       └── [Constante] Valor: 0 {tipo: worldline, val: 0} @ 24
+        │   └── [Bloque de Código / Loop] @ 24
+        │       ├── [Salida / dmail (cout)] {ámbito: gate} @ 25
+        │       │   └── [Operador] '+' {tipo: string, val: Decrementando x: 5} @ 25
+        │       │       ├── [Cadena] "Decrementando x: " {tipo: string, val: Decrementando x: } @ 25
+        │       │       └── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 25
+        │       └── [Asignación] ID: x {tipo: worldline, ámbito: gate} @ 26
+        │           └── [Operador] '-' {tipo: worldline, val: 4} @ 26
+        │               ├── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 26
+        │               └── [Constante] Valor: 1 {tipo: worldline, val: 1} @ 26
+        └── [Bucle / pulse (do-while)] {ámbito: gate} @ 29
+            ├── [Bloque de Código / Loop] @ 29
+            │   └── [Salida / dmail (cout)] {ámbito: gate} @ 30
+            │       └── [Cadena] "Bucle pulse ejecutado una vez" {tipo: string, val: Bucle pulse ejecutado una vez} @ 30
+            └── [Bloque de Código / Condition] @ 29
+                └── [Operador] '!=' {tipo: reading, val: True} @ 31
+                    ├── [Variable / ID] Nombre: x {tipo: worldline, val: 5} @ 31
+                    └── [Constante] Valor: 0 {tipo: worldline, val: 0} @ 31

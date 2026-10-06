@@ -1,0 +1,34 @@
+<> Prueba semántica 2: Archivo con errores semánticos intencionales
+<> Debe detectar y reportar los 7 tipos de errores semánticos en cascada
+
+<> ERROR 1: Uso de variable no declarada
+labmem worldline x = 5;
+x = y + 1;
+
+<> ERROR 2: Duplicidad de declaraciones en el mismo ámbito
+labmem worldline total = 10;
+labmem worldline total = 20;
+
+<> ERROR 3: Incompatibilidad de tipos en asignación (int = float)
+labmem worldline entero = 100;
+entero = 3.14;
+
+<> ERROR 4: Conversión de tipo no válida (bool asignado a worldline)
+labmem reading bandera = true;
+entero = bandera;
+
+<> ERROR 5: Uso indebido de operador aritmético con booleano
+labmem reading activo = false;
+labmem worldline suma = activo + 5;
+
+<> ERROR 6: Inconsistencias de tipos en expresión compleja (lógico aplicado a int)
+labmem worldline n = 10;
+labmem reading resultado = n && true;
+
+<> ERROR 7: Tipo incorrecto en condición de estructura de control (se requiere reading)
+gate {
+    labmem worldline edad = 20;
+    choice (edad) {
+        dmail("Mayor de edad");
+    }
+}
