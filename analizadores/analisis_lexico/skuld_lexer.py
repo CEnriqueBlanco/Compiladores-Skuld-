@@ -24,47 +24,25 @@ class LexicalError(Exception):
 
 
 KEYWORDS: Dict[str, str] = {
-    # Skuld
-    "labmem": "KW_LABMEM",
-    "worldline": "KW_WORLDLINE",
-    "divergence": "KW_DIVERGENCE",
-    "dmail": "KW_DMAIL",
-    "sphone": "KW_SPHONE",
-    "reading": "KW_READING",
-    "choice": "KW_CHOICE",
+    # Palabras reservadas estandar
+    # Se conserva el token interno de funcion para no alterar parser ni semantica.
+    "function": "KW_STEINER",
     "else": "KW_ELSE",
-    "fork": "KW_FORK",
-    "path": "KW_PATH",
-    "gate": "KW_GATE",
-    "loop": "KW_LOOP",
-    "pulse": "KW_PULSE",
-    "seal": "KW_SEAL",
-    "shift": "KW_SHIFT",
-    "jump": "KW_JUMP",
     "return": "KW_RETURN",
-    "steiner": "KW_STEINER",
     "void": "KW_VOID",
     "true": "KW_TRUE",
     "false": "KW_FALSE",
-    # Basico / aliases tradicionales
     "int": "KW_INT",
     "float": "KW_FLOAT",
-    "real": "KW_FLOAT",
     "string": "KW_STRING",
     "bool": "KW_BOOL",
     "if": "KW_IF",
-    "then": "KW_THEN",
-    "switch": "KW_SWITCH",
-    "case": "KW_CASE",
-    "main": "KW_MAIN",
     "while": "KW_WHILE",
     "do": "KW_DO",
-    "end": "KW_END",
     "until": "KW_UNTIL",
+    "main": "KW_MAIN",
     "cin": "KW_CIN",
     "cout": "KW_COUT",
-    "read": "KW_READ",
-    "write": "KW_WRITE",
 }
 
 WORD_LOGIC_TO_OPERATOR: Dict[str, str] = {
@@ -411,9 +389,9 @@ def tokenize_file_with_recovery(file_path: str, encoding: str = "utf-8") -> tupl
 if __name__ == "__main__":
     example = """
     <> El Psy Kongroo
-    labmem worldline x = 10;
-    choice (x > 0 and x < 20) {
-        dmail(\"Hola\");
+    int x = 10;
+    if (x > 0 and x < 20) {
+        cout(\"Hola\");
     }
     """
 

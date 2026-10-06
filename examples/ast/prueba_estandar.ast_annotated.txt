@@ -1,0 +1,37 @@
+└── [Bloque de Código / Programa] {ámbito: global} @ 1
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 1
+    │   └── [Variable] ID: edad (Inicializada) {tipo: int, ámbito: global} @ 1
+    │       └── [Constante] Valor: 20 {tipo: int, val: 20} @ 1
+    ├── [Declaración de Variable] Tipo: float {tipo: float, ámbito: global} @ 2
+    │   └── [Variable] ID: temperatura (Inicializada) {tipo: float, ámbito: global} @ 2
+    │       └── [Constante] Valor: 36.5 {tipo: float, val: 36.5} @ 2
+    ├── [Declaración de Variable] Tipo: bool {tipo: bool, ámbito: global} @ 3
+    │   └── [Variable] ID: activo (Inicializada) {tipo: bool, ámbito: global} @ 3
+    │       └── [Constante] Valor: True {tipo: bool, val: True} @ 3
+    ├── [Definición de Función] Tipo: bool, Nombre: es_mayor(int valor, int limite) {tipo: bool, ámbito: global} @ 5
+    │   └── [Retorno / return] {tipo: bool, ámbito: es_mayor} @ 6
+    │       └── [Operador] '>' {tipo: bool} @ 6
+    │           ├── [Variable / ID] Nombre: valor {tipo: int} @ 6
+    │           └── [Variable / ID] Nombre: limite {tipo: int} @ 6
+    └── [Bloque de Código / main] {ámbito: main} @ 9
+        ├── [Declaración de Variable] Tipo: bool {tipo: bool, ámbito: main} @ 10
+        │   └── [Variable] ID: mayor (Inicializada) {tipo: bool, ámbito: main} @ 10
+        │       └── [Llamada a Función en Expresión] Nombre: es_mayor {tipo: bool} @ 10
+        │           ├── [Variable / ID] Nombre: edad {tipo: int, val: 20} @ 10
+        │           └── [Constante] Valor: 18 {tipo: int, val: 18} @ 10
+        ├── [Condicional / if] {ámbito: main} @ 12
+        │   ├── [Bloque de Código / Condition] @ 12
+        │   │   └── [Variable / ID] Nombre: mayor {tipo: bool} @ 12
+        │   ├── [Bloque de Código / Then] @ 12
+        │   │   └── [Salida / cout] {ámbito: main} @ 13
+        │   │       └── [Cadena] "La persona es mayor de edad" {tipo: string, val: La persona es mayor de edad} @ 13
+        │   └── [Bloque de Código / Else] @ 12
+        │       └── [Salida / cout] {ámbito: main} @ 15
+        │           └── [Cadena] "La persona es menor de edad" {tipo: string, val: La persona es menor de edad} @ 15
+        ├── [Declaración de Variable] Tipo: float {tipo: float, ámbito: main} @ 18
+        │   └── [Variable] ID: doble_temperatura (Inicializada) {tipo: float, ámbito: main} @ 18
+        │       └── [Operador] '*' {tipo: float, val: 73.0} @ 18
+        │           ├── [Variable / ID] Nombre: temperatura {tipo: float, val: 36.5} @ 18
+        │           └── [Constante] Valor: 2 {tipo: int, val: 2} @ 18
+        └── [Salida / cout] {ámbito: main} @ 19
+            └── [Cadena] "Temperatura calculada" {tipo: string, val: Temperatura calculada} @ 19

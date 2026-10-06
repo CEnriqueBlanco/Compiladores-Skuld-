@@ -1,50 +1,50 @@
 └── [Bloque de Código / Programa] {ámbito: global} @ 1
-    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 5
-    │   └── [Variable] ID: x (Inicializada) {tipo: worldline, ámbito: global} @ 5
-    │       └── [Constante] Valor: 5 {tipo: worldline, val: 5} @ 5
-    ├── [Asignación] ID: x {tipo: worldline, ámbito: global} @ 6
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 5
+    │   └── [Variable] ID: x (Inicializada) {tipo: int, ámbito: global} @ 5
+    │       └── [Constante] Valor: 5 {tipo: int, val: 5} @ 5
+    ├── [Asignación] ID: x {tipo: int, ámbito: global} @ 6
     │   └── [Operador] '+' @ 6
     │       ├── [Variable / ID] Nombre: y @ 6
-    │       └── [Constante] Valor: 1 {tipo: worldline, val: 1} @ 6
-    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 9
-    │   └── [Variable] ID: total (Inicializada) {tipo: worldline, ámbito: global} @ 9
-    │       └── [Constante] Valor: 10 {tipo: worldline, val: 10} @ 9
-    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 10
-    │   └── [Variable] ID: total (Inicializada) {tipo: worldline, ámbito: global} @ 10
-    │       └── [Constante] Valor: 20 {tipo: worldline, val: 20} @ 10
-    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 13
-    │   └── [Variable] ID: entero (Inicializada) {tipo: worldline, ámbito: global} @ 13
-    │       └── [Constante] Valor: 100 {tipo: worldline, val: 100} @ 13
-    ├── [Asignación] ID: entero {tipo: worldline, ámbito: global} @ 14
-    │   └── [Constante] Valor: 3.14 {tipo: divergence, val: 3.14} @ 14
-    ├── [Declaración de Variable] Tipo: reading {tipo: reading, ámbito: global} @ 17
-    │   └── [Variable] ID: bandera (Inicializada) {tipo: reading, ámbito: global} @ 17
-    │       └── [Constante] Valor: True {tipo: reading, val: True} @ 17
-    ├── [Asignación] ID: entero {tipo: worldline, ámbito: global} @ 18
-    │   └── [Variable / ID] Nombre: bandera {tipo: reading, val: True} @ 18
-    ├── [Declaración de Variable] Tipo: reading {tipo: reading, ámbito: global} @ 21
-    │   └── [Variable] ID: activo (Inicializada) {tipo: reading, ámbito: global} @ 21
-    │       └── [Constante] Valor: False {tipo: reading, val: False} @ 21
-    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 22
-    │   └── [Variable] ID: suma (Inicializada) {tipo: worldline, ámbito: global} @ 22
+    │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 6
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 9
+    │   └── [Variable] ID: total (Inicializada) {tipo: int, ámbito: global} @ 9
+    │       └── [Constante] Valor: 10 {tipo: int, val: 10} @ 9
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 10
+    │   └── [Variable] ID: total (Inicializada) {tipo: int, ámbito: global} @ 10
+    │       └── [Constante] Valor: 20 {tipo: int, val: 20} @ 10
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 13
+    │   └── [Variable] ID: entero (Inicializada) {tipo: int, ámbito: global} @ 13
+    │       └── [Constante] Valor: 100 {tipo: int, val: 100} @ 13
+    ├── [Asignación] ID: entero {tipo: int, ámbito: global} @ 14
+    │   └── [Constante] Valor: 3.14 {tipo: float, val: 3.14} @ 14
+    ├── [Declaración de Variable] Tipo: bool {tipo: bool, ámbito: global} @ 17
+    │   └── [Variable] ID: bandera (Inicializada) {tipo: bool, ámbito: global} @ 17
+    │       └── [Constante] Valor: True {tipo: bool, val: True} @ 17
+    ├── [Asignación] ID: entero {tipo: int, ámbito: global} @ 18
+    │   └── [Variable / ID] Nombre: bandera {tipo: bool, val: True} @ 18
+    ├── [Declaración de Variable] Tipo: bool {tipo: bool, ámbito: global} @ 21
+    │   └── [Variable] ID: activo (Inicializada) {tipo: bool, ámbito: global} @ 21
+    │       └── [Constante] Valor: False {tipo: bool, val: False} @ 21
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 22
+    │   └── [Variable] ID: suma (Inicializada) {tipo: int, ámbito: global} @ 22
     │       └── [Operador] '+' {val: 5} @ 22
-    │           ├── [Variable / ID] Nombre: activo {tipo: reading, val: False} @ 22
-    │           └── [Constante] Valor: 5 {tipo: worldline, val: 5} @ 22
-    ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: global} @ 25
-    │   └── [Variable] ID: n (Inicializada) {tipo: worldline, ámbito: global} @ 25
-    │       └── [Constante] Valor: 10 {tipo: worldline, val: 10} @ 25
-    ├── [Declaración de Variable] Tipo: reading {tipo: reading, ámbito: global} @ 26
-    │   └── [Variable] ID: resultado (Inicializada) {tipo: reading, ámbito: global} @ 26
-    │       └── [Operador] '&&' {tipo: reading} @ 26
-    │           ├── [Variable / ID] Nombre: n {tipo: worldline, val: 10} @ 26
-    │           └── [Constante] Valor: True {tipo: reading, val: True} @ 26
-    └── [Bloque de Código / gate] {ámbito: gate} @ 29
-        ├── [Declaración de Variable] Tipo: worldline {tipo: worldline, ámbito: gate} @ 30
-        │   └── [Variable] ID: edad (Inicializada) {tipo: worldline, ámbito: gate} @ 30
-        │       └── [Constante] Valor: 20 {tipo: worldline, val: 20} @ 30
-        └── [Condicional / choice (if)] {ámbito: gate} @ 31
+    │           ├── [Variable / ID] Nombre: activo {tipo: bool, val: False} @ 22
+    │           └── [Constante] Valor: 5 {tipo: int, val: 5} @ 22
+    ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: global} @ 25
+    │   └── [Variable] ID: n (Inicializada) {tipo: int, ámbito: global} @ 25
+    │       └── [Constante] Valor: 10 {tipo: int, val: 10} @ 25
+    ├── [Declaración de Variable] Tipo: bool {tipo: bool, ámbito: global} @ 26
+    │   └── [Variable] ID: resultado (Inicializada) {tipo: bool, ámbito: global} @ 26
+    │       └── [Operador] '&&' {tipo: bool} @ 26
+    │           ├── [Variable / ID] Nombre: n {tipo: int, val: 10} @ 26
+    │           └── [Constante] Valor: True {tipo: bool, val: True} @ 26
+    └── [Bloque de Código / main] {ámbito: main} @ 29
+        ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: main} @ 30
+        │   └── [Variable] ID: edad (Inicializada) {tipo: int, ámbito: main} @ 30
+        │       └── [Constante] Valor: 20 {tipo: int, val: 20} @ 30
+        └── [Condicional / if] {ámbito: main} @ 31
             ├── [Bloque de Código / Condition] @ 31
-            │   └── [Variable / ID] Nombre: edad {tipo: worldline, val: 20} @ 31
+            │   └── [Variable / ID] Nombre: edad {tipo: int, val: 20} @ 31
             └── [Bloque de Código / Then] @ 31
-                └── [Salida / dmail (cout)] {ámbito: gate} @ 32
+                └── [Salida / cout] {ámbito: main} @ 32
                     └── [Cadena] "Mayor de edad" {tipo: string, val: Mayor de edad} @ 32

@@ -1,0 +1,62 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 4
+    │   └── [Variable] ID: temperatura (Inicializada) @ 4
+    │       └── [Constante] Valor: 37 @ 4
+    ├── [Declaración de Variable] Tipo: float @ 5
+    │   └── [Variable] ID: presion (Inicializada) @ 5
+    │       └── [Constante] Valor: 101.325 @ 5
+    ├── [Declaración de Variable] Tipo: bool @ 6
+    │   └── [Variable] ID: alarma (Inicializada) @ 6
+    │       └── [Constante] Valor: False @ 6
+    ├── [Definición de Función] Tipo: bool, Nombre: revisar_limite(int valor, int limite) @ 8
+    │   └── [Retorno / return] @ 9
+    │       └── [Operador] '>' @ 9
+    │           ├── [Variable / ID] Nombre: valor @ 9
+    │           └── [Variable / ID] Nombre: limite @ 9
+    └── [Bloque de Código / main] @ 12
+        ├── [Declaración de Variable] Tipo: int @ 13
+        │   └── [Variable] ID: umbral (Inicializada) @ 13
+        │       └── [Constante] Valor: 40 @ 13
+        ├── [Asignación] ID: alarma @ 14
+        │   └── [Llamada a Función en Expresión] Nombre: revisar_limite @ 14
+        │       ├── [Variable / ID] Nombre: temperatura @ 14
+        │       └── [Variable / ID] Nombre: umbral @ 14
+        ├── [Condicional / choice (if)] @ 16
+        │   ├── [Bloque de Código / Condition] @ 16
+        │   │   └── [Variable / ID] Nombre: alarma @ 16
+        │   ├── [Bloque de Código / Then] @ 16
+        │   │   └── [Salida / dmail (cout)] @ 17
+        │   │       └── [Operador] '+' @ 17
+        │   │           ├── [Cadena] "¡ALERTA! Temperatura fuera de rango: " @ 17
+        │   │           └── [Variable / ID] Nombre: temperatura @ 17
+        │   └── [Bloque de Código / Else] @ 16
+        │       └── [Salida / dmail (cout)] @ 19
+        │           └── [Operador] '+' @ 19
+        │               ├── [Cadena] "Temperatura normal: " @ 19
+        │               └── [Variable / ID] Nombre: temperatura @ 19
+        ├── [Declaración de Variable] Tipo: int @ 22
+        │   └── [Variable] ID: contador (Inicializada) @ 22
+        │       └── [Constante] Valor: 0 @ 22
+        ├── [Bucle / loop (while)] @ 23
+        │   ├── [Bloque de Código / Condition] @ 23
+        │   │   └── [Operador] '<' @ 23
+        │   │       ├── [Variable / ID] Nombre: contador @ 23
+        │   │       └── [Constante] Valor: 5 @ 23
+        │   └── [Bloque de Código / Loop] @ 23
+        │       ├── [Salida / dmail (cout)] @ 24
+        │       │   └── [Operador] '+' @ 24
+        │       │       ├── [Cadena] "Iteracion: " @ 24
+        │       │       └── [Variable / ID] Nombre: contador @ 24
+        │       └── [Asignación] ID: contador @ 25
+        │           └── [Operador] '+' @ 25
+        │               ├── [Variable / ID] Nombre: contador @ 25
+        │               └── [Constante] Valor: 1 @ 25
+        ├── [Declaración de Variable] Tipo: float @ 28
+        │   └── [Variable] ID: resultado (Inicializada) @ 28
+        │       └── [Operador] '*' @ 28
+        │           ├── [Variable / ID] Nombre: presion @ 28
+        │           └── [Constante] Valor: 2 @ 28
+        └── [Salida / dmail (cout)] @ 29
+            └── [Operador] '+' @ 29
+                ├── [Cadena] "Presion duplicada: " @ 29
+                └── [Variable / ID] Nombre: resultado @ 29

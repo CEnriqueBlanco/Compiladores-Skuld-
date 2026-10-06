@@ -1,8 +1,20 @@
 import html
 import re
 
-from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget, QTextEdit, QStackedWidget, QTreeWidget, QTreeWidgetItem
+from PyQt5.QtWidgets import (
+    QAbstractItemView,
+    QHeaderView,
+    QPlainTextEdit,
+    QTabWidget,
+    QTextEdit,
+    QStackedWidget,
+    QTableWidget,
+    QTableWidgetItem,
+    QTreeWidget,
+    QTreeWidgetItem,
+)
 from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QColor, QPalette
 
 from ide.theme import steins_gate_theme
 from ide.console_panel import ErrorHoverEventFilter, TokenHoverEventFilter
@@ -137,7 +149,7 @@ class AnalysisPanel(QTabWidget):
         self._syntax = SyntaxTreeWidget()
         self._semantic = self._make_output("Resultados semánticos y validaciones.")
         self._intermediate = self._make_output("Código intermedio (tres direcciones, etc.).")
-        self._symbols = self._make_output("Tabla de símbolos.")
+        self._symbols = self._make_symbols_table()
 
         self.addTab(self._tokens, "Tokens")
         self.addTab(self._syntax, "Sintáctico")
@@ -150,14 +162,13 @@ class AnalysisPanel(QTabWidget):
         self._syntax.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._semantic.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._intermediate.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
-        self._symbols.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
 
         # Install pointing hand cursor filter when hovering over error/token lines
         self._tokens_hover_filter = TokenHoverEventFilter(self._tokens)
         self._syntax_hover_filter = ErrorHoverEventFilter(self._syntax.text_widget)
         self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic)
         self._intermediate_hover_filter = ErrorHoverEventFilter(self._intermediate)
-        self._symbols_hover_filter = ErrorHoverEventFilter(self._symbols)
+        self.refresh_theme()
 
     def set_tokens(self, text: str) -> None:
         self._tokens.setHtml(self._tokens_to_html(text))
@@ -172,7 +183,59 @@ class AnalysisPanel(QTabWidget):
         self._intermediate.setPlainText(text)
 
     def set_symbols(self, text: str) -> None:
-        self._symbols.setPlainText(text)
+        self._symbols.clearContents()
+        if not text:
+            self._symbols.setRowCount(0)
+            return
+        self._symbols.setColumnCount(1)
+        self._symbols.setHorizontalHeaderLabels(["Símbolos"])
+        lines = [line for line in text.splitlines() if line.strip()]
+        self._symbols.setRowCount(len(lines))
+        for row, line in enumerate(lines):
+            self._symbols.setItem(row, 0, QTableWidgetItem(line))
+        self._symbols.resizeColumnsToContents()
+
+    def set_symbol_rows(self, rows: list[list[str]]) -> None:
+        headers = ["Nombre", "Tipo", "Ámbito", "Nivel", "Dirección/Offset", "Líneas"]
+        self._symbols.setColumnCount(len(headers))
+        self._symbols.setHorizontalHeaderLabels(headers)
+        self._symbols.setRowCount(len(rows))
+        for row_index, row_data in enumerate(rows):
+            for column_index, value in enumerate(row_data):
+                self._symbols.setItem(row_index, column_index, QTableWidgetItem(value))
+        self._symbols.resizeColumnsToContents()
+        self._symbols.horizontalHeader().setStretchLastSection(True)
+
+    def refresh_theme(self) -> None:
+        colors = steins_gate_theme.get_colors()
+        palette = self._symbols.palette()
+        palette.setColor(QPalette.Base, QColor(colors.background))
+        palette.setColor(QPalette.AlternateBase, QColor(colors.panel_bg))
+        palette.setColor(QPalette.Text, QColor(colors.foreground))
+        palette.setColor(QPalette.Highlight, QColor(colors.selection))
+        palette.setColor(QPalette.HighlightedText, QColor(colors.foreground))
+        self._symbols.setPalette(palette)
+        self._symbols.setStyleSheet(
+            f"""
+                QTableWidget, QTableWidget::viewport, QAbstractScrollArea::viewport {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                gridline-color: {colors.border};
+                selection-background-color: {colors.selection};
+                selection-color: {colors.foreground};
+                alternate-background-color: {colors.panel_bg};
+            }}
+            QTableWidget::item:hover {{
+                background-color: {colors.hover};
+            }}
+            QHeaderView::section {{
+                background-color: {colors.panel_bg};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                padding: 5px 8px;
+            }}
+            """
+        )
 
     def _on_text_widget_cursor_changed(self) -> None:
         widget = self.sender()
@@ -214,6 +277,18 @@ class AnalysisPanel(QTabWidget):
         output.setReadOnly(True)
         output.setPlainText(text)
         return output
+
+    @staticmethod
+    def _make_symbols_table() -> QTableWidget:
+        table = QTableWidget(0, 6)
+        table.setHorizontalHeaderLabels(["Nombre", "Tipo", "Ámbito", "Nivel", "Dirección/Offset", "Líneas"])
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.setAlternatingRowColors(True)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        table.horizontalHeader().setStretchLastSection(True)
+        table.verticalHeader().setVisible(False)
+        return table
 
     @staticmethod
     def _make_rich_output(text: str) -> QTextEdit:

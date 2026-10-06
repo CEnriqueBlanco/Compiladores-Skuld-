@@ -51,6 +51,19 @@ def normalize_type(t: Optional[str]) -> str:
     return TYPE_NORMALIZATION.get(t.lower(), t.lower())
 
 
+DISPLAY_TYPES = {
+    "worldline": "int",
+    "divergence": "float",
+    "reading": "bool",
+}
+
+
+def display_type(t: Optional[str]) -> str:
+    """Convierte tipos internos a los nombres visibles del lenguaje."""
+    normalized = normalize_type(t)
+    return DISPLAY_TYPES.get(normalized, normalized)
+
+
 # =====================================================================
 # ANALIZADOR SEMÁNTICO Y RECORREDOR DEL AST
 # =====================================================================
@@ -193,7 +206,7 @@ class SemanticAnalyzer:
                     if not self._is_assignment_compatible(declared_type, expr_type):
                         self._report_error(
                             var_node.lineno, 1,
-                            f"Incompatibilidad de tipos en inicialización de '{var_name}': no se puede asignar '{expr_type}' a '{declared_type}'",
+                            f"Incompatibilidad de tipos en inicialización de '{var_name}': no se puede asignar '{display_type(expr_type)}' a '{display_type(declared_type)}'",
                             var_name
                         )
 
@@ -316,7 +329,7 @@ class SemanticAnalyzer:
                 if not self._is_assignment_compatible(target_type, expr_type):
                     self._report_error(
                         node.lineno, 1,
-                        f"Incompatibilidad de tipos en asignación: no se puede asignar tipo '{expr_type}' a variable '{var_name}' de tipo '{target_type}'",
+                        f"Incompatibilidad de tipos en asignación: no se puede asignar tipo '{display_type(expr_type)}' a variable '{var_name}' de tipo '{display_type(target_type)}'",
                         var_name
                     )
 
@@ -331,8 +344,8 @@ class SemanticAnalyzer:
             if cond_type != "unknown" and cond_type != "reading":
                 self._report_error(
                     node.lineno, 1,
-                    f"Tipo incorrecto en condición de 'if' / 'choice': se requiere una expresión booleana ('reading'), pero se obtuvo '{cond_type}'",
-                    "choice"
+                    f"Tipo incorrecto en condición de 'if': se requiere una expresión booleana ('bool'), pero se obtuvo '{display_type(cond_type)}'",
+                    "if"
                 )
 
         # Procesar rama then (hijo 1) y else (hijo 2)
@@ -352,8 +365,8 @@ class SemanticAnalyzer:
             if cond_type != "unknown" and cond_type != "reading":
                 self._report_error(
                     node.lineno, 1,
-                    f"Tipo incorrecto en condición de 'while' / 'loop': se requiere una expresión booleana ('reading'), pero se obtuvo '{cond_type}'",
-                    "loop"
+                    f"Tipo incorrecto en condición de 'while': se requiere una expresión booleana ('bool'), pero se obtuvo '{display_type(cond_type)}'",
+                    "while"
                 )
 
         # Cuerpo del bucle
@@ -374,8 +387,8 @@ class SemanticAnalyzer:
             if cond_type != "unknown" and cond_type != "reading":
                 self._report_error(
                     node.lineno, 1,
-                    f"Tipo incorrecto en condición de 'do-while' / 'pulse': se requiere una expresión booleana ('reading'), pero se obtuvo '{cond_type}'",
-                    "pulse"
+                    f"Tipo incorrecto en condición de 'do-while': se requiere una expresión booleana ('bool'), pero se obtuvo '{display_type(cond_type)}'",
+                    "do"
                 )
 
     def _handle_read(self, node: TreeNode) -> None:
@@ -417,7 +430,7 @@ class SemanticAnalyzer:
                 if not self._is_assignment_compatible(expected, expr_type):
                     self._report_error(
                         node.lineno, 1,
-                        f"Incompatibilidad de tipo en sentencia 'return': se esperaba '{expected}', pero se retornó '{expr_type}'",
+                        f"Incompatibilidad de tipo en sentencia 'return': se esperaba '{display_type(expected)}', pero se retornó '{display_type(expr_type)}'",
                         "return"
                     )
 
@@ -532,7 +545,7 @@ class SemanticAnalyzer:
                 if c_type != "unknown" and c_type != "reading":
                     self._report_error(
                         node.lineno, 1,
-                        f"Uso indebido de operador '!': el operando debe ser booleano ('reading'), se obtuvo '{c_type}'",
+                        f"Uso indebido de operador '!': el operando debe ser booleano ('bool'), se obtuvo '{display_type(c_type)}'",
                         op
                     )
                 node.attr_type = "reading"
@@ -542,7 +555,7 @@ class SemanticAnalyzer:
                 if c_type != "unknown" and c_type not in {"worldline", "divergence"}:
                     self._report_error(
                         node.lineno, 1,
-                        f"Uso indebido de operador unario '{op}': el operando debe ser numérico, se obtuvo '{c_type}'",
+                        f"Uso indebido de operador unario '{op}': el operando debe ser numérico, se obtuvo '{display_type(c_type)}'",
                         op
                     )
                 node.attr_type = c_type
@@ -566,13 +579,13 @@ class SemanticAnalyzer:
                 if l_type != "unknown" and l_type != "reading":
                     self._report_error(
                         node.lineno, 1,
-                        f"Uso indebido de operador lógico '{op}': el operando izquierdo debe ser 'reading', pero es '{l_type}'",
+                        f"Uso indebido de operador lógico '{op}': el operando izquierdo debe ser 'bool', pero es '{display_type(l_type)}'",
                         op
                     )
                 if r_type != "unknown" and r_type != "reading":
                     self._report_error(
                         node.lineno, 1,
-                        f"Uso indebido de operador lógico '{op}': el operando derecho debe ser 'reading', pero es '{r_type}'",
+                        f"Uso indebido de operador lógico '{op}': el operando derecho debe ser 'bool', pero es '{display_type(r_type)}'",
                         op
                     )
                 node.attr_type = "reading"
@@ -586,7 +599,7 @@ class SemanticAnalyzer:
                     if not self._are_comparable_types(l_type, r_type, op):
                         self._report_error(
                             node.lineno, 1,
-                            f"Incompatibilidad de tipos en comparación '{op}': no se pueden comparar operandos de tipo '{l_type}' y '{r_type}'",
+                            f"Incompatibilidad de tipos en comparación '{op}': no se pueden comparar operandos de tipo '{display_type(l_type)}' y '{display_type(r_type)}'",
                             op
                         )
                 node.attr_type = "reading"
@@ -607,13 +620,13 @@ class SemanticAnalyzer:
                 if l_type != "unknown" and l_type not in {"worldline", "divergence"}:
                     self._report_error(
                         node.lineno, 1,
-                        f"Uso indebido de operador aritmético '{op}': el operando izquierdo no es numérico ('{l_type}')",
+                        f"Uso indebido de operador aritmético '{op}': el operando izquierdo no es numérico ('{display_type(l_type)}')",
                         op
                     )
                 if r_type != "unknown" and r_type not in {"worldline", "divergence"}:
                     self._report_error(
                         node.lineno, 1,
-                        f"Uso indebido de operador aritmético '{op}': el operando derecho no es numérico ('{r_type}')",
+                        f"Uso indebido de operador aritmético '{op}': el operando derecho no es numérico ('{display_type(r_type)}')",
                         op
                     )
 
@@ -659,7 +672,7 @@ class SemanticAnalyzer:
             if arg_type != "unknown" and not self._is_assignment_compatible(expected_norm, arg_type):
                 self._report_error(
                     node.lineno, 1,
-                    f"Tipo de argumento incorrecto en parámetro #{i+1} de '{sym.name}': se esperaba '{expected_norm}', pero se recibió '{arg_type}'",
+                    f"Tipo de argumento incorrecto en parámetro #{i+1} de '{sym.name}': se esperaba '{display_type(expected_norm)}', pero se recibió '{display_type(arg_type)}'",
                     sym.name
                 )
 
@@ -782,7 +795,7 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
 
     annotations = []
     if attr_type and attr_type != "unknown":
-        annotations.append(f"tipo: {attr_type}")
+        annotations.append(f"tipo: {display_type(attr_type)}")
     if attr_val is not None:
         annotations.append(f"val: {attr_val}")
     if attr_scope and node.nodekind in {"DeclK", "StmtK"}:
@@ -794,26 +807,26 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
     desc = ""
     if node.nodekind == "DeclK":
         if node.kind == "DeclVarK":
-            desc = f"[Declaración de Variable] Tipo: {node.type}{annot_str}"
+            desc = f"[Declaración de Variable] Tipo: {display_type(node.type)}{annot_str}"
         elif node.kind == "VarK":
             init_suffix = " (Inicializada)" if node.child else ""
             desc = f"[Variable] ID: {display_name}{init_suffix}{annot_str}"
         elif node.kind == "FuncK":
-            params_str = ", ".join(f"{t} {n}" for t, n in node.params)
-            desc = f"[Definición de Función] Tipo: {node.type}, Nombre: {display_name}({params_str}){annot_str}"
+            params_str = ", ".join(f"{display_type(t)} {n}" for t, n in node.params)
+            desc = f"[Definición de Función] Tipo: {display_type(node.type)}, Nombre: {display_name}({params_str}){annot_str}"
     elif node.nodekind == "StmtK":
         if node.kind == "IfK":
-            desc = f"[Condicional / choice (if)]{annot_str}"
+            desc = f"[Condicional / if]{annot_str}"
         elif node.kind == "WhileK":
-            desc = f"[Bucle / loop (while)]{annot_str}"
+            desc = f"[Bucle / while]{annot_str}"
         elif node.kind == "DoWhileK":
-            desc = f"[Bucle / pulse (do-{node.op or 'while'})]{annot_str}"
+            desc = f"[Bucle / do-{node.op or 'while'}]{annot_str}"
         elif node.kind == "AssignK":
             desc = f"[Asignación] ID: {display_name}{annot_str}"
         elif node.kind == "ReadK":
-            desc = f"[Entrada / sphone (cin)] ID: {display_name}{annot_str}"
+            desc = f"[Entrada / cin] ID: {display_name}{annot_str}"
         elif node.kind == "WriteK":
-            desc = f"[Salida / dmail (cout)]{annot_str}"
+            desc = f"[Salida / cout]{annot_str}"
         elif node.kind == "ReturnK":
             desc = f"[Retorno / return]{annot_str}"
         elif node.kind == "BlockK":

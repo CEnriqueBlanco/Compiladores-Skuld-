@@ -262,6 +262,9 @@ def apply_theme(window, theme_key: str, *, persist: bool = True, show_status: bo
     if window._console_panel is not None:
         window._console_panel.refresh_theme()
 
+    if window._analysis_panel is not None:
+        window._analysis_panel.refresh_theme()
+
     if persist:
         window._settings.setValue("session/theme", theme_key)
 

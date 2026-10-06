@@ -1,30 +1,30 @@
 <> Prueba semántica 1: Programa válido y completo (sin errores)
 <> Debe generar AST anotado y tabla de símbolos limpios
 
-labmem worldline temperatura = 37;
-labmem divergence presion = 101.325;
-labmem reading alarma = false;
+int temperatura = 37;
+float presion = 101.325;
+bool alarma = false;
 
-steiner reading revisar_limite(worldline valor, worldline limite) {
+function bool revisar_limite(int valor, int limite) {
     return valor > limite;
 }
 
-gate {
-    labmem worldline umbral = 40;
+main {
+    int umbral = 40;
     alarma = revisar_limite(temperatura, umbral);
 
-    choice (alarma) {
-        dmail("¡ALERTA! Temperatura fuera de rango: " + temperatura);
+    if (alarma) {
+        cout("¡ALERTA! Temperatura fuera de rango: " + temperatura);
     } else {
-        dmail("Temperatura normal: " + temperatura);
+        cout("Temperatura normal: " + temperatura);
     }
 
-    labmem worldline contador = 0;
-    loop (contador < 5) {
-        dmail("Iteracion: " + contador);
+    int contador = 0;
+    while (contador < 5) {
+        cout("Iteracion: " + contador);
         contador = contador + 1;
     }
 
-    labmem divergence resultado = presion * 2;
-    dmail("Presion duplicada: " + resultado);
+    float resultado = presion * 2;
+    cout("Presion duplicada: " + resultado);
 }

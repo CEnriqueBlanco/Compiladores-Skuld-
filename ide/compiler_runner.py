@@ -22,6 +22,7 @@ class CompilerResult:
     # Extra: para la fase semántica, separamos los contenidos del stdout
     semantic_tree: str = ""    # AST anotado (para pestaña Semántico)
     symbol_table: str = ""     # Tabla de símbolos formateada (para pestaña Símbolos)
+    symbol_rows: list[list[str]] = field(default_factory=list)
 
 
 PHASE_ARGS = {
@@ -99,6 +100,7 @@ def _run_semantic_inline(source_path: str) -> CompilerResult:
 
         tree_text = print_annotated_tree(annotated_ast)
         symbols_text = symbol_table.format_table()
+        symbol_rows = symbol_table.table_rows()
 
         errors_text = "\n".join(str(e) for e in sem_errors) if sem_errors else ""
         rc = 1 if sem_errors else 0
@@ -124,6 +126,7 @@ def _run_semantic_inline(source_path: str) -> CompilerResult:
             error_column_end=error_column_end,
             semantic_tree=tree_text,
             symbol_table=symbols_text,
+            symbol_rows=symbol_rows,
         )
     except Exception as exc:
         return CompilerResult(returncode=1, stdout="", stderr=f"Error interno en análisis semántico: {exc}")

@@ -4,6 +4,17 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 
 
+DISPLAY_TYPES = {
+    "worldline": "int",
+    "divergence": "float",
+    "reading": "bool",
+}
+
+
+def display_type(data_type: str) -> str:
+    return DISPLAY_TYPES.get(data_type, data_type)
+
+
 @dataclass
 class Symbol:
     """
@@ -152,6 +163,25 @@ class SymbolTable:
         """Busca el identificador únicamente en el ámbito actual."""
         return self.current_scope.lookup_current(name)
 
+    def table_rows(self) -> List[List[str]]:
+        """Devuelve las filas listas para una tabla visual de la IDE."""
+        rows: List[List[str]] = []
+        for sym in self.all_symbols:
+            type_display = display_type(sym.data_type)
+            if sym.is_function:
+                params_str = ", ".join(display_type(param_type) for param_type in sym.param_types)
+                type_display = f"func({params_str}) -> {display_type(sym.data_type)}"
+
+            rows.append([
+                sym.name,
+                type_display,
+                sym.scope_name,
+                str(sym.scope_level),
+                f"0x{sym.memory_loc:04X} ({sym.memory_loc})",
+                ", ".join(str(line) for line in sorted(sym.lines)),
+            ])
+        return rows
+
     def format_table(self) -> str:
         """
         Genera una representación tabular estética de la Tabla de Símbolos,
@@ -163,10 +193,10 @@ class SymbolTable:
         headers = ["Nombre", "Tipo", "Ámbito", "Nivel", "Dirección/Offset", "Líneas"]
         rows = []
         for sym in self.all_symbols:
-            type_display = sym.data_type
+            type_display = display_type(sym.data_type)
             if sym.is_function:
-                params_str = ", ".join(sym.param_types)
-                type_display = f"func({params_str}) -> {sym.data_type}"
+                params_str = ", ".join(display_type(param_type) for param_type in sym.param_types)
+                type_display = f"func({params_str}) -> {display_type(sym.data_type)}"
 
             lines_str = ", ".join(str(l) for l in sorted(sym.lines))
             rows.append([
@@ -183,13 +213,15 @@ class SymbolTable:
             for i, val in enumerate(row):
                 col_widths[i] = max(col_widths[i], len(val))
 
-        sep_line = "+" + "+".join("-" * (w + 2) for w in col_widths) + "+"
-        header_line = "|" + "|".join(f" {headers[i].ljust(col_widths[i])} " for i in range(len(headers))) + "|"
+        alignments = ["<", "<", "<", ">", ">", ">"]
 
-        result = [sep_line, header_line, sep_line]
-        for row in rows:
-            row_line = "|" + "|".join(f" {row[i].ljust(col_widths[i])} " for i in range(len(row))) + "|"
-            result.append(row_line)
+        def format_row(row: List[str]) -> str:
+            cells = [f" {row[i]:{alignments[i]}{col_widths[i]}} " for i in range(len(row))]
+            return "|" + "|".join(cells) + "|"
+
+        sep_line = "+" + "+".join("-" * (width + 2) for width in col_widths) + "+"
+        result = [sep_line, format_row(headers), sep_line]
+        result.extend(format_row(row) for row in rows)
         result.append(sep_line)
 
         return "\n".join(result)

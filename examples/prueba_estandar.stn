@@ -1,0 +1,20 @@
+int edad = 20;
+float temperatura = 36.5;
+bool activo = true;
+
+function bool es_mayor(int valor, int limite) {
+    return valor > limite;
+}
+
+main {
+    bool mayor = es_mayor(edad, 18);
+
+    if (mayor) {
+        cout("La persona es mayor de edad");
+    } else {
+        cout("La persona es menor de edad");
+    }
+
+    float doble_temperatura = temperatura * 2;
+    cout("Temperatura calculada");
+}
