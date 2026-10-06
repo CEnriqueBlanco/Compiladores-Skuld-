@@ -14,6 +14,12 @@ lib/
 share/
 pyvenv.cfg
 pip-selfcheck.json
+.Python
+*.dist-info/
+*.egg-info/
+pip-wheel-metadata/
+*.whl
+*.egg
 
 # --- Archivos de Caché y Compilados de Python ---
 __pycache__/
