@@ -1,13 +1,13 @@
 +-----------+------+--------+-------+------------------+------------+
-| Nombre    | Tipo | Ámbito | Nivel | Dirección/Offset | Líneas     |
+| Nombre    | Tipo | Ámbito | Nivel | Dirección/Offset |     Líneas |
 +-----------+------+--------+-------+------------------+------------+
-| x         | int  | global | 0     | 0x0000 (0)       | 5, 6       |
-| total     | int  | global | 0     | 0x0004 (4)       | 9          |
-| entero    | int  | global | 0     | 0x0008 (8)       | 13, 14, 18 |
-| bandera   | bool | global | 0     | 0x000C (12)      | 17, 18     |
-| activo    | bool | global | 0     | 0x000D (13)      | 21, 22     |
-| suma      | int  | global | 0     | 0x000E (14)      | 22         |
-| n         | int  | global | 0     | 0x0012 (18)      | 25, 26     |
-| resultado | bool | global | 0     | 0x0016 (22)      | 26         |
-| edad      | int  | main   | 1     | 0x0017 (23)      | 30, 31     |
+| x         | int  | global |     0 |       0x0000 (0) |       5, 6 |
+| total     | int  | global |     0 |       0x0004 (4) |          9 |
+| entero    | int  | global |     0 |       0x0008 (8) | 13, 14, 18 |
+| bandera   | bool | global |     0 |      0x000C (12) |     17, 18 |
+| activo    | bool | global |     0 |      0x000D (13) |     21, 22 |
+| suma      | int  | global |     0 |      0x000E (14) |         22 |
+| n         | int  | global |     0 |      0x0012 (18) |     25, 26 |
+| resultado | bool | global |     0 |      0x0016 (22) |         26 |
+| edad      | int  | main   |     1 |      0x0017 (23) |     30, 31 |
 +-----------+------+--------+-------+------------------+------------+

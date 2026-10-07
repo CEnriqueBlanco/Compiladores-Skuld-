@@ -1,0 +1,37 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 1
+    │   └── [Variable] ID: edad (Inicializada) @ 1
+    │       └── [Constante] Valor: 20 @ 1
+    ├── [Declaración de Variable] Tipo: float @ 2
+    │   └── [Variable] ID: temperatura (Inicializada) @ 2
+    │       └── [Constante] Valor: 36.5 @ 2
+    ├── [Declaración de Variable] Tipo: bool @ 3
+    │   └── [Variable] ID: activo (Inicializada) @ 3
+    │       └── [Constante] Valor: True @ 3
+    ├── [Definición de Función] Tipo: bool, Nombre: es_mayor(int valor, int limite) @ 5
+    │   └── [Retorno / return] @ 6
+    │       └── [Operador] '>' @ 6
+    │           ├── [Variable / ID] Nombre: valor @ 6
+    │           └── [Variable / ID] Nombre: limite @ 6
+    └── [Bloque de Código / main] @ 9
+        ├── [Declaración de Variable] Tipo: bool @ 10
+        │   └── [Variable] ID: mayor (Inicializada) @ 10
+        │       └── [Llamada a Función en Expresión] Nombre: es_mayor @ 10
+        │           ├── [Variable / ID] Nombre: edad @ 10
+        │           └── [Constante] Valor: 18 @ 10
+        ├── [Condicional / choice (if)] @ 12
+        │   ├── [Bloque de Código / Condition] @ 12
+        │   │   └── [Variable / ID] Nombre: mayor @ 12
+        │   ├── [Bloque de Código / Then] @ 12
+        │   │   └── [Salida / dmail (cout)] @ 13
+        │   │       └── [Cadena] "La persona es mayor de edad" @ 13
+        │   └── [Bloque de Código / Else] @ 12
+        │       └── [Salida / dmail (cout)] @ 15
+        │           └── [Cadena] "La persona es menor de edad" @ 15
+        ├── [Declaración de Variable] Tipo: float @ 18
+        │   └── [Variable] ID: doble_temperatura (Inicializada) @ 18
+        │       └── [Operador] '*' @ 18
+        │           ├── [Variable / ID] Nombre: temperatura @ 18
+        │           └── [Constante] Valor: 2 @ 18
+        └── [Salida / dmail (cout)] @ 19
+            └── [Cadena] "Temperatura calculada" @ 19

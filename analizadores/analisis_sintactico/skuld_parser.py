@@ -773,12 +773,8 @@ class SkuldParser:
         elif self._check("KW_DO"):
             self._match("KW_DO")
         else:
-            try:
-                self._match({"LBRACE", "KW_DO"})
-                has_braces = False
-            except SyntaxError as e:
-                self.errors.append(e)
-                has_braces = False
+            # También se permite: while condicion ... end
+            has_braces = False
 
         if has_braces:
             try:
@@ -822,7 +818,13 @@ class SkuldParser:
                 body.name = "Secuencia de Sentencias"
         else:
             try:
-                body = self._parse_stmt_sequence({"KW_WHILE", "KW_UNTIL"})
+                # En do ... until, un while sin parentesis puede ser un bucle anidado.
+                # La forma do ... while (cond); sigue usando while como terminador.
+                do_end_tokens = {"KW_UNTIL"}
+                if self._check("KW_WHILE") and self.index + 1 < len(self.tokens):
+                    if self.tokens[self.index + 1].token_type == "LPAREN":
+                        do_end_tokens.add("KW_WHILE")
+                body = self._parse_stmt_sequence(do_end_tokens)
             except SyntaxError as e:
                 self.errors.append(e)
                 body = TreeNode("StmtK", "BlockK", lineno=do_tok.line)
@@ -855,10 +857,9 @@ class SkuldParser:
             except SyntaxError as e:
                 self.errors.append(e)
 
-        try:
+        # El punto y coma es opcional cuando la condición termina el bloque.
+        if self._check("SEMICOLON"):
             self._match("SEMICOLON")
-        except SyntaxError as e:
-            self.errors.append(e)
 
         t = TreeNode("StmtK", "DoWhileK", lineno=do_tok.line)
         t.op = cond_lexeme

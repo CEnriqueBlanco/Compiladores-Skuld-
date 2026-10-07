@@ -76,6 +76,23 @@ def _format_lex_tokens(source_path: str) -> CompilerResult:
     return CompilerResult(returncode=0, stdout="\n".join(lines), stderr="")
 
 
+def _locate_semantic_errors(source_path: str, errors) -> None:
+    """Ajusta la columna de cada error semantico al lexema señalado."""
+    try:
+        with open(source_path, "r", encoding="utf-8") as source_file:
+            source_lines = source_file.readlines()
+    except OSError:
+        return
+
+    for error in errors:
+        if not error.lexeme or not (1 <= error.line <= len(source_lines)):
+            continue
+        line_text = source_lines[error.line - 1]
+        lexeme_column = line_text.find(error.lexeme)
+        if lexeme_column >= 0:
+            error.column = lexeme_column + 1
+
+
 def _run_semantic_inline(source_path: str) -> CompilerResult:
     """
     Ejecuta el análisis semántico en proceso (sin subprocess) para poder
@@ -97,6 +114,7 @@ def _run_semantic_inline(source_path: str) -> CompilerResult:
 
         analyzer = SemanticAnalyzer()
         annotated_ast, symbol_table, sem_errors = analyzer.analyze(ast)
+        _locate_semantic_errors(source_path, sem_errors)
 
         tree_text = print_annotated_tree(annotated_ast)
         symbols_text = symbol_table.format_table()

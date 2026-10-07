@@ -24,6 +24,10 @@ class SemanticError(Exception):
         suffix = f" -> '{lexeme}'" if lexeme else ""
         super().__init__(f"ERROR_SEMANTICO({line}, {column}): {description}{suffix}")
 
+    def __str__(self) -> str:
+        suffix = f" -> '{self.lexeme}'" if self.lexeme else ""
+        return f"ERROR_SEMANTICO({self.line}, {self.column}): {self.description}{suffix}"
+
 
 # =====================================================================
 # MAPEO Y NORMALIZACIÓN DE TIPOS DEL LENGUAJE

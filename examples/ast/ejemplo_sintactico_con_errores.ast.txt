@@ -1,32 +1,17 @@
 └── [Bloque de Código / Programa] @ 1
-    ├── [Declaración de Variable] Tipo: worldline @ 3
-    │   └── [Variable] ID: x @ 3
-    ├── [Declaración de Variable] Tipo: divergence @ 4
-    │   └── [Variable] ID: ratio (Inicializada) @ 4
-    │       └── [Constante] Valor: 1.048596 @ 4
-    └── [Bloque de Código / gate] @ 6
-        ├── [Asignación] ID: x @ 7
-        │   └── [Constante] Valor: 10 @ 7
-        ├── [Salida / dmail (cout)] @ 8
-        │   └── [Cadena] "Hola" @ 8
-        └── [Condicional / choice (if)] @ 10
-            ├── [Bloque de Código / Condition] @ 10
-            │   └── [Operador] '>' @ 10
-            │       ├── [Variable / ID] Nombre: ratio @ 10
-            │       └── [Constante] Valor: 1.0 @ 10
-            ├── [Bloque de Código / Then] @ 10
-            │   └── [Condicional / choice (if)] @ 11
-            │       ├── [Bloque de Código / Condition] @ 11
-            │       │   └── [Operador] '>' @ 11
-            │       │       ├── [Constante] Valor: 4 @ 11
-            │       │       └── [Operador] '&&' @ 11
-            │       │           └── [Constante] Valor: 2 @ 11
-            │       ├── [Bloque de Código / Then] @ 11
-            │       │   └── [Asignación] ID: b @ 12
-            │       │       └── [Constante] Valor: 3.2 @ 12
-            │       └── [Bloque de Código / Else] @ 11
-            │           └── [Asignación] ID: b @ 14
-            │               └── [Constante] Valor: 5.0 @ 14
-            └── [Bloque de Código / Else] @ 10
-                └── [Salida / dmail (cout)] @ 17
-                    └── [Cadena] "Divergencia incorrecta" @ 17
+    ├── [Llamada a Función] Nombre: choice @ 10
+    │   └── [Operador] '>' @ 10
+    │       ├── [Variable / ID] Nombre: ratio @ 10
+    │       └── [Constante] Valor: 1.0 @ 10
+    └── [Condicional / choice (if)] @ 11
+        ├── [Bloque de Código / Condition] @ 11
+        │   └── [Operador] '&&' @ 11
+        │       └── [Operador] '>' @ 11
+        │           ├── [Constante] Valor: 4 @ 11
+        │           └── [Constante] Valor: 2 @ 11
+        ├── [Bloque de Código / Then] @ 11
+        │   └── [Asignación] ID: b @ 12
+        │       └── [Constante] Valor: 3.2 @ 12
+        └── [Bloque de Código / Else] @ 11
+            └── [Asignación] ID: b @ 14
+                └── [Constante] Valor: 5.0 @ 14

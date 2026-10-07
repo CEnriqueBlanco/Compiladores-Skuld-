@@ -1,0 +1,158 @@
+└── [Bloque de Código / Programa] {ámbito: global} @ 1
+    └── [Bloque de Código / main] {ámbito: main} @ 1
+        ├── [Declaración de Variable] Tipo: int {tipo: int, ámbito: main} @ 2
+        │   ├── [Variable] ID: x {tipo: int, ámbito: main} @ 2
+        │   ├── [Variable] ID: y {tipo: int, ámbito: main} @ 2
+        │   └── [Variable] ID: z {tipo: int, ámbito: main} @ 2
+        ├── [Declaración de Variable] Tipo: float {tipo: float, ámbito: main} @ 3
+        │   ├── [Variable] ID: a {tipo: float, ámbito: main} @ 3
+        │   ├── [Variable] ID: b {tipo: float, ámbito: main} @ 3
+        │   └── [Variable] ID: c {tipo: float, ámbito: main} @ 3
+        ├── [Asignación] ID: suma {ámbito: main} @ 4
+        │   └── [Constante] Valor: 45 {tipo: int, val: 45} @ 4
+        ├── [Asignación] ID: x {tipo: int, ámbito: main} @ 5
+        │   └── [Constante] Valor: 32.32 {tipo: float, val: 32.32} @ 5
+        ├── [Asignación] ID: x {tipo: int, ámbito: main} @ 6
+        │   └── [Constante] Valor: 23 {tipo: int, val: 23} @ 6
+        ├── [Asignación] ID: y {tipo: int, ámbito: main} @ 7
+        │   └── [Operador] '-' {tipo: int, val: 4} @ 7
+        │       ├── [Operador] '+' {tipo: int, val: 5} @ 7
+        │       │   ├── [Constante] Valor: 2 {tipo: int, val: 2} @ 7
+        │       │   └── [Constante] Valor: 3 {tipo: int, val: 3} @ 7
+        │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 7
+        ├── [Asignación] ID: z {tipo: int, ámbito: main} @ 8
+        │   └── [Operador] '+' {tipo: int} @ 8
+        │       ├── [Variable / ID] Nombre: y {tipo: int} @ 8
+        │       └── [Constante] Valor: 7 {tipo: int, val: 7} @ 8
+        ├── [Asignación] ID: y {tipo: int, ámbito: main} @ 9
+        │   └── [Operador] '+' {tipo: int} @ 9
+        │       ├── [Variable / ID] Nombre: y {tipo: int} @ 9
+        │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 9
+        ├── [Asignación] ID: a {tipo: float, ámbito: main} @ 10
+        │   └── [Operador] '-' {tipo: float, val: 61.0} @ 10
+        │       ├── [Operador] '+' {tipo: float, val: 62.0} @ 10
+        │       │   ├── [Operador] '-' {tipo: float, val: 28.0} @ 10
+        │       │   │   ├── [Operador] '+' {tipo: float, val: 28.0} @ 10
+        │       │   │   │   ├── [Constante] Valor: 24.0 {tipo: float, val: 24.0} @ 10
+        │       │   │   │   └── [Constante] Valor: 4 {tipo: int, val: 4} @ 10
+        │       │   │   └── [Operador] '*' {tipo: int, val: 0} @ 10
+        │       │   │       ├── [Operador] '/' {tipo: int, val: 0} @ 10
+        │       │   │       │   ├── [Constante] Valor: 1 {tipo: int, val: 1} @ 10
+        │       │   │       │   └── [Constante] Valor: 3 {tipo: int, val: 3} @ 10
+        │       │   │       └── [Constante] Valor: 2 {tipo: int, val: 2} @ 10
+        │       │   └── [Constante] Valor: 34 {tipo: int, val: 34} @ 10
+        │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 10
+        ├── [Asignación] ID: x {tipo: int, ámbito: main} @ 11
+        │   └── [Operador] '*' {tipo: int, val: 8} @ 11
+        │       ├── [Operador] '-' {tipo: int, val: 2} @ 11
+        │       │   ├── [Constante] Valor: 5 {tipo: int, val: 5} @ 11
+        │       │   └── [Constante] Valor: 3 {tipo: int, val: 3} @ 11
+        │       └── [Operador] '/' {tipo: int, val: 4} @ 11
+        │           ├── [Constante] Valor: 8 {tipo: int, val: 8} @ 11
+        │           └── [Constante] Valor: 2 {tipo: int, val: 2} @ 11
+        ├── [Asignación] ID: y {tipo: int, ámbito: main} @ 12
+        │   └── [Operador] '-' {tipo: int, val: -2} @ 12
+        │       ├── [Operador] '-' {tipo: int, val: 7} @ 12
+        │       │   ├── [Operador] '+' {tipo: int, val: 8} @ 12
+        │       │   │   ├── [Constante] Valor: 5 {tipo: int, val: 5} @ 12
+        │       │   │   └── [Constante] Valor: 3 {tipo: int, val: 3} @ 12
+        │       │   └── [Operador] '/' {tipo: int, val: 1} @ 12
+        │       │       ├── [Operador] '*' {tipo: int, val: 8} @ 12
+        │       │       │   ├── [Constante] Valor: 2 {tipo: int, val: 2} @ 12
+        │       │       │   └── [Constante] Valor: 4 {tipo: int, val: 4} @ 12
+        │       │       └── [Constante] Valor: 7 {tipo: int, val: 7} @ 12
+        │       └── [Constante] Valor: 9 {tipo: int, val: 9} @ 12
+        ├── [Asignación] ID: z {tipo: int, ámbito: main} @ 13
+        │   └── [Operador] '+' {tipo: int, val: 64} @ 13
+        │       ├── [Operador] '/' {tipo: int, val: 4} @ 13
+        │       │   ├── [Constante] Valor: 8 {tipo: int, val: 8} @ 13
+        │       │   └── [Constante] Valor: 2 {tipo: int, val: 2} @ 13
+        │       └── [Operador] '*' {tipo: int, val: 60} @ 13
+        │           ├── [Constante] Valor: 15 {tipo: int, val: 15} @ 13
+        │           └── [Constante] Valor: 4 {tipo: int, val: 4} @ 13
+        ├── [Asignación] ID: y {tipo: int, ámbito: main} @ 14
+        │   └── [Constante] Valor: 14.54 {tipo: float, val: 14.54} @ 14
+        ├── [Condicional / if] {ámbito: main} @ 15
+        │   ├── [Bloque de Código / Condition] @ 15
+        │   │   └── [Operador] '>' {tipo: bool, val: False} @ 15
+        │   │       ├── [Constante] Valor: 2 {tipo: int, val: 2} @ 15
+        │   │       └── [Constante] Valor: 3 {tipo: int, val: 3} @ 15
+        │   ├── [Bloque de Código / Then] @ 15
+        │   │   └── [Asignación] ID: y {tipo: int, ámbito: main} @ 16
+        │   │       └── [Operador] '+' {tipo: float} @ 16
+        │   │           ├── [Variable / ID] Nombre: a {tipo: float} @ 16
+        │   │           └── [Constante] Valor: 3 {tipo: int, val: 3} @ 16
+        │   └── [Bloque de Código / Else] @ 15
+        │       ├── [Condicional / if] {ámbito: main} @ 18
+        │       │   ├── [Bloque de Código / Condition] @ 18
+        │       │   │   └── [Operador] '&&' {tipo: bool, val: True} @ 18
+        │       │   │       ├── [Operador] '>' {tipo: bool, val: True} @ 18
+        │       │   │       │   ├── [Constante] Valor: 4 {tipo: int, val: 4} @ 18
+        │       │   │       │   └── [Constante] Valor: 2 {tipo: int, val: 2} @ 18
+        │       │   │       └── [Constante] Valor: True {tipo: bool, val: True} @ 18
+        │       │   ├── [Bloque de Código / Then] @ 18
+        │       │   │   └── [Asignación] ID: b {tipo: float, ámbito: main} @ 19
+        │       │   │       └── [Constante] Valor: 3.2 {tipo: float, val: 3.2} @ 19
+        │       │   └── [Bloque de Código / Else] @ 18
+        │       │       └── [Asignación] ID: b {tipo: float, ámbito: main} @ 21
+        │       │           └── [Constante] Valor: 5.0 {tipo: float, val: 5.0} @ 21
+        │       └── [Asignación] ID: y {tipo: int, ámbito: main} @ 23
+        │           └── [Operador] '+' {tipo: int} @ 23
+        │               ├── [Variable / ID] Nombre: y {tipo: int} @ 23
+        │               └── [Constante] Valor: 1 {tipo: int, val: 1} @ 23
+        ├── [Asignación] ID: a {tipo: float, ámbito: main} @ 25
+        │   └── [Operador] '+' {tipo: float} @ 25
+        │       ├── [Variable / ID] Nombre: a {tipo: float} @ 25
+        │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 25
+        ├── [Asignación] ID: c {tipo: float, ámbito: main} @ 26
+        │   └── [Operador] '-' {tipo: float} @ 26
+        │       ├── [Variable / ID] Nombre: c {tipo: float} @ 26
+        │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 26
+        ├── [Asignación] ID: x {tipo: int, ámbito: main} @ 27
+        │   └── [Operador] '+' {tipo: int, val: 7} @ 27
+        │       ├── [Constante] Valor: 3 {tipo: int, val: 3} @ 27
+        │       └── [Constante] Valor: 4 {tipo: int, val: 4} @ 27
+        ├── [Bucle / do-until] {ámbito: main} @ 28
+        │   ├── [Bloque de Código / Loop] @ 28
+        │   │   ├── [Asignación] ID: y {tipo: int, ámbito: main} @ 29
+        │   │   │   └── [Operador] '+' {tipo: int} @ 29
+        │   │   │       ├── [Operador] '*' {tipo: int} @ 29
+        │   │   │       │   ├── [Operador] '+' {tipo: int} @ 29
+        │   │   │       │   │   ├── [Variable / ID] Nombre: y {tipo: int} @ 29
+        │   │   │       │   │   └── [Constante] Valor: 1 {tipo: int, val: 1} @ 29
+        │   │   │       │   └── [Constante] Valor: 2 {tipo: int, val: 2} @ 29
+        │   │   │       └── [Constante] Valor: 1 {tipo: int, val: 1} @ 29
+        │   │   └── [Bucle / while] {ámbito: main} @ 30
+        │   │       ├── [Bloque de Código / Condition] @ 30
+        │   │       │   └── [Operador] '>' {tipo: bool} @ 30
+        │   │       │       ├── [Variable / ID] Nombre: x {tipo: int} @ 30
+        │   │       │       └── [Constante] Valor: 7 {tipo: int, val: 7} @ 30
+        │   │       └── [Bloque de Código / Loop] @ 30
+        │   │           ├── [Asignación] ID: x {tipo: int, ámbito: main} @ 31
+        │   │           │   └── [Operador] '+' {tipo: int, val: 6} @ 31
+        │   │           │       ├── [Constante] Valor: 6 {tipo: int, val: 6} @ 31
+        │   │           │       └── [Operador] '/' {tipo: int, val: 0} @ 31
+        │   │           │           ├── [Operador] '*' {tipo: int, val: 0} @ 31
+        │   │           │           │   ├── [Operador] '/' {tipo: int, val: 0} @ 31
+        │   │           │           │   │   ├── [Constante] Valor: 8 {tipo: int, val: 8} @ 31
+        │   │           │           │   │   └── [Constante] Valor: 9 {tipo: int, val: 9} @ 31
+        │   │           │           │   └── [Constante] Valor: 8 {tipo: int, val: 8} @ 31
+        │   │           │           └── [Constante] Valor: 3 {tipo: int, val: 3} @ 31
+        │   │           ├── [Entrada / cin] ID: x {tipo: int, ámbito: main} @ 32
+        │   │           └── [Asignación] ID: mas {ámbito: main} @ 33
+        │   │               └── [Operador] '/' {tipo: int, val: 5} @ 33
+        │   │                   ├── [Constante] Valor: 36 {tipo: int, val: 36} @ 33
+        │   │                   └── [Constante] Valor: 7 {tipo: int, val: 7} @ 33
+        │   └── [Bloque de Código / Condition] @ 28
+        │       └── [Operador] '==' {tipo: bool} @ 35
+        │           ├── [Variable / ID] Nombre: y {tipo: int} @ 35
+        │           └── [Constante] Valor: 5 {tipo: int, val: 5} @ 35
+        └── [Bucle / while] {ámbito: main} @ 36
+            ├── [Bloque de Código / Condition] @ 36
+            │   └── [Operador] '==' {tipo: bool} @ 36
+            │       ├── [Variable / ID] Nombre: y {tipo: int} @ 36
+            │       └── [Constante] Valor: 0 {tipo: int, val: 0} @ 36
+            └── [Bloque de Código / Loop] @ 36
+                ├── [Entrada / cin] ID: mas {ámbito: main} @ 37
+                └── [Salida / cout] {ámbito: main} @ 38
+                    └── [Variable / ID] Nombre: x {tipo: int} @ 38

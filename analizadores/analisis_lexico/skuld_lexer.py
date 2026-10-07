@@ -37,6 +37,8 @@ KEYWORDS: Dict[str, str] = {
     "string": "KW_STRING",
     "bool": "KW_BOOL",
     "if": "KW_IF",
+    "then": "KW_THEN",
+    "end": "KW_END",
     "while": "KW_WHILE",
     "do": "KW_DO",
     "until": "KW_UNTIL",
