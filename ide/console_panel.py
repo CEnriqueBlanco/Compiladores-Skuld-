@@ -13,6 +13,7 @@ class ErrorHoverEventFilter(QObject):
         self.widget.setMouseTracking(True)
         self.widget.viewport().setMouseTracking(True)
         self.widget.viewport().installEventFilter(self)
+        self._last_cursor_shape = None
 
     def eventFilter(self, obj, event) -> bool:
         if event.type() == QEvent.MouseMove:
@@ -21,10 +22,14 @@ class ErrorHoverEventFilter(QObject):
             line_text = cursor.block().text().strip()
             
             import re
-            if re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text):
-                self.widget.viewport().setCursor(Qt.PointingHandCursor)
-            else:
-                self.widget.viewport().setCursor(Qt.IBeamCursor)
+            cursor_shape = (
+                Qt.PointingHandCursor
+                if re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text)
+                else Qt.IBeamCursor
+            )
+            if cursor_shape != self._last_cursor_shape:
+                self.widget.viewport().setCursor(cursor_shape)
+                self._last_cursor_shape = cursor_shape
         return super().eventFilter(obj, event)
 
 
@@ -39,16 +44,21 @@ class TokenHoverEventFilter(QObject):
         self.widget.setMouseTracking(True)
         self.widget.viewport().setMouseTracking(True)
         self.widget.viewport().installEventFilter(self)
+        self._last_cursor_shape = None
 
     def eventFilter(self, obj, event) -> bool:
         if event.type() == QEvent.MouseMove:
             pos = event.pos()
             cursor = self.widget.cursorForPosition(pos)
             line_text = cursor.block().text().strip()
-            if self.TOKEN_RE.match(line_text):
-                self.widget.viewport().setCursor(Qt.PointingHandCursor)
-            else:
-                self.widget.viewport().setCursor(Qt.IBeamCursor)
+            cursor_shape = (
+                Qt.PointingHandCursor
+                if self.TOKEN_RE.match(line_text)
+                else Qt.IBeamCursor
+            )
+            if cursor_shape != self._last_cursor_shape:
+                self.widget.viewport().setCursor(cursor_shape)
+                self._last_cursor_shape = cursor_shape
         return super().eventFilter(obj, event)
 
 
@@ -78,6 +88,11 @@ class ConsolePanel(QTabWidget):
 
     def append_execution(self, text: str) -> None:
         self._execution.appendPlainText(text)
+
+    def set_execution(self, text: str) -> None:
+        """Muestra el resultado completo de la última ejecución."""
+        self._execution.setPlainText(text)
+        self.setCurrentWidget(self._execution)
 
     def clear_all(self) -> None:
         self._console.clear()

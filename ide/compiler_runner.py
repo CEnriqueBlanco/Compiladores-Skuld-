@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 import re
 import shlex
 import subprocess
@@ -23,6 +24,7 @@ class CompilerResult:
     semantic_tree: str = ""    # AST anotado (para pestaña Semántico)
     symbol_table: str = ""     # Tabla de símbolos formateada (para pestaña Símbolos)
     symbol_rows: list[list[str]] = field(default_factory=list)
+    execution_time_ms: float | None = None
 
 
 PHASE_ARGS = {
@@ -150,7 +152,7 @@ def _run_semantic_inline(source_path: str) -> CompilerResult:
         return CompilerResult(returncode=1, stdout="", stderr=f"Error interno en análisis semántico: {exc}")
 
 
-def run_compiler(phase: str, source_path: str) -> CompilerResult:
+def _run_compiler(phase: str, source_path: str) -> CompilerResult:
     if phase == "lexico":
         return _format_lex_tokens(source_path)
 
@@ -170,11 +172,13 @@ def run_compiler(phase: str, source_path: str) -> CompilerResult:
 
     phase_arg = PHASE_ARGS.get(phase, "")
     full_command = [*command, phase_arg, source_path] if phase_arg else [*command, source_path]
+    start_time = time.perf_counter()
     result = subprocess.run(
         full_command,
         capture_output=True,
         check=False,
     )
+    execution_time_ms = (time.perf_counter() - start_time) * 1000
 
     # Decodificar de forma robusta con fallback en caso de error
     stdout_decoded = result.stdout.decode('utf-8', errors='replace') if result.stdout else ""
@@ -203,4 +207,14 @@ def run_compiler(phase: str, source_path: str) -> CompilerResult:
         error_line=error_line,
         error_column=error_column,
         error_column_end=error_column_end,
+        execution_time_ms=execution_time_ms,
     )
+
+
+def run_compiler(phase: str, source_path: str) -> CompilerResult:
+    """Ejecuta una fase y mide el tiempo que tardó en completarse."""
+    start_time = time.perf_counter()
+    result = _run_compiler(phase, source_path)
+    if result.execution_time_ms is None:
+        result.execution_time_ms = (time.perf_counter() - start_time) * 1000
+    return result

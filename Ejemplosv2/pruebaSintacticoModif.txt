@@ -1,5 +1,5 @@
 main {
-    int x, y, z;
+    int x, y, z,x;
     float a, b, c;
     suma = 45;
     x = 32.32;

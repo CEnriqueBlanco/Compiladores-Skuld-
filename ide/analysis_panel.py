@@ -29,16 +29,94 @@ class SyntaxTreeWidget(QStackedWidget):
         self.tree_widget = QTreeWidget()
         self.tree_widget.setHeaderHidden(True)
         self.tree_widget.setColumnCount(1)
+        self.tree_widget.header().setSectionResizeMode(0, QHeaderView.Fixed)
+        self.tree_widget.header().setStretchLastSection(False)
+        self.tree_widget.setTextElideMode(Qt.ElideNone)
+        self.tree_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.tree_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.tree_widget.itemSelectionChanged.connect(self.on_selection_changed)
         
         self.text_widget = QPlainTextEdit()
         self.text_widget.setReadOnly(True)
+        self.text_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self.text_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        self._error_lines: set[int] = set()
         
         self.addWidget(self.tree_widget)
         self.addWidget(self.text_widget)
-        
+
         self.setCurrentWidget(self.text_widget)
         self.text_widget.setPlainText("Árbol sintáctico / salida estructurada.")
+        self.refresh_theme()
+
+    @staticmethod
+    def _item_color(text: str, colors) -> str:
+        """Choose a theme color for the kind of AST node displayed."""
+        if "[ERROR" in text or "[Error semántico]" in text:
+            return steins_gate_theme.get_error_colors().text
+        if any(label in text for label in (
+            "[Declaración de Variable]",
+            "[Variable]",
+            "[Definición de Función]",
+        )):
+            return colors.keywords
+        if any(label in text for label in (
+            "[Condicional",
+            "[Bucle",
+            "[Bloque de Código",
+            "[Entrada",
+            "[Salida",
+            "[Retorno",
+        )):
+            return colors.accent
+        if "[Asignación]" in text or "[Operador]" in text:
+            return colors.operators
+        if "[Constante]" in text or "[Cadena]" in text:
+            return colors.numbers if "[Constante]" in text else colors.strings
+        if "[Llamada" in text:
+            return colors.strings
+        if "[Variable / ID]" in text:
+            return colors.strings
+        return colors.foreground
+
+    def _color_tree_items(self) -> None:
+        colors = steins_gate_theme.get_colors()
+
+        def color_item(item: QTreeWidgetItem) -> None:
+            item.setForeground(0, QColor(self._item_color(item.text(0), colors)))
+            for child_index in range(item.childCount()):
+                color_item(item.child(child_index))
+
+        for index in range(self.tree_widget.topLevelItemCount()):
+            color_item(self.tree_widget.topLevelItem(index))
+
+    def refresh_theme(self) -> None:
+        colors = steins_gate_theme.get_colors()
+        self.tree_widget.setStyleSheet(
+            f"""
+            QTreeWidget {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                selection-background-color: {colors.selection};
+                selection-color: {colors.foreground};
+            }}
+            QTreeWidget::item:hover {{
+                background-color: {colors.hover};
+            }}
+            """
+        )
+        self.text_widget.setStyleSheet(
+            f"""
+            QPlainTextEdit {{
+                background-color: {colors.background};
+                color: {colors.foreground};
+                border: 1px solid {colors.border};
+                selection-background-color: {colors.selection};
+            }}
+            """
+        )
+        self._color_tree_items()
 
     def setPlainText(self, text: str) -> None:
         """Fallback method to keep compatibility with other text-setting mechanisms if any."""
@@ -77,7 +155,24 @@ class SyntaxTreeWidget(QStackedWidget):
                 search_term = self._extract_search_term(item.text(0))
                 self.line_selected.emit(line_no, search_term)
 
-    def set_syntax_content(self, text: str) -> None:
+    def set_syntax_content(self, text: str, error_text: str = "") -> None:
+        self._error_lines = {
+            int(match.group(1))
+            for match in re.finditer(
+                r"ERROR_(?:LEXICO|SINTACTICO|SEMANTICO)\((\d+),",
+                error_text,
+            )
+        }
+        error_messages: dict[int, list[str]] = {}
+        for match in re.finditer(
+            r"ERROR_(?:LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*\d+\):\s*(.*)",
+            error_text,
+        ):
+            line_no = int(match.group(1))
+            message = match.group(2).strip()
+            message = re.sub(r"\s*->\s*'.*'\s*$", "", message)
+            if message:
+                error_messages.setdefault(line_no, []).append(message)
         text_stripped = text.strip()
         if not text_stripped:
             self.text_widget.clear()
@@ -94,6 +189,7 @@ class SyntaxTreeWidget(QStackedWidget):
         self.tree_widget.clear()
         lines = text.splitlines()
         items_at_level = {}
+        parsed_items = []
 
         for line in lines:
             if not line.strip():
@@ -122,6 +218,7 @@ class SyntaxTreeWidget(QStackedWidget):
             item = QTreeWidgetItem([node_text])
             if line_no is not None:
                 item.setData(0, Qt.UserRole, line_no)
+            parsed_items.append((item, line_no, node_text))
 
             if level == 0:
                 self.tree_widget.addTopLevelItem(item)
@@ -135,7 +232,50 @@ class SyntaxTreeWidget(QStackedWidget):
 
             items_at_level[level] = item
 
+        # Una línea puede corresponder a varios nodos del AST. Marca solo el
+        # nodo más representativo para evitar repetir el mismo error en todo
+        # el subárbol de una declaración o expresión.
+        priority = (
+            "[Error semántico]",
+            "[Asignación]",
+            "[Variable / ID]",
+            "[Variable]",
+            "[Operador]",
+            "[Llamada",
+            "[Declaración de Variable]",
+        )
+        selected_by_line = {}
+        explicit_error_lines = {
+            line_no
+            for _, line_no, node_text in parsed_items
+            if line_no in self._error_lines and "[Error semántico]" in node_text
+        }
+        for item, line_no, node_text in parsed_items:
+            if line_no not in self._error_lines:
+                continue
+            if line_no in explicit_error_lines:
+                continue
+            node_priority = next(
+                (len(priority) - index for index, label in enumerate(priority) if label in node_text),
+                0,
+            )
+            current = selected_by_line.get(line_no)
+            if current is None or node_priority > current[0]:
+                selected_by_line[line_no] = (node_priority, item)
+
+        for line_no, (_, item) in selected_by_line.items():
+            messages = error_messages.get(line_no, [])
+            if "[Error semántico]" in item.text(0):
+                item.setText(0, f"[ERROR] {item.text(0)}")
+            elif messages:
+                details = " | ".join(dict.fromkeys(messages))
+                item.setText(0, f"[ERROR: {details}] {item.text(0)}")
+            else:
+                item.setText(0, f"[ERROR] {item.text(0)}")
+
         self.tree_widget.expandAll()  # Requisito: expandir automáticamente al ejecutarse
+        self.tree_widget.resizeColumnToContents(0)
+        self._color_tree_items()
         self.setCurrentWidget(self.tree_widget)
 
 
@@ -147,7 +287,7 @@ class AnalysisPanel(QTabWidget):
 
         self._tokens = self._make_rich_output("Tokens léxicos aparecerán aquí.")
         self._syntax = SyntaxTreeWidget()
-        self._semantic = self._make_output("Resultados semánticos y validaciones.")
+        self._semantic = SyntaxTreeWidget()
         self._intermediate = self._make_output("Código intermedio (tres direcciones, etc.).")
         self._symbols = self._make_symbols_table()
 
@@ -160,13 +300,13 @@ class AnalysisPanel(QTabWidget):
         # Connect position changes to error navigation
         self._tokens.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._syntax.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
-        self._semantic.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+        self._semantic.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._intermediate.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
 
         # Install pointing hand cursor filter when hovering over error/token lines
         self._tokens_hover_filter = TokenHoverEventFilter(self._tokens)
         self._syntax_hover_filter = ErrorHoverEventFilter(self._syntax.text_widget)
-        self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic)
+        self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic.text_widget)
         self._intermediate_hover_filter = ErrorHoverEventFilter(self._intermediate)
         self.refresh_theme()
 
@@ -176,8 +316,8 @@ class AnalysisPanel(QTabWidget):
     def set_syntax(self, text: str) -> None:
         self._syntax.set_syntax_content(text)
 
-    def set_semantic(self, text: str) -> None:
-        self._semantic.setPlainText(text)
+    def set_semantic(self, text: str, error_text: str = "") -> None:
+        self._semantic.set_syntax_content(text, error_text)
 
     def set_intermediate(self, text: str) -> None:
         self._intermediate.setPlainText(text)
@@ -196,7 +336,7 @@ class AnalysisPanel(QTabWidget):
         self._symbols.resizeColumnsToContents()
 
     def set_symbol_rows(self, rows: list[list[str]]) -> None:
-        headers = ["Nombre", "Tipo", "Ámbito", "Nivel", "Dirección/Offset", "Líneas"]
+        headers = ["Nombre", "Tipo", "Dirección/Offset", "Líneas"]
         self._symbols.setColumnCount(len(headers))
         self._symbols.setHorizontalHeaderLabels(headers)
         self._symbols.setRowCount(len(rows))
@@ -208,6 +348,8 @@ class AnalysisPanel(QTabWidget):
 
     def refresh_theme(self) -> None:
         colors = steins_gate_theme.get_colors()
+        self._syntax.refresh_theme()
+        self._semantic.refresh_theme()
         palette = self._symbols.palette()
         palette.setColor(QPalette.Base, QColor(colors.background))
         palette.setColor(QPalette.AlternateBase, QColor(colors.panel_bg))
@@ -275,13 +417,17 @@ class AnalysisPanel(QTabWidget):
     def _make_output(text: str) -> QPlainTextEdit:
         output = QPlainTextEdit()
         output.setReadOnly(True)
+        output.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        output.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         output.setPlainText(text)
         return output
 
     @staticmethod
     def _make_symbols_table() -> QTableWidget:
-        table = QTableWidget(0, 6)
-        table.setHorizontalHeaderLabels(["Nombre", "Tipo", "Ámbito", "Nivel", "Dirección/Offset", "Líneas"])
+        table = QTableWidget(0, 4)
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        table.setHorizontalHeaderLabels(["Nombre", "Tipo", "Dirección/Offset", "Líneas"])
         table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setAlternatingRowColors(True)
@@ -294,6 +440,8 @@ class AnalysisPanel(QTabWidget):
     def _make_rich_output(text: str) -> QTextEdit:
         output = QTextEdit()
         output.setReadOnly(True)
+        output.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        output.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         output.setPlainText(text)
         return output
 

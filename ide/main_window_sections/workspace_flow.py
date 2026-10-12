@@ -481,6 +481,11 @@ def run_phase(window, phase: str) -> None:
             return
 
     save_file(window)
+
+    if phase == "ejecucion":
+        _run_full_pipeline(window, str(current_file), editor)
+        return
+
     result = run_compiler(phase, str(current_file))
 
     if result.returncode != 0:
@@ -494,7 +499,7 @@ def run_phase(window, phase: str) -> None:
         elif phase == "semantico":
             # Mostrar AST anotado y tabla incluso cuando hay errores semánticos
             if result.semantic_tree:
-                window._analysis_panel.set_semantic(result.semantic_tree)
+                window._analysis_panel.set_semantic(result.semantic_tree, result.stderr)
             if result.symbol_rows:
                 window._analysis_panel.set_symbol_rows(result.symbol_rows)
 
@@ -504,6 +509,12 @@ def run_phase(window, phase: str) -> None:
 
         if window._console_panel is not None:
             window._console_panel.append_errors(result.stderr or "Error ejecutando el compilador.")
+            if phase == "ejecucion" and result.execution_time_ms is not None:
+                window._console_panel.set_execution(
+                    f"Error durante la ejecución.\n\n"
+                    f"{result.stderr or 'No se generó salida.'}\n\n"
+                    f"Tiempo de ejecución: {result.execution_time_ms:.3f} ms"
+                )
         return
 
     output_text = result.stdout or "(sin salida)"
@@ -513,7 +524,7 @@ def run_phase(window, phase: str) -> None:
         window._analysis_panel.set_syntax(output_text)
     elif phase == "semantico":
         # Poblar pestaña Semántico con el AST anotado
-        window._analysis_panel.set_semantic(result.semantic_tree or output_text)
+        window._analysis_panel.set_semantic(result.semantic_tree or output_text, result.stderr)
         # Poblar pestaña Símbolos con la tabla de símbolos generada
         if result.symbol_rows:
             window._analysis_panel.set_symbol_rows(result.symbol_rows)
@@ -521,10 +532,74 @@ def run_phase(window, phase: str) -> None:
         window._analysis_panel.set_intermediate(output_text)
     elif phase == "ejecucion":
         if window._console_panel is not None:
-            window._console_panel.append_execution(output_text)
+            if result.execution_time_ms is not None:
+                window._console_panel.set_execution(
+                    f"{output_text}\n\n"
+                    f"Tiempo de ejecución: {result.execution_time_ms:.3f} ms"
+                )
+            else:
+                window._console_panel.set_execution(output_text)
 
     if window._console_panel is not None:
         window._console_panel.append_console(f"Fase ejecutada: {phase}")
+
+
+def _run_full_pipeline(window, source_path: str, editor) -> None:
+    """Ejecuta las fases disponibles antes de la ejecución del programa."""
+    phase_results = [
+        ("lexico", run_compiler("lexico", source_path)),
+        ("sintactico", run_compiler("sintactico", source_path)),
+        ("semantico", run_compiler("semantico", source_path)),
+    ]
+
+    for phase_name, result in phase_results:
+        if phase_name == "lexico":
+            window._analysis_panel.set_tokens(result.stdout or result.stderr or "(sin salida)")
+        elif phase_name == "sintactico":
+            window._analysis_panel.set_syntax(result.stdout or result.stderr or "(sin salida)")
+        else:
+            if result.semantic_tree:
+                window._analysis_panel.set_semantic(result.semantic_tree, result.stderr)
+            if result.symbol_rows:
+                window._analysis_panel.set_symbol_rows(result.symbol_rows)
+
+        if result.execution_time_ms is not None and window._console_panel is not None:
+            window._console_panel.append_console(
+                f"Fase {phase_name}: {result.execution_time_ms:.3f} ms"
+            )
+
+        if result.returncode != 0:
+            if window._console_panel is not None:
+                window._console_panel.append_errors(
+                    result.stderr or f"Error en fase {phase_name}."
+                )
+            if result.error_line is not None and result.error_column is not None:
+                editor.highlight_error_range(
+                    result.error_line,
+                    result.error_column,
+                    result.error_column_end,
+                )
+            return
+
+    execution_result = run_compiler("ejecucion", source_path)
+    output_text = execution_result.stdout or "(sin salida)"
+    if window._console_panel is not None:
+        execution_text = output_text
+        if execution_result.execution_time_ms is not None:
+            execution_text += (
+                f"\n\nTiempo de ejecución: "
+                f"{execution_result.execution_time_ms:.3f} ms"
+            )
+        window._console_panel.set_execution(execution_text)
+        window._console_panel.append_console(
+            f"Fase ejecucion: {execution_result.execution_time_ms:.3f} ms"
+            if execution_result.execution_time_ms is not None
+            else "Fase ejecucion completada."
+        )
+        if execution_result.returncode != 0:
+            window._console_panel.append_errors(
+                execution_result.stderr or "Error durante la ejecución."
+            )
 
 
 def run_lexical_selection(window, selected_text: str) -> None:

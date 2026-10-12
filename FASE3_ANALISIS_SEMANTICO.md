@@ -101,8 +101,11 @@ La Tabla de Símbolos no es solo decorativa: es el componente activo de consulta
 - **Nombre / Lexema:** Identificador único.
 - **Tipo de Dato:** `int`, `float`, `bool`, etc.
 - **Líneas de Aparición / Referencia:** Línea de declaración y líneas de uso.
-- **Ámbito (Scope):** Nivel o bloque (global, local, bloque de control).
 - **Dirección / Desplazamiento de Memoria:** Offset relativo asignado para la futura generación de código.
+
+El ámbito se conserva internamente para resolver nombres y validar usos, pero no
+se muestra como una columna en la tabla visual. El nivel del ámbito también se
+conserva internamente, pero no se muestra en la tabla.
 
 ### 5.2 Operaciones Fundamentales
 - `insert(id, type, line, ...)`: Registra identificadores al procesar declaraciones.
@@ -111,20 +114,26 @@ La Tabla de Símbolos no es solo decorativa: es el componente activo de consulta
 
 ---
 
-## 6. 🔄 Verificación y Conversión de Tipos
+## 6. 🔄 Verificación de Tipos
 
 ### 6.1 Reglas de Compatibilidad y Promoción
 - **Operaciones Aritméticas:**
   - `int` $\times$ `int` $\rightarrow$ `int`
   - `float` $\times$ `float` $\rightarrow$ `float`
-  - `int` $\times$ `float` / `float` $\times$ `int` $\rightarrow$ `float` *(promoción implícita segura)*
+  - `int` $\times$ `float` / `float` $\times$ `int` $\rightarrow$ `float`
   - Operaciones booleanas aritméticas: **Error Semántico**.
 - **Asignaciones:**
   - `variable int = expresion int`: Válido.
   - `variable float = expresion float`: Válido.
-  - `variable float = expresion int`: Válido con conversión implícita / casting implícito.
-  - `variable int = expresion float`: Incompatibilidad de tipos (pérdida de precisión / asignación no permitida salvo cast explícito).
+  - `variable float = expresion int`: Incompatible sin una conversión explícita.
+  - `variable int = expresion float`: Incompatible sin una conversión explícita.
   - `variable bool = expresion int/float`: Incompatible.
+  - `variable string = expresion string`: Válido; no se convierten automáticamente otros tipos a texto.
+
+Las asignaciones solo son válidas cuando el tipo de la expresión coincide con
+el tipo declarado. La evaluación de valores constantes se conserva sin aplicar
+conversiones implícitas. La tabla conserva cada aparición del identificador,
+incluyendo repeticiones en una misma línea.
 
 ---
 

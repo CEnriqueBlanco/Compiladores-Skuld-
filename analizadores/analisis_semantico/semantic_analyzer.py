@@ -204,6 +204,7 @@ class SemanticAnalyzer:
                 self._annotate_node(init_expr)
                 expr_type = normalize_type(getattr(init_expr, "attr_type", None))
                 const_val = getattr(init_expr, "attr_val", None)
+                var_node.attr_val = const_val
 
                 # Verificación de compatibilidad en la inicialización
                 if expr_type != "unknown":
@@ -224,6 +225,10 @@ class SemanticAnalyzer:
 
             if not success:
                 # Error semántico: Duplicidad de identificador en el mismo ámbito
+                var_node.attr_error = (
+                    f"Declaración duplicada: '{var_name}' ya fue declarada "
+                    f"(línea {existing_sym.declaration_line})"
+                )
                 self._report_error(
                     var_node.lineno, 1,
                     f"Duplicidad de declaraciones: la variable '{var_name}' ya fue declarada previamente en el ámbito '{self.symbol_table.current_scope.name}' (línea {existing_sym.declaration_line})",
@@ -336,6 +341,12 @@ class SemanticAnalyzer:
                         f"Incompatibilidad de tipos en asignación: no se puede asignar tipo '{display_type(expr_type)}' a variable '{var_name}' de tipo '{display_type(target_type)}'",
                         var_name
                     )
+
+            # La asignación actualiza el valor conocido de la variable. Esto
+            # permite evaluar usos posteriores como ``z = y + 7``.
+            if sym is not None:
+                sym.constant_val = getattr(expr_node, "attr_val", None)
+                node.attr_val = sym.constant_val
 
     def _handle_if(self, node: TreeNode) -> None:
         node.attr_scope = self.symbol_table.current_scope.name
@@ -689,22 +700,13 @@ class SemanticAnalyzer:
         """
         Reglas de compatibilidad para asignaciones e inicializaciones:
         - Tipos idénticos siempre son compatibles.
-        - Conversión/promoción permitida: divergence (float) acepta worldline (int).
-        - Conversión prohibida / Incompatibilidad: worldline NO acepta divergence (pérdida de precisión).
+        - No se realizan conversiones implícitas entre tipos distintos.
         - reading (bool) no acepta ni puede ser asignado a tipos numéricos.
         """
         target = normalize_type(target)
         source = normalize_type(source)
 
         if target == source:
-            return True
-
-        # Promoción implícita: float = int
-        if target == "divergence" and source == "worldline":
-            return True
-
-        # Concatenación o conversión a string permitida en salidas/mensajes
-        if target == "string":
             return True
 
         return False
@@ -795,15 +797,20 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
     # Preparar sufijos de atributos semánticos
     attr_type = getattr(node, "attr_type", None)
     attr_val = getattr(node, "attr_val", None)
-    attr_scope = getattr(node, "attr_scope", None)
-
+    attr_error = getattr(node, "attr_error", None)
     annotations = []
     if attr_type and attr_type != "unknown":
         annotations.append(f"tipo: {display_type(attr_type)}")
     if attr_val is not None:
         annotations.append(f"val: {attr_val}")
-    if attr_scope and node.nodekind in {"DeclK", "StmtK"}:
-        annotations.append(f"ámbito: {attr_scope}")
+
+    # El tipo declarado se propaga desde la declaración hacia sus variables
+    # (atributo heredado). Los tipos y valores de expresiones se calculan a
+    # partir de sus hijos (atributos sintetizados).
+    if node.nodekind == "DeclK":
+        annotations.append("atributo: heredado")
+    elif node.nodekind in {"StmtK", "ExpK"}:
+        annotations.append("atributo: sintetizado")
 
     annot_str = f" {{{', '.join(annotations)}}}" if annotations else ""
 
@@ -813,8 +820,11 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
         if node.kind == "DeclVarK":
             desc = f"[Declaración de Variable] Tipo: {display_type(node.type)}{annot_str}"
         elif node.kind == "VarK":
-            init_suffix = " (Inicializada)" if node.child else ""
-            desc = f"[Variable] ID: {display_name}{init_suffix}{annot_str}"
+            if attr_error:
+                desc = f"[Error semántico] {attr_error}"
+            else:
+                init_suffix = " (Inicializada)" if node.child else ""
+                desc = f"[Variable] ID: {display_name}{init_suffix}{annot_str}"
         elif node.kind == "FuncK":
             params_str = ", ".join(f"{display_type(t)} {n}" for t, n in node.params)
             desc = f"[Definición de Función] Tipo: {display_type(node.type)}, Nombre: {display_name}({params_str}){annot_str}"
@@ -853,7 +863,9 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
     result = f"{prefix}{marker}{desc} @ {node.lineno}\n"
 
     next_prefix = prefix + ("    " if is_last else "│   ")
-    children = [c for c in node.child if c is not None]
+    # Una declaración duplicada ya fue reportada y no debe volver a
+    # representar su inicializador como si fuera una variable válida.
+    children = [] if attr_error else [c for c in node.child if c is not None]
 
     if node.kind == "IfK":
         labels = ["Condition", "Then", "Else"]

@@ -3,7 +3,8 @@
         ├── [Declaración de Variable] Tipo: int @ 2
         │   ├── [Variable] ID: x @ 2
         │   ├── [Variable] ID: y @ 2
-        │   └── [Variable] ID: z @ 2
+        │   ├── [Variable] ID: z @ 2
+        │   └── [Variable] ID: x @ 2
         ├── [Declaración de Variable] Tipo: float @ 3
         │   ├── [Variable] ID: a @ 3
         │   ├── [Variable] ID: b @ 3

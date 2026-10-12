@@ -22,7 +22,7 @@ class Symbol:
     Registra toda la información semántica requerida por la Fase 3:
     - Nombre o lexema del identificador
     - Tipo de dato ('worldline', 'divergence', 'reading', 'void', 'string')
-    - Ámbito (scope) donde fue declarado (ej. 'global', 'duplicar', 'gate')
+    - Ámbito interno donde fue declarado (ej. 'global', 'duplicar', 'gate')
     - Desplazamiento o dirección de memoria relativa (offset)
     - Línea de declaración y lista de líneas de aparición (declaración + usos)
     - Atributos adicionales (si es función, sus parámetros, valor constante conocido, etc.)
@@ -40,8 +40,9 @@ class Symbol:
 
     def add_reference(self, lineno: int) -> None:
         """Registra una línea donde el símbolo fue utilizado o referenciado."""
-        if lineno not in self.lines:
-            self.lines.append(lineno)
+        # Cada aparición es significativa, incluso si varias ocurren en la
+        # misma línea (por ejemplo, ``y + y`` debe mostrar ``9, 9``).
+        self.lines.append(lineno)
 
 
 class Scope:
@@ -175,10 +176,8 @@ class SymbolTable:
             rows.append([
                 sym.name,
                 type_display,
-                sym.scope_name,
-                str(sym.scope_level),
                 f"0x{sym.memory_loc:04X} ({sym.memory_loc})",
-                ", ".join(str(line) for line in sorted(sym.lines)),
+                ", ".join(str(line) for line in sym.lines),
             ])
         return rows
 
@@ -190,7 +189,7 @@ class SymbolTable:
         if not self.all_symbols:
             return "(Tabla de símbolos vacía)"
 
-        headers = ["Nombre", "Tipo", "Ámbito", "Nivel", "Dirección/Offset", "Líneas"]
+        headers = ["Nombre", "Tipo", "Dirección/Offset", "Líneas"]
         rows = []
         for sym in self.all_symbols:
             type_display = display_type(sym.data_type)
@@ -198,12 +197,10 @@ class SymbolTable:
                 params_str = ", ".join(display_type(param_type) for param_type in sym.param_types)
                 type_display = f"func({params_str}) -> {display_type(sym.data_type)}"
 
-            lines_str = ", ".join(str(l) for l in sorted(sym.lines))
+            lines_str = ", ".join(str(l) for l in sym.lines)
             rows.append([
                 sym.name,
                 type_display,
-                sym.scope_name,
-                str(sym.scope_level),
                 f"0x{sym.memory_loc:04X} ({sym.memory_loc})",
                 lines_str
             ])
@@ -213,7 +210,7 @@ class SymbolTable:
             for i, val in enumerate(row):
                 col_widths[i] = max(col_widths[i], len(val))
 
-        alignments = ["<", "<", "<", ">", ">", ">"]
+        alignments = ["<", "<", ">", ">"]
 
         def format_row(row: List[str]) -> str:
             cells = [f" {row[i]:{alignments[i]}{col_widths[i]}} " for i in range(len(row))]
