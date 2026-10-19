@@ -137,6 +137,9 @@ El parser reconoce:
 Un programa completo de ejemplo se encuentra en
 [`examples/prueba_estandar.stn`](D:/Compiladores-Skuld-/examples/prueba_estandar.stn).
 
+La descripcion tecnica detallada de la fase semantica se encuentra en
+[`DESCRIPCION_TECNICA_ANALISIS_SEMANTICO.md`](D:/Compiladores-Skuld-/DESCRIPCION_TECNICA_ANALISIS_SEMANTICO.md).
+
 ## Funcionamiento del compilador
 
 ### 1. Análisis léxico
