@@ -4,11 +4,12 @@
         │   ├── [Variable] ID: x @ 2
         │   ├── [Variable] ID: y @ 2
         │   ├── [Variable] ID: z @ 2
-        │   └── [Variable] ID: x @ 2
+        │   └── [Variable] ID: z @ 2
         ├── [Declaración de Variable] Tipo: float @ 3
         │   ├── [Variable] ID: a @ 3
         │   ├── [Variable] ID: b @ 3
-        │   └── [Variable] ID: c @ 3
+        │   ├── [Variable] ID: c @ 3
+        │   └── [Variable] ID: x @ 3
         ├── [Asignación] ID: suma @ 4
         │   └── [Constante] Valor: 45 @ 4
         ├── [Asignación] ID: x @ 5
@@ -126,7 +127,7 @@
         │   │   └── [Bucle / loop (while)] @ 30
         │   │       ├── [Bloque de Código / Condition] @ 30
         │   │       │   └── [Operador] '>' @ 30
-        │   │       │       ├── [Variable / ID] Nombre: x @ 30
+        │   │       │       ├── [Constante] Valor: 6 @ 30
         │   │       │       └── [Constante] Valor: 7 @ 30
         │   │       └── [Bloque de Código / Loop] @ 30
         │   │           ├── [Asignación] ID: x @ 31
@@ -146,12 +147,12 @@
         │   │                   └── [Constante] Valor: 7 @ 33
         │   └── [Bloque de Código / Condition] @ 28
         │       └── [Operador] '==' @ 35
-        │           ├── [Variable / ID] Nombre: y @ 35
+        │           ├── [Constante] Valor: 5 @ 35
         │           └── [Constante] Valor: 5 @ 35
         └── [Bucle / loop (while)] @ 36
             ├── [Bloque de Código / Condition] @ 36
-            │   └── [Operador] '==' @ 36
-            │       ├── [Variable / ID] Nombre: y @ 36
+            │   └── [Operador] '!=' @ 36
+            │       ├── [Constante] Valor: 6 @ 36
             │       └── [Constante] Valor: 0 @ 36
             └── [Bloque de Código / Loop] @ 36
                 ├── [Entrada / sphone (cin)] ID: mas @ 37

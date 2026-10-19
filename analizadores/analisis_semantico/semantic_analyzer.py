@@ -224,11 +224,9 @@ class SemanticAnalyzer:
             )
 
             if not success:
-                # Error semántico: Duplicidad de identificador en el mismo ámbito
-                var_node.attr_error = (
-                    f"Declaración duplicada: '{var_name}' ya fue declarada "
-                    f"(línea {existing_sym.declaration_line})"
-                )
+                # La declaración duplicada se reporta en la terminal, pero no
+                # debe aparecer como un segundo nodo en el árbol visual.
+                var_node.attr_duplicate = True
                 self._report_error(
                     var_node.lineno, 1,
                     f"Duplicidad de declaraciones: la variable '{var_name}' ya fue declarada previamente en el ámbito '{self.symbol_table.current_scope.name}' (línea {existing_sym.declaration_line})",
@@ -780,6 +778,9 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
     if node is None:
         return ""
 
+    if getattr(node, "attr_duplicate", False):
+        return ""
+
     # Omitir nodo intermedio 'Secuencia de Sentencias'
     if node.nodekind == "StmtK" and node.kind == "BlockK" and (node.name == "Secuencia de Sentencias" or node.name == "Statement Sequence"):
         result = ""
@@ -797,7 +798,6 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
     # Preparar sufijos de atributos semánticos
     attr_type = getattr(node, "attr_type", None)
     attr_val = getattr(node, "attr_val", None)
-    attr_error = getattr(node, "attr_error", None)
     annotations = []
     if attr_type and attr_type != "unknown":
         annotations.append(f"tipo: {display_type(attr_type)}")
@@ -820,11 +820,8 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
         if node.kind == "DeclVarK":
             desc = f"[Declaración de Variable] Tipo: {display_type(node.type)}{annot_str}"
         elif node.kind == "VarK":
-            if attr_error:
-                desc = f"[Error semántico] {attr_error}"
-            else:
-                init_suffix = " (Inicializada)" if node.child else ""
-                desc = f"[Variable] ID: {display_name}{init_suffix}{annot_str}"
+            init_suffix = " (Inicializada)" if node.child else ""
+            desc = f"[Variable] ID: {display_name}{init_suffix}{annot_str}"
         elif node.kind == "FuncK":
             params_str = ", ".join(f"{display_type(t)} {n}" for t, n in node.params)
             desc = f"[Definición de Función] Tipo: {display_type(node.type)}, Nombre: {display_name}({params_str}){annot_str}"
@@ -863,9 +860,7 @@ def print_annotated_tree(node: Optional[TreeNode], prefix: str = "", is_last: bo
     result = f"{prefix}{marker}{desc} @ {node.lineno}\n"
 
     next_prefix = prefix + ("    " if is_last else "│   ")
-    # Una declaración duplicada ya fue reportada y no debe volver a
-    # representar su inicializador como si fuera una variable válida.
-    children = [] if attr_error else [c for c in node.child if c is not None]
+    children = [c for c in node.child if c is not None]
 
     if node.kind == "IfK":
         labels = ["Condition", "Then", "Else"]

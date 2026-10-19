@@ -1,6 +1,6 @@
 main {
-    int x, y, z,x;
-    float a, b, c;
+    int x, y, z,z;
+    float a, b, c,x;
     suma = 45;
     x = 32.32;
     x = 23;
@@ -27,13 +27,13 @@ main {
     x = 3 + 4;
     do
         y = (y + 1) * 2 + 1;
-        while x > 7
+        while 6 > 7
             x = 6 + 8 / 9 * 8 / 3;
             cin >> x;
             mas = 36 / 7;
         end
-    until y == 5
-    while y == 0
+    until 5 == 5
+    while 6 != 0
         cin >> mas;
         cout << x;
     end

@@ -23,6 +23,11 @@ from ide.console_panel import ErrorHoverEventFilter, TokenHoverEventFilter
 class SyntaxTreeWidget(QStackedWidget):
     line_selected = pyqtSignal(int, str)  # line number, search term
 
+    @staticmethod
+    def _is_duplicate_variable_error(message: str) -> bool:
+        """Keep duplicate-variable diagnostics in the terminal, not in the AST tree."""
+        return message.startswith("Duplicidad de declaraciones: la variable ")
+
     def __init__(self, parent=None):
         super().__init__(parent)
         
@@ -164,6 +169,7 @@ class SyntaxTreeWidget(QStackedWidget):
             )
         }
         error_messages: dict[int, list[str]] = {}
+        duplicate_variable_error_lines: set[int] = set()
         for match in re.finditer(
             r"ERROR_(?:LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*\d+\):\s*(.*)",
             error_text,
@@ -171,8 +177,15 @@ class SyntaxTreeWidget(QStackedWidget):
             line_no = int(match.group(1))
             message = match.group(2).strip()
             message = re.sub(r"\s*->\s*'.*'\s*$", "", message)
-            if message:
+            if self._is_duplicate_variable_error(message):
+                duplicate_variable_error_lines.add(line_no)
+            elif message:
                 error_messages.setdefault(line_no, []).append(message)
+        self._error_lines.difference_update(
+            line_no
+            for line_no in duplicate_variable_error_lines
+            if line_no not in error_messages
+        )
         text_stripped = text.strip()
         if not text_stripped:
             self.text_widget.clear()
