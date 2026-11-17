@@ -302,7 +302,7 @@ class AnalysisPanel(QTabWidget):
         self._syntax = SyntaxTreeWidget()
         self._semantic = SyntaxTreeWidget()
         self._intermediate = self._make_code_table(["No.", "Instrucción"])
-        self._tm_code = self._make_code_table(["Línea", "Código TM"])
+        self._tm_code = self._make_code_table(["Línea", "Código TM", "Estado"])
         self._symbols = self._make_symbols_table()
 
         self.addTab(self._tokens, "Tokens")
@@ -356,6 +356,36 @@ class AnalysisPanel(QTabWidget):
                 rows.append([str(instruction_number), stripped])
             instruction_number += 1
         self._set_code_rows(self._tm_code, rows)
+
+    def set_tm_execution_state(
+        self,
+        current_pc: int,
+        stack: list[object],
+        memory: dict[object, object],
+    ) -> None:
+        """Muestra el punto actual y el estado de la máquina durante la ejecución."""
+        for row in range(self._tm_code.rowCount()):
+            for column in range(self._tm_code.columnCount()):
+                item = self._tm_code.item(row, column)
+                if item is not None:
+                    item.setBackground(QColor("transparent"))
+            status_item = self._tm_code.item(row, 2)
+            if status_item is None:
+                status_item = QTableWidgetItem()
+                self._tm_code.setItem(row, 2, status_item)
+
+        if 0 <= current_pc < self._tm_code.rowCount():
+            row = current_pc
+            for column in range(self._tm_code.columnCount()):
+                item = self._tm_code.item(row, column)
+                if item is not None:
+                    item.setBackground(QColor("#3b4252"))
+            status_item = self._tm_code.item(row, 2)
+            if status_item is not None:
+                stack_text = repr(stack)
+                memory_text = repr(memory)
+                status_item.setText(f"Pila: {stack_text} | Memoria: {memory_text}")
+            self._tm_code.scrollToItem(self._tm_code.item(row, 0))
 
     def set_symbols(self, text: str) -> None:
         self._symbols.clearContents()
@@ -502,8 +532,9 @@ class AnalysisPanel(QTabWidget):
         table.setEditTriggers(QAbstractItemView.NoEditTriggers)
         table.setSelectionBehavior(QAbstractItemView.SelectRows)
         table.setAlternatingRowColors(True)
-        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
-        table.horizontalHeader().setStretchLastSection(True)
+        header = table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(len(headers) - 1, QHeaderView.Stretch)
         table.verticalHeader().setVisible(False)
         return table
 
@@ -515,6 +546,10 @@ class AnalysisPanel(QTabWidget):
             for column_index, value in enumerate(row_data):
                 table.setItem(row_index, column_index, QTableWidgetItem(value))
         table.resizeColumnsToContents()
+        table.horizontalHeader().setSectionResizeMode(
+            table.columnCount() - 1,
+            QHeaderView.Stretch,
+        )
 
     @staticmethod
     def _make_rich_output(text: str) -> QTextEdit:

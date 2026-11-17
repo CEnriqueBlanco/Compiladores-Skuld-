@@ -63,6 +63,9 @@ class TMMachine:
         input_data: Optional[list[object]] = None,
         input_callback: Optional[Callable[[], object]] = None,
         output_callback: Optional[Callable[[str], None]] = None,
+        step_callback: Optional[
+            Callable[[int, str, list[object], dict[object, object]], None]
+        ] = None,
         max_steps: int = 100000,
     ) -> tuple[bool, str, list[str]]:
         self.output_buffer = []
@@ -77,9 +80,13 @@ class TMMachine:
 
         try:
             while pc < len(self.code) and steps < max_steps:
+                instruction_pc = pc
                 op, argument = self.code[pc]
                 pc += 1
                 steps += 1
+
+                if step_callback:
+                    step_callback(instruction_pc, op, list(self.stack), dict(self.memory))
 
                 if op in ("stp", "hlt", "halt"):
                     return True, "Halted", self.output_buffer
@@ -160,6 +167,9 @@ class TMMachine:
                     pc = self.labels[argument or ""]
                 else:
                     return False, f"Instrucción desconocida: {op}", self.output_buffer
+
+                if step_callback:
+                    step_callback(pc, op, list(self.stack), dict(self.memory))
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             return False, str(exc), self.output_buffer
 

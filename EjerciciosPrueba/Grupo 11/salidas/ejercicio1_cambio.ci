@@ -1,0 +1,8 @@
+write 'Escribe el costo del articulo:\n'
+read costo
+write 'Escribe la cantidad de dinero entregada:\n'
+read pago
+t1 = pago - costo
+cambio = t1
+write 'Cambio:\n'
+write cambio

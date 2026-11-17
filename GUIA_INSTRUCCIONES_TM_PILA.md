@@ -138,6 +138,13 @@ outc
 La máquina no agrega saltos automáticamente. El salto ocurre únicamente si
 el texto del programa contiene `\n`.
 
+Durante la ejecución desde el IDE, la pestaña **Código TM** muestra el avance
+de la máquina en tiempo real. La instrucción actual se resalta y la columna
+**Estado** muestra la pila y la memoria después de cada paso. Cuando se
+ejecuta `inp`, la instrucción queda visible mientras la terminal espera el
+dato; al escribirlo, el valor aparece en el estado de la máquina y continúa la
+ejecución.
+
 Salida de un número:
 
 ```text

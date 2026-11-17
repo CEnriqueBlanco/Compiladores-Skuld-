@@ -1,5 +1,5 @@
 import re
-from PyQt5.QtCore import QEvent, QObject, Qt, pyqtSignal
+from PyQt5.QtCore import QEvent, QObject, Qt, QTimer, pyqtSignal
 from PyQt5.QtGui import QColor, QFont, QTextCursor
 from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget
 
@@ -31,7 +31,10 @@ class InteractiveTerminalWidget(QPlainTextEdit):
         """Activa el modo de captura interactiva con cursor parpadeando directamente."""
         self._waiting_input = True
         self.setReadOnly(False)
-        self.moveCursor(QTextCursor.End)
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText("> ")
+        self.setTextCursor(cursor)
         self._prompt_pos = self.textCursor().position()
         self.ensureCursorVisible()
         self.setFocus()
@@ -40,6 +43,23 @@ class InteractiveTerminalWidget(QPlainTextEdit):
         """Desactiva la entrada y vuelve a sólo lectura."""
         self._waiting_input = False
         self.setReadOnly(True)
+
+    def focusOutEvent(self, event) -> None:
+        super().focusOutEvent(event)
+        if self._waiting_input:
+            QTimer.singleShot(0, self._restore_input_focus)
+
+    def _restore_input_focus(self) -> None:
+        if self._waiting_input:
+            self.setFocus(Qt.OtherFocusReason)
+            self.ensureCursorVisible()
+
+    def mousePressEvent(self, event) -> None:
+        if self._waiting_input:
+            self.moveCursor(QTextCursor.End)
+            self.ensureCursorVisible()
+            return
+        super().mousePressEvent(event)
 
     def append_text(self, text: str) -> None:
         """Añade texto como salida de la máquina."""

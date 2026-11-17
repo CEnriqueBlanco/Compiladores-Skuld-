@@ -25,6 +25,10 @@ class IntermediateCodeGenerator:
     def emit(self, instr: str) -> None:
         self.instructions.append(instr)
 
+    @staticmethod
+    def _format_string(value: object) -> str:
+        return "'" + str(value).replace("'", "\\'") + "'"
+
     def generate(self, tree: TreeNode, symbol_table: Optional[SymbolTable] = None) -> str:
         self.temp_count = 0
         self.label_count = 0
@@ -134,7 +138,7 @@ class IntermediateCodeGenerator:
         elif node.kind == "IdK":
             return node.name or ""
         elif node.kind == "StringK":
-            return repr(node.val)
+            return self._format_string(node.val)
         elif node.kind == "OpK":
             p1 = self._gen(node.child[0]) if len(node.child) > 0 else ""
             p2 = self._gen(node.child[1]) if len(node.child) > 1 else ""

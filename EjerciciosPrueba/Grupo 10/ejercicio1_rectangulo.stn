@@ -13,5 +13,6 @@ area = base * altura;
 
 cout << "Perimetro:\n";
 cout << perimetro;
+cout << "\n";
 cout << "Area:\n";
 cout << area;

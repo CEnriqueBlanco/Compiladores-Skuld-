@@ -1,0 +1,21 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: float @ 1
+    │   └── [Variable] ID: costo @ 1
+    ├── [Declaración de Variable] Tipo: float @ 2
+    │   └── [Variable] ID: pago @ 2
+    ├── [Declaración de Variable] Tipo: float @ 3
+    │   └── [Variable] ID: cambio @ 3
+    ├── [Salida / dmail (cout)] @ 5
+    │   └── [Cadena] "Escribe el costo del articulo:\n" @ 5
+    ├── [Entrada / sphone (cin)] ID: costo @ 6
+    ├── [Salida / dmail (cout)] @ 7
+    │   └── [Cadena] "Escribe la cantidad de dinero entregada:\n" @ 7
+    ├── [Entrada / sphone (cin)] ID: pago @ 8
+    ├── [Asignación] ID: cambio @ 10
+    │   └── [Operador] '-' @ 10
+    │       ├── [Variable / ID] Nombre: pago @ 10
+    │       └── [Variable / ID] Nombre: costo @ 10
+    ├── [Salida / dmail (cout)] @ 12
+    │   └── [Cadena] "Cambio:\n" @ 12
+    └── [Salida / dmail (cout)] @ 13
+        └── [Variable / ID] Nombre: cambio @ 13

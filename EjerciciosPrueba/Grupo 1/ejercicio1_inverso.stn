@@ -14,6 +14,9 @@ cin >> d;
 
 cout << "Orden inverso:\n";
 cout << d;
+cout << ",";
 cout << c;
+cout << ",";
 cout << b;
+cout << ",";
 cout << a;

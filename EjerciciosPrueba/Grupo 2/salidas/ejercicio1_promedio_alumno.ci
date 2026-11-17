@@ -1,0 +1,26 @@
+suma = 0.0
+promedio = 0.0
+write 'Escribe la matricula del alumno:\n'
+read matricula
+write 'Escribe la calificacion 1:\n'
+read c1
+write 'Escribe la calificacion 2:\n'
+read c2
+write 'Escribe la calificacion 3:\n'
+read c3
+write 'Escribe la calificacion 4:\n'
+read c4
+write 'Escribe la calificacion 5:\n'
+read c5
+t1 = c1 + c2
+t2 = t1 + c3
+t3 = t2 + c4
+t4 = t3 + c5
+suma = t4
+t5 = suma / 5.0
+promedio = t5
+write 'Matricula:\n'
+write matricula
+write '\n'
+write 'Promedio:\n'
+write promedio

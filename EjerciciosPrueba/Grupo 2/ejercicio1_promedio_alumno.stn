@@ -25,5 +25,6 @@ promedio = suma / 5.0;
 
 cout << "Matricula:\n";
 cout << matricula;
+cout << "\n";
 cout << "Promedio:\n";
 cout << promedio;

@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from PyQt5.QtCore import QEventLoop, Qt
-from PyQt5.QtWidgets import QDialog, QFileDialog, QInputDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QInputDialog, QMessageBox
 
 from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
@@ -469,6 +469,14 @@ def run_phase(window, phase: str) -> None:
     if not editor:
         return
 
+    if phase == "ejecucion" and getattr(window, "_tm_execution_active", False):
+        if window._console_panel is not None:
+            window._console_panel.append_errors(
+                "Ya hay una ejecución TM esperando datos. "
+                "Termínala antes de iniciar otro ejercicio."
+            )
+        return
+
     editor.clear_error_highlights()
     if window._console_panel is not None:
         window._console_panel.clear_all()
@@ -483,7 +491,11 @@ def run_phase(window, phase: str) -> None:
     save_file(window)
 
     if phase == "ejecucion":
-        _run_full_pipeline(window, str(current_file), editor)
+        window._tm_execution_active = True
+        try:
+            _run_full_pipeline(window, str(current_file), editor)
+        finally:
+            window._tm_execution_active = False
         return
 
     result = run_compiler(phase, str(current_file))
@@ -636,11 +648,22 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
     def terminal_output_callback(chunk: str) -> None:
         exec_widget.write_stream(chunk)
 
+    def terminal_step_callback(
+        current_pc: int,
+        _op: str,
+        stack: list[object],
+        memory: dict[object, object],
+    ) -> None:
+        window._analysis_panel.set_tm_execution_state(current_pc, stack, memory)
+        QApplication.processEvents()
+
     start_exec = time.perf_counter()
     success, status, outputs = machine.run(
         input_callback=terminal_input_callback,
-        output_callback=terminal_output_callback
+        output_callback=terminal_output_callback,
+        step_callback=terminal_step_callback,
     )
+    exec_widget.disable_input()
     exec_time_ms = (time.perf_counter() - start_exec) * 1000
 
     if window._console_panel is not None:
