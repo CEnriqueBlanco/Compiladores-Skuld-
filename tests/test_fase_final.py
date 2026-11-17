@@ -71,6 +71,20 @@ class TestCompiladorSkuldFaseFinal(unittest.TestCase):
         out = compile_and_run("examples/ejercicio5_ulam.stn", [6])
         self.assertEqual(out, ["6", "3", "10", "5", "16", "8", "4", "2", "1"])
 
+    def test_codigo_tm_usa_instrucciones_de_pila(self):
+        tokens, lex_errs = tokenize_file_with_recovery("examples/ejemplo_teclea_numero.stn")
+        self.assertFalse(lex_errs)
+        ast = SkuldParser(tokens).parse()
+        ann_ast, symtab, sem_errs = SemanticAnalyzer().analyze(ast)
+        self.assertFalse(sem_errs)
+
+        code = TMGenerator().generate(ann_ast, symtab)
+
+        self.assertIn("lda n", code)
+        self.assertIn("lod n", code)
+        self.assertIn("mpi", code)
+        self.assertNotIn("LD     ", code)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -285,7 +285,7 @@ línea correspondiente del editor y se resaltan visualmente.
 | `Ctrl+2` | Mostrar u ocultar terminal |
 | `Ctrl+3` | Mostrar u ocultar explorador |
 
-## Fases disponibles y pendientes
+## Fases disponibles
 
 Actualmente están implementadas y conectadas:
 
@@ -295,10 +295,17 @@ Actualmente están implementadas y conectadas:
 - Visualización del AST y del AST anotado.
 - Tabla de símbolos.
 - Reporte y resaltado de errores.
+- Código intermedio de tres direcciones (`--intermedio`).
+- Código TM de pila (`--tm`).
+- Ejecución del código TM (`--ejecutar`).
 
-La interfaz ya reserva acciones para **Código intermedio** y **Ejecución**,
-pero esas fases todavía no están implementadas en el compilador actual. No
-deben considerarse funcionalidad terminada.
+El código TM usa instrucciones de pila como `ldc`, `lod`, `lda`, `sto`, `adi`,
+`sbi`, `mpi`, `les`, `equ`, `fjp` y `ujp`. El archivo `.ci` es una salida
+didáctica independiente; la ejecución utiliza el `.tm`.
+
+Al ejecutar desde el IDE, el código generado se muestra en las pestañas
+`Intermedio` y `Código TM`, mientras que la salida del simulador aparece en la
+pestaña `Ejecución` del panel **Terminal**, ubicado debajo del editor.
 
 ## Estructura del proyecto
 
@@ -309,9 +316,15 @@ deben considerarse funcionalidad terminada.
 │   │   └── skuld_lexer.py
 │   ├── analisis_sintactico/
 │   │   └── skuld_parser.py
-│   └── analisis_semantico/
+│   ├── analisis_semantico/
 │       ├── semantic_analyzer.py
 │       └── symbol_table.py
+│   ├── codigo_intermedio/
+│   │   └── generator.py
+│   └── generacion_codigo/
+│       └── tm_generator.py
+├── ejecucion/
+│   └── tm_machine.py
 ├── ide/
 │   ├── main.py
 │   ├── main_window.py

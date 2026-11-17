@@ -341,8 +341,10 @@ class AnalysisPanel(QTabWidget):
 
     def set_tm_code(self, text: str) -> None:
         rows = []
+        instruction_number = 1
         for line in text.splitlines():
-            if not line.strip():
+            stripped = line.strip()
+            if not stripped or stripped.startswith(";"):
                 continue
             match = re.match(r"^\s*(?P<line>\d+):\s*(?P<code>.*?)(?:\t.*)?$", line)
             if match:
@@ -350,6 +352,9 @@ class AnalysisPanel(QTabWidget):
                     match.group("line"),
                     match.group("code").rstrip(),
                 ])
+            else:
+                rows.append([str(instruction_number), stripped])
+            instruction_number += 1
         self._set_code_rows(self._tm_code, rows)
 
     def set_symbols(self, text: str) -> None:

@@ -36,19 +36,24 @@ archivo TM que produjo el compilador.
   - `intermedio` → `--intermedio`
   - `ejecucion` → `--ejecutar`
 
+### Completado en esta fase
+
+- Generador de código intermedio de tres direcciones.
+- Generador de código TM con instrucciones de pila.
+- Simulador de la máquina de pila integrado al compilador.
+- Banderas CLI `--intermedio`, `--tm` y `--ejecutar`.
+- Visualización de `.ci` y `.tm` en el panel de analizadores.
+- Ejecución interactiva en la pestaña `Ejecución` del terminal inferior.
+- Pruebas automatizadas de generación y ejecución.
+
 ### Pendiente o incompleto
 
-- El CLI no implementa todavía `--intermedio`.
-- El CLI no implementa todavía `--ejecutar`.
-- No existe un generador Skuld de código de tres direcciones.
-- No existe un generador Skuld de instrucciones TM.
-- No existe un simulador TM integrado al proyecto.
-- Las acciones del IDE para código intermedio y ejecución no tienen una
-  implementación funcional detrás.
-- El panel inferior ya está ubicado debajo del editor, pero falta conectarlo a
-  la salida real del generador y del simulador.
-- Todavía no existe una matriz de pruebas que demuestre generación y ejecución
-  para cinco programas.
+- Implementar llamadas a funciones y marcos de activación en la máquina de
+  pila, si se requieren en la revisión.
+- Definir soporte de cadenas y flotantes con el mismo nivel de detalle que los
+  enteros.
+- Completar la matriz de evidencia para los cinco programas que entregue la
+  docente.
 
 ## 3. Flujo final esperado
 
@@ -120,19 +125,17 @@ La tabla de símbolos debe conservar, o calcular, al menos:
 - clase de símbolo;
 - parámetros y retorno cuando sea una función.
 
-Se debe definir una convención estable para los registros de la TM:
+La máquina de pila debe utilizar una convención estable:
 
-| Registro | Uso |
+| Elemento | Uso |
 |---|---|
-| `pc` | Contador de programa |
-| `mp` | Memoria temporal |
-| `gp` | Variables globales |
-| `ac` | Acumulador principal |
-| `ac1` | Segundo acumulador |
+| Pila de evaluación | Operandos y resultados temporales |
+| Memoria | Valores de variables, indexados por nombre o dirección |
+| `pc` | Contador de la instrucción actual |
+| Etiquetas | Destinos de `fjp`, `ujp` y `lab` |
 
-Esta convención sigue el modelo de `tiny-master/code.h`. La consulta del
-desplazamiento debe realizarse mediante la tabla de símbolos, no mediante
-posiciones inventadas por el generador.
+La salida debe conservar los nombres de las variables cuando sea posible, por
+ejemplo `lda x` y `lod x`, para que el código sea legible durante la revisión.
 
 ### Etapa 3: generar código intermedio de tres direcciones
 
@@ -163,8 +166,8 @@ al código TM.
 
 ### Etapa 4: generar instrucciones TM
 
-Crear un generador equivalente a `tiny-master/cgen.c`, adaptado a los nodos
-reales del AST de Skuld.
+Crear un generador de máquina de pila adaptado a los nodos reales del AST de
+Skuld.
 
 Se necesitan rutinas separadas para:
 
@@ -173,22 +176,27 @@ Se necesitan rutinas separadas para:
 - cargar constantes;
 - cargar identificadores;
 - almacenar resultados;
-- emitir operaciones aritméticas;
-- emitir comparaciones;
+- emitir operaciones aritméticas (`adi`, `sbi`, `mpi`, `dvi`, `mod`);
+- emitir comparaciones (`les`, `leq`, `grt`, `geq`, `equ`, `neq`);
 - emitir entrada y salida;
-- emitir saltos condicionales;
-- emitir saltos incondicionales;
-- finalizar el programa con `HALT`.
+- emitir saltos condicionales (`fjp`);
+- emitir saltos incondicionales (`ujp`);
+- emitir etiquetas (`lab`);
+- finalizar el programa con `stp`.
 
-También se necesita un emisor equivalente a `tiny-master/code.c` para:
+El formato visible debe parecerse al formulario de la especificación:
 
-- numerar instrucciones;
-- emitir instrucciones de registros;
-- emitir instrucciones registro-memoria;
-- reservar posiciones para saltos;
-- corregir destinos posteriormente;
-- calcular desplazamientos relativos al `pc`;
-- escribir el archivo `.tm`.
+```text
+ldc 5
+lda x
+sto
+lod x
+ldc 2
+mpi
+fjp L1
+ujp L2
+lab L1
+```
 
 La generación únicamente debe ejecutarse si léxico, sintaxis y semántica
 terminaron correctamente.
@@ -202,9 +210,9 @@ ejecutable desde Python. El simulador debe:
 - validar el formato de cada instrucción;
 - cargar la memoria de instrucciones;
 - ejecutar las instrucciones;
-- solicitar valores cuando encuentre `IN`;
-- acumular la salida de `OUT`;
-- detenerse con `HALT`;
+- solicitar valores cuando encuentre `inp`;
+- acumular la salida de `out` y `outc`;
+- detenerse con `stp`;
 - detectar errores de memoria, instrucciones inválidas y división entre cero;
 - devolver código de salida distinto de cero cuando falle.
 
@@ -253,7 +261,7 @@ El panel inferior debe funcionar así:
 
 El panel de analizadores debe distinguir claramente:
 
-- `Código TM`: instrucciones numeradas, registros, operandos y saltos;
+- `Código TM`: instrucciones de pila, operandos y etiquetas;
 - `Código intermedio (tres direcciones)`: temporales y etiquetas.
 
 Al ejecutar desde el IDE:
@@ -284,7 +292,7 @@ Para cada programa se debe registrar:
 | AST validado | No hay errores semánticos |
 | Tabla de símbolos | Tiene posiciones de memoria consistentes |
 | `.ci` | Tiene temporales y etiquetas correctos |
-| `.tm` | Tiene instrucciones TM numeradas y válidas |
+| `.tm` | Tiene instrucciones TM de pila válidas |
 | Ejecución | Produce el resultado esperado |
 | IDE | Muestra el código y la salida del mismo archivo fuente |
 
@@ -348,7 +356,7 @@ La fase estará terminada cuando:
 |---|---|
 | `CGEN.C` | Recorrido del árbol y traducción de sentencias/expresiones |
 | `CODE.C` | Emisión de instrucciones y corrección de saltos |
-| `CODE.H` | Convención de registros de la TM |
+| `CODE.H` | Referencia histórica de la TM de registros |
 | `TM.C` | Carga, validación y ejecución de instrucciones |
 | `MAIN.C` | Orden de fases y escritura del archivo `.tm` |
 

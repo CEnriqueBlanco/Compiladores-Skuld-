@@ -95,5 +95,5 @@ class TMEmitter:
             if i in self.code_map:
                 lines.append(self.code_map[i])
             else:
-                lines.append(f"{i:3d}:  HALT  0,0,0 \t* unfilled slot")
+                lines.append(f"{i:3d}:  STP  0,0,0 \t* unfilled slot")
         return "\n".join(lines) + "\n"

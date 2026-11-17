@@ -1,3 +1,3 @@
-from ejecucion.tm_machine import TMMachine, TMInstruction
+from ejecucion.tm_machine import TMMachine
 
-__all__ = ["TMMachine", "TMInstruction"]
+__all__ = ["TMMachine"]

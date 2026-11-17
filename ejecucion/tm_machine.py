@@ -1,258 +1,177 @@
-"""
-Simulador de la Tiny Machine (TM).
-Portado fielmente de TM.C de Kenneth C. Louden (tiny-master).
-"""
+"""Intérprete de la máquina de pila usada por el código TM de Skuld."""
 
-from typing import List, Tuple, Optional, Callable
+from __future__ import annotations
 
-
-class TMInstruction:
-    def __init__(self, op: str, arg1: int, arg2: int, arg3: int):
-        self.op: str = op
-        self.arg1: int = arg1
-        self.arg2: int = arg2
-        self.arg3: int = arg3
-
-    def __repr__(self) -> str:
-        return f"{self.op} {self.arg1}, {self.arg2}, {self.arg3}"
+import ast
+from typing import Callable, Optional
 
 
 class TMMachine:
-    IADDR_SIZE = 1024
-    DADDR_SIZE = 1024
-    NO_REGS = 8
-    PC_REG = 7
+    """Ejecuta el formato de pila mostrado en la especificación del proyecto."""
 
-    def __init__(self):
-        self.i_mem: List[TMInstruction] = [TMInstruction("HALT", 0, 0, 0) for _ in range(self.IADDR_SIZE)]
-        self.d_mem: List[int] = [0] * self.DADDR_SIZE
-        self.reg: List[int] = [0] * self.NO_REGS
-        self.output_buffer: List[str] = []
-        self.input_queue: List[int] = []
+    def __init__(self) -> None:
+        self.code: list[tuple[str, Optional[str]]] = []
+        self.labels: dict[str, int] = {}
+        self.stack: list[object] = []
+        self.memory: dict[object, object] = {}
+        self.output_buffer: list[str] = []
 
     def reset(self) -> None:
-        """Reinicia el estado de la máquina."""
-        self.d_mem = [0] * self.DADDR_SIZE
-        self.d_mem[0] = self.DADDR_SIZE - 1  # maxaddress inicial
-        self.reg = [0] * self.NO_REGS
+        self.stack = []
+        self.memory = {}
         self.output_buffer = []
 
     def load_code(self, tm_code_or_file: str) -> bool:
-        """
-        Lee el código TM (ya sea un string o una ruta de archivo) y llena i_mem.
-        Retorna True si la carga fue exitosa.
-        """
         self.reset()
-        lines = []
-        if "\n" in tm_code_or_file or tm_code_or_file.strip().startswith("*") or (len(tm_code_or_file) > 0 and tm_code_or_file[0].isdigit()):
-            lines = tm_code_or_file.splitlines()
+        if "\n" in tm_code_or_file or tm_code_or_file.lstrip().startswith(";"):
+            text = tm_code_or_file
         else:
-            with open(tm_code_or_file, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+            with open(tm_code_or_file, "r", encoding="utf-8") as code_file:
+                text = code_file.read()
 
-        for line in lines:
+        self.code = []
+        self.labels = {}
+        for line in text.splitlines():
             line = line.strip()
-            if not line or line.startswith("*"):
+            if not line or line.startswith(";"):
                 continue
-
-            # Remover comentarios si empiezan por * o si hay tab/espacio con comentario
-            # En CGEN/TMEmitter el comentario va tras tabulación o espacio con comentario
-            if "\t" in line:
-                line = line[:line.index("\t")].strip()
-            elif "*" in line:
-                line = line[:line.index("*")].strip()
-
-            parts = line.split(":", 1)
-            if len(parts) != 2:
+            parts = line.split(None, 1)
+            op = parts[0].lower()
+            argument = parts[1].strip() if len(parts) == 2 else None
+            if op == "lab":
+                if not argument:
+                    raise ValueError("La instrucción lab requiere una etiqueta.")
+                self.labels[argument] = len(self.code)
                 continue
-
-            try:
-                loc = int(parts[0].strip())
-            except ValueError:
-                continue
-
-            rest = parts[1].strip()
-            tokens = rest.split(None, 1)
-            if not tokens:
-                continue
-
-            op = tokens[0].upper()
-            args_str = tokens[1].strip() if len(tokens) > 1 else ""
-
-            # Analizar argumentos
-            r = s = t = d = 0
-            if op in ("HALT", "IN", "OUT", "OUTC", "ADD", "SUB", "MUL", "DIV"):
-                # Formato RO: r, s, t
-                sub_args = [a.strip() for a in args_str.split(",") if a.strip()]
-                if len(sub_args) >= 1:
-                    r = int(sub_args[0])
-                if len(sub_args) >= 2:
-                    s = int(sub_args[1])
-                if len(sub_args) >= 3:
-                    t = int(sub_args[2])
-                instr = TMInstruction(op, r, s, t)
-
-            elif op in ("LD", "ST", "LDA", "LDC", "JLT", "JLE", "JGT", "JGE", "JEQ", "JNE"):
-                # Formato RM / RA: r, d(s)
-                sub_args = args_str.split(",", 1)
-                r = int(sub_args[0].strip()) if len(sub_args) > 0 else 0
-                if len(sub_args) > 1:
-                    ds_part = sub_args[1].strip()
-                    if "(" in ds_part and ds_part.endswith(")"):
-                        d_str, s_str = ds_part[:-1].split("(")
-                        d = int(d_str.strip())
-                        s = int(s_str.strip())
-                    else:
-                        d = int(ds_part)
-                        s = 0
-                instr = TMInstruction(op, r, d, s)
-            else:
-                continue
-
-            if 0 <= loc < self.IADDR_SIZE:
-                self.i_mem[loc] = instr
-
+            self.code.append((op, argument))
         return True
+
+    @staticmethod
+    def _value(argument: Optional[str]) -> object:
+        if argument is None:
+            raise ValueError("Falta un operando.")
+        try:
+            return ast.literal_eval(argument)
+        except (ValueError, SyntaxError):
+            try:
+                return float(argument) if "." in argument else int(argument)
+            except ValueError as exc:
+                raise ValueError(f"Operando inválido: {argument}") from exc
 
     def run(
         self,
-        input_data: Optional[List[int]] = None,
-        input_callback: Optional[Callable[[], int]] = None,
+        input_data: Optional[list[object]] = None,
+        input_callback: Optional[Callable[[], object]] = None,
         output_callback: Optional[Callable[[str], None]] = None,
-        max_steps: int = 100000
-    ) -> Tuple[bool, str, List[str]]:
-        """
-        Ejecuta las instrucciones en i_mem.
-        Retorna (éxito, mensaje_estado, lista_salida_OUT).
-        """
-        self.d_mem[0] = self.DADDR_SIZE - 1
+        max_steps: int = 100000,
+    ) -> tuple[bool, str, list[str]]:
         self.output_buffer = []
-        if input_data:
-            self.input_queue = list(input_data)
-        else:
-            self.input_queue = []
+        inputs = list(input_data or [])
+        pc = 0
+        steps = 0
 
-        step_count = 0
-        while step_count < max_steps:
-            pc = self.reg[self.PC_REG]
-            if not (0 <= pc < self.IADDR_SIZE):
-                return False, f"Instruction Memory Fault en PC={pc}", self.output_buffer
+        def pop_number() -> object:
+            if not self.stack:
+                raise ValueError("La pila está vacía.")
+            return self.stack.pop()
 
-            instr = self.i_mem[pc]
-            self.reg[self.PC_REG] += 1
-            step_count += 1
+        try:
+            while pc < len(self.code) and steps < max_steps:
+                op, argument = self.code[pc]
+                pc += 1
+                steps += 1
 
-            op = instr.op
-            r = instr.arg1
-            s = instr.arg2
-            t = instr.arg3
-
-            # Instrucciones RR
-            if op == "HALT":
-                return True, "Halted", self.output_buffer
-
-            elif op == "IN":
-                val = 0
-                if self.input_queue:
-                    val = self.input_queue.pop(0)
-                elif input_callback:
-                    val = input_callback()
+                if op in ("stp", "hlt", "halt"):
+                    return True, "Halted", self.output_buffer
+                if op == "ldc":
+                    self.stack.append(self._value(argument))
+                elif op == "lod":
+                    key = self._address(argument)
+                    self.stack.append(self.memory.get(key, 0))
+                elif op == "lda":
+                    self.stack.append(self._address(argument))
+                elif op == "sto":
+                    if argument is None:
+                        value = pop_number()
+                        address = pop_number()
+                    else:
+                        address = self._address(argument)
+                        value = pop_number()
+                    self.memory[address] = value
+                elif op == "inp":
+                    if inputs:
+                        self.stack.append(inputs.pop(0))
+                    elif input_callback:
+                        self.stack.append(input_callback())
+                    else:
+                        try:
+                            self.stack.append(float(input("TM IN? ")))
+                        except (EOFError, ValueError):
+                            self.stack.append(0)
+                elif op in ("out", "outc"):
+                    value = pop_number()
+                    text = str(value) if op == "out" else str(value)
+                    self.output_buffer.append(text)
+                    if output_callback:
+                        output_callback(text + ("" if op == "outc" else "\n"))
+                elif op in ("adi", "sbi", "mpi", "dvi", "mod", "les", "leq", "grt", "geq", "equ", "neq", "and", "orr"):
+                    right = pop_number()
+                    left = pop_number()
+                    if op == "adi":
+                        result = left + right
+                    elif op == "sbi":
+                        result = left - right
+                    elif op == "mpi":
+                        result = left * right
+                    elif op in ("dvi", "mod"):
+                        if right == 0:
+                            return False, "Division por cero", self.output_buffer
+                        if op == "dvi":
+                            result = (
+                                left // right
+                                if isinstance(left, int) and isinstance(right, int)
+                                else left / right
+                            )
+                        else:
+                            result = left % right
+                    elif op == "les":
+                        result = left < right
+                    elif op == "leq":
+                        result = left <= right
+                    elif op == "grt":
+                        result = left > right
+                    elif op == "geq":
+                        result = left >= right
+                    elif op == "equ":
+                        result = left == right
+                    elif op == "neq":
+                        result = left != right
+                    elif op == "and":
+                        result = bool(left and right)
+                    else:
+                        result = bool(left or right)
+                    self.stack.append(result)
+                elif op == "not":
+                    self.stack.append(not pop_number())
+                elif op == "fjp":
+                    if not bool(pop_number()):
+                        pc = self.labels[argument or ""]
+                elif op == "ujp":
+                    pc = self.labels[argument or ""]
                 else:
-                    try:
-                        val = int(input("TM IN? "))
-                    except Exception:
-                        val = 0
-                self.reg[r] = val
+                    return False, f"Instrucción desconocida: {op}", self.output_buffer
+        except (KeyError, TypeError, ValueError, IndexError) as exc:
+            return False, str(exc), self.output_buffer
 
-            elif op == "OUT":
-                out_val = self.reg[r]
-                val_str = str(out_val)
-                self.output_buffer.append(val_str)
-                if output_callback:
-                    output_callback(val_str + "\n")
+        if steps >= max_steps:
+            return False, "Se excedió el máximo de pasos (posible ciclo infinito)", self.output_buffer
+        return False, f"El programa terminó sin stp (PC={pc})", self.output_buffer
 
-            elif op == "OUTC":
-                # Imprimir caracter ASCII
-                char_val = chr(self.reg[r] & 0xFF)
-                if self.output_buffer and not self.output_buffer[-1].endswith("\n"):
-                    self.output_buffer[-1] += char_val
-                else:
-                    self.output_buffer.append(char_val)
-                if output_callback:
-                    output_callback(char_val)
-
-            elif op == "ADD":
-                self.reg[r] = self.reg[s] + self.reg[t]
-            elif op == "SUB":
-                self.reg[r] = self.reg[s] - self.reg[t]
-            elif op == "MUL":
-                self.reg[r] = self.reg[s] * self.reg[t]
-            elif op == "DIV":
-                if self.reg[t] == 0:
-                    return False, "Division by 0", self.output_buffer
-                self.reg[r] = self.reg[s] // self.reg[t]
-
-            # Instrucciones RM / RA: s es registro base, arg2 es d (desplazamiento)
-            elif op == "LD":
-                d = instr.arg2
-                s_reg = instr.arg3
-                addr = d + self.reg[s_reg]
-                if not (0 <= addr < self.DADDR_SIZE):
-                    return False, f"Data Memory Fault en dirección={addr}", self.output_buffer
-                self.reg[r] = self.d_mem[addr]
-
-            elif op == "ST":
-                d = instr.arg2
-                s_reg = instr.arg3
-                addr = d + self.reg[s_reg]
-                if not (0 <= addr < self.DADDR_SIZE):
-                    return False, f"Data Memory Fault en dirección={addr}", self.output_buffer
-                self.d_mem[addr] = self.reg[r]
-
-            elif op == "LDA":
-                d = instr.arg2
-                s_reg = instr.arg3
-                self.reg[r] = d + self.reg[s_reg]
-
-            elif op == "LDC":
-                d = instr.arg2
-                self.reg[r] = d
-
-            # Saltos condicionales RA
-            elif op == "JLT":
-                d = instr.arg2
-                s_reg = instr.arg3
-                if self.reg[r] < 0:
-                    self.reg[self.PC_REG] = d + self.reg[s_reg]
-
-            elif op == "JLE":
-                d = instr.arg2
-                s_reg = instr.arg3
-                if self.reg[r] <= 0:
-                    self.reg[self.PC_REG] = d + self.reg[s_reg]
-
-            elif op == "JGT":
-                d = instr.arg2
-                s_reg = instr.arg3
-                if self.reg[r] > 0:
-                    self.reg[self.PC_REG] = d + self.reg[s_reg]
-
-            elif op == "JGE":
-                d = instr.arg2
-                s_reg = instr.arg3
-                if self.reg[r] >= 0:
-                    self.reg[self.PC_REG] = d + self.reg[s_reg]
-
-            elif op == "JEQ":
-                d = instr.arg2
-                s_reg = instr.arg3
-                if self.reg[r] == 0:
-                    self.reg[self.PC_REG] = d + self.reg[s_reg]
-
-            elif op == "JNE":
-                d = instr.arg2
-                s_reg = instr.arg3
-                if self.reg[r] != 0:
-                    self.reg[self.PC_REG] = d + self.reg[s_reg]
-
-        return False, "Exceeded maximum step count (posible bucle infinito)", self.output_buffer
+    @staticmethod
+    def _address(argument: Optional[str]) -> object:
+        if argument is None:
+            raise ValueError("Falta una dirección de memoria.")
+        try:
+            return int(argument)
+        except ValueError:
+            return argument
