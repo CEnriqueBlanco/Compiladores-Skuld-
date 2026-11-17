@@ -11,6 +11,8 @@
     ├── [Entrada / sphone (cin)] ID: b @ 7
     ├── [Entrada / sphone (cin)] ID: c @ 8
     ├── [Entrada / sphone (cin)] ID: d @ 9
+    ├── [Salida / dmail (cout)] @ 10
+    │   └── [Cadena] "-----------------------------------------\n" @ 10
     ├── [Salida / dmail (cout)] @ 11
     │   └── [Variable / ID] Nombre: d @ 11
     ├── [Salida / dmail (cout)] @ 12

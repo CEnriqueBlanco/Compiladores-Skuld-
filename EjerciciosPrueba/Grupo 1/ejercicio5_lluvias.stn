@@ -10,7 +10,7 @@ int region;
 
 mes = 1;
 while (mes <= 12) {
-    cout << "Escribe la lluvia de NORTE:\n";
+    cout << "Escribe la lluvia de NORTE en el mes " << mes << ":\n";
     cin >> lluvia;
     total_norte = total_norte + lluvia;
     mes = mes + 1;
@@ -18,7 +18,7 @@ while (mes <= 12) {
 
 mes = 1;
 while (mes <= 12) {
-    cout << "Escribe la lluvia de CENTRO:\n";
+    cout << "Escribe la lluvia de CENTRO en el mes " << mes << ":\n";
     cin >> lluvia;
     total_centro = total_centro + lluvia;
     mes = mes + 1;
@@ -27,7 +27,7 @@ while (mes <= 12) {
 mes = 1;
 mes_menor = 1;
 while (mes <= 12) {
-    cout << "Escribe la lluvia de SUR:\n";
+    cout << "Escribe la lluvia de SUR en el mes " << mes <<":\n";
     cin >> lluvia;
     total_sur = total_sur + lluvia;
     if (lluvia < menor_sur) {
