@@ -1,6 +1,7 @@
 float sueldo;
 float nuevo;
 
+cout << "Escribe el sueldo del trabajador:\n";
 cin >> sueldo;
 
 if (sueldo < 1000.0) {
@@ -9,5 +10,5 @@ if (sueldo < 1000.0) {
     nuevo = sueldo * 1.12;
 }
 
-cout << "Nuevo sueldo:";
+cout << "Nuevo sueldo:\n";
 cout << nuevo;

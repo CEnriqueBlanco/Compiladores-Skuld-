@@ -2,11 +2,14 @@ float a;
 float b;
 float c;
 
+cout << "Escribe el primer numero real:\n";
 cin >> a;
+cout << "Escribe el segundo numero real:\n";
 cin >> b;
+cout << "Escribe el tercer numero real:\n";
 cin >> c;
 
-cout << "Mayor:";
+cout << "Mayor:\n";
 if (a >= b && a >= c) {
     cout << a;
 } else {

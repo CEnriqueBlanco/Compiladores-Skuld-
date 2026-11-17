@@ -3,6 +3,7 @@ int i;
 int d;
 int suma;
 
+cout << "Escribe el valor de N:\n";
 cin >> n;
 
 i = 1;
@@ -16,7 +17,7 @@ while (i <= n) {
         d = d + 1;
     }
     if (suma == i) {
-        cout << "Numero perfecto:";
+        cout << "Numero perfecto:\n";
         cout << i;
     }
     i = i + 1;

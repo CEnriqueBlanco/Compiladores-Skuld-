@@ -4,9 +4,11 @@ float costo;
 float total = 0.0;
 int locales = 0;
 
+cout << "Escribe el tipo de llamada (1=Internacional, 2=Nacional, 3=Local, -1=Terminar):\n";
 cin >> tipo;
 
 while (tipo != 0 - 1) {
+    cout << "Escribe la duracion en minutos:\n";
     cin >> duracion;
 
     if (tipo == 1) {
@@ -33,11 +35,12 @@ while (tipo != 0 - 1) {
     }
 
     total = total + costo;
-    cout << "Costo de la llamada:";
+    cout << "Costo de la llamada:\n";
     cout << costo;
 
+    cout << "Escribe el tipo de la siguiente llamada (1=Internacional, 2=Nacional, 3=Local, -1=Terminar):\n";
     cin >> tipo;
 }
 
-cout << "Total a pagar:";
+cout << "Total a pagar:\n";
 cout << total;

@@ -4,14 +4,17 @@ int numero;
 int mayor;
 int menor;
 
+cout << "Escribe la cantidad N de numeros:\n";
 cin >> n;
 
 if (n > 0) {
+    cout << "Escribe el primer numero:\n";
     cin >> numero;
     mayor = numero;
     menor = numero;
     i = 2;
     while (i <= n) {
+        cout << "Escribe el siguiente numero:\n";
         cin >> numero;
         if (numero > mayor) {
             mayor = numero;
@@ -21,10 +24,10 @@ if (n > 0) {
         }
         i = i + 1;
     }
-    cout << "Mayor:";
+    cout << "Mayor:\n";
     cout << mayor;
-    cout << "Menor:";
+    cout << "Menor:\n";
     cout << menor;
 } else {
-    cout << "Sin datos";
+    cout << "Sin datos\n";
 }

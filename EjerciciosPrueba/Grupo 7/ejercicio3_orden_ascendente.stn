@@ -3,8 +3,11 @@ int b;
 int c;
 int temp;
 
+cout << "Escribe el primer numero entero:\n";
 cin >> a;
+cout << "Escribe el segundo numero entero:\n";
 cin >> b;
+cout << "Escribe el tercer numero entero:\n";
 cin >> c;
 
 if (a > b) {
@@ -23,7 +26,7 @@ if (b > c) {
     c = temp;
 }
 
-cout << "Orden ascendente:";
+cout << "Orden ascendente:\n";
 cout << a;
 cout << b;
 cout << c;

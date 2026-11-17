@@ -3,6 +3,7 @@ int hasta200 = 0;
 int entre200y400 = 0;
 int desde400 = 0;
 
+cout << "Escribe el monto de la venta (-1 para terminar):\n";
 cin >> monto;
 
 while (monto != 0 - 1) {
@@ -15,12 +16,13 @@ while (monto != 0 - 1) {
             desde400 = desde400 + 1;
         }
     }
+    cout << "Escribe el monto de la siguiente venta (-1 para terminar):\n";
     cin >> monto;
 }
 
-cout << "Ventas de 200 o menos:";
+cout << "Ventas de 200 o menos:\n";
 cout << hasta200;
-cout << "Ventas mayores a 200 e inferiores a 400:";
+cout << "Ventas mayores a 200 e inferiores a 400:\n";
 cout << entre200y400;
-cout << "Ventas de 400 o mas:";
+cout << "Ventas de 400 o mas:\n";
 cout << desde400;

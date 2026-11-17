@@ -14,13 +14,20 @@ int c3 = 0;
 int c4 = 0;
 int c5 = 0;
 
+cout << "Escribe el precio de la localidad 1:\n";
 cin >> p1;
+cout << "Escribe el precio de la localidad 2:\n";
 cin >> p2;
+cout << "Escribe el precio de la localidad 3:\n";
 cin >> p3;
+cout << "Escribe el precio de la localidad 4:\n";
 cin >> p4;
+cout << "Escribe el precio de la localidad 5:\n";
 cin >> p5;
 
+cout << "Escribe la clave de la localidad (1-5, -1 para terminar):\n";
 cin >> clave;
+cout << "Escribe la cantidad de boletos (-1 para terminar):\n";
 cin >> cantidad;
 
 while (clave != 0 - 1 && cantidad != 0 - 1) {
@@ -54,26 +61,28 @@ while (clave != 0 - 1 && cantidad != 0 - 1) {
     importe = cantidad * precio;
     recaudacion = recaudacion + importe;
 
-    cout << "Clave:";
+    cout << "Clave:\n";
     cout << clave;
-    cout << "Cantidad:";
+    cout << "Cantidad:\n";
     cout << cantidad;
-    cout << "Importe de la venta:";
+    cout << "Importe de la venta:\n";
     cout << importe;
 
+    cout << "Escribe la clave de la siguiente venta (1-5, -1 para terminar):\n";
     cin >> clave;
+    cout << "Escribe la cantidad de boletos de la siguiente venta (-1 para terminar):\n";
     cin >> cantidad;
 }
 
-cout << "Boletos tipo 1:";
+cout << "Boletos tipo 1:\n";
 cout << c1;
-cout << "Boletos tipo 2:";
+cout << "Boletos tipo 2:\n";
 cout << c2;
-cout << "Boletos tipo 3:";
+cout << "Boletos tipo 3:\n";
 cout << c3;
-cout << "Boletos tipo 4:";
+cout << "Boletos tipo 4:\n";
 cout << c4;
-cout << "Boletos tipo 5:";
+cout << "Boletos tipo 5:\n";
 cout << c5;
-cout << "Recaudacion total:";
+cout << "Recaudacion total:\n";
 cout << recaudacion;

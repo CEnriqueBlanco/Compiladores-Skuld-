@@ -10,6 +10,7 @@ int region;
 
 mes = 1;
 while (mes <= 12) {
+    cout << "Escribe la lluvia de NORTE:\n";
     cin >> lluvia;
     total_norte = total_norte + lluvia;
     mes = mes + 1;
@@ -17,6 +18,7 @@ while (mes <= 12) {
 
 mes = 1;
 while (mes <= 12) {
+    cout << "Escribe la lluvia de CENTRO:\n";
     cin >> lluvia;
     total_centro = total_centro + lluvia;
     mes = mes + 1;
@@ -25,6 +27,7 @@ while (mes <= 12) {
 mes = 1;
 mes_menor = 1;
 while (mes <= 12) {
+    cout << "Escribe la lluvia de SUR:\n";
     cin >> lluvia;
     total_sur = total_sur + lluvia;
     if (lluvia < menor_sur) {
@@ -36,11 +39,11 @@ while (mes <= 12) {
 
 promedio_centro = total_centro / 12.0;
 
-cout << "Promedio anual CENTRO:";
+cout << "Promedio anual CENTRO:\n";
 cout << promedio_centro;
-cout << "Mes con menor lluvia en SUR:";
+cout << "Mes con menor lluvia en SUR:\n";
 cout << mes_menor;
-cout << "Menor lluvia SUR:";
+cout << "Menor lluvia SUR:\n";
 cout << menor_sur;
 
 if (total_norte > total_centro && total_norte > total_sur) {
@@ -53,5 +56,5 @@ if (total_norte > total_centro && total_norte > total_sur) {
     }
 }
 
-cout << "Region con mayor lluvia anual (1=NORTE, 2=CENTRO, 3=SUR):";
+cout << "Region con mayor lluvia anual (1=NORTE, 2=CENTRO, 3=SUR):\n";
 cout << region;

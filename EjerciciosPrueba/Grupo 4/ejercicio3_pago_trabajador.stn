@@ -4,8 +4,11 @@ float sueldo;
 float tarifa;
 float pago;
 
+cout << "Escribe la categoria del trabajador:\n";
 cin >> categoria;
+cout << "Escribe el sueldo del trabajador:\n";
 cin >> sueldo;
+cout << "Escribe las horas extras trabajadas:\n";
 cin >> horas;
 
 if (horas > 30) {
@@ -36,7 +39,7 @@ if (categoria <= 4) {
     pago = sueldo;
 }
 
-cout << "Categoria:";
+cout << "Categoria:\n";
 cout << categoria;
-cout << "Pago total:";
+cout << "Pago total:\n";
 cout << pago;

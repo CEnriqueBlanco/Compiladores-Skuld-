@@ -4,9 +4,13 @@ int semestre;
 float promedio;
 int aceptado = 0;
 
+cout << "Escribe la matricula del alumno:\n";
 cin >> matricula;
+cout << "Escribe la carrera (1=Economia, 2=Computacion, 3=Administracion, 4=Contabilidad):\n";
 cin >> carrera;
+cout << "Escribe el semestre:\n";
 cin >> semestre;
+cout << "Escribe el promedio:\n";
 cin >> promedio;
 
 if (carrera == 1) {
@@ -33,9 +37,9 @@ if (carrera == 1) {
     }
 }
 
-cout << "Matricula:";
+cout << "Matricula:\n";
 cout << matricula;
-cout << "Carrera:";
+cout << "Carrera:\n";
 cout << carrera;
-cout << "Aceptado=1:";
+cout << "Aceptado=1:\n";
 cout << aceptado;

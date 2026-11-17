@@ -3,11 +3,13 @@ int b;
 int suma;
 float resultado;
 
+cout << "Escribe el valor de A:\n";
 cin >> a;
+cout << "Escribe el valor de B:\n";
 cin >> b;
 
 suma = a + b;
 resultado = (suma * suma) / 3.0;
 
-cout << "Resultado de (A+B)^2/3:";
+cout << "Resultado de (A+B)^2/3:\n";
 cout << resultado;

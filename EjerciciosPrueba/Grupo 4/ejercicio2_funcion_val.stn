@@ -4,7 +4,9 @@ int k;
 float val;
 float potencia;
 
+cout << "Escribe el valor de NUM:\n";
 cin >> num;
+cout << "Escribe el valor de V:\n";
 cin >> v;
 
 if (num == 1) {
@@ -31,5 +33,5 @@ if (num == 1) {
     }
 }
 
-cout << "VAL:";
+cout << "VAL:\n";
 cout << val;

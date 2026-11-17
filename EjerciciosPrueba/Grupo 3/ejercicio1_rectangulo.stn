@@ -3,13 +3,15 @@ float altura;
 float perimetro;
 float area;
 
+cout << "Escribe la base del rectangulo:\n";
 cin >> base;
+cout << "Escribe la altura del rectangulo:\n";
 cin >> altura;
 
 perimetro = 2.0 * base + 2.0 * altura;
 area = base * altura;
 
-cout << "Perimetro:";
+cout << "Perimetro:\n";
 cout << perimetro;
-cout << "Area:";
+cout << "Area:\n";
 cout << area;

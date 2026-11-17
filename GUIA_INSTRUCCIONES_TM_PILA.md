@@ -112,7 +112,7 @@ lab L2
 |---|---|
 | `inp` | Lee un dato del usuario y lo coloca en la pila. |
 | `out` | Muestra un valor numérico de la pila. |
-| `outc` | Muestra una cadena de texto de la pila. |
+| `outc` | Muestra una cadena de texto de la pila, respetando `\n`. |
 
 Entrada de una variable:
 
@@ -131,9 +131,12 @@ cin >> n;
 Salida de texto:
 
 ```text
-ldc 'Resultado: '
+ldc 'Resultado:\n'
 outc
 ```
+
+La máquina no agrega saltos automáticamente. El salto ocurre únicamente si
+el texto del programa contiene `\n`.
 
 Salida de un número:
 

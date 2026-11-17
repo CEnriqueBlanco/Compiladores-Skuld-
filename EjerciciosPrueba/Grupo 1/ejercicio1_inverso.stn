@@ -3,12 +3,16 @@ int b;
 int c;
 int d;
 
+cout << "Escribe el primer numero:\n";
 cin >> a;
+cout << "Escribe el segundo numero:\n";
 cin >> b;
+cout << "Escribe el tercer numero:\n";
 cin >> c;
+cout << "Escribe el cuarto numero:\n";
 cin >> d;
 
-cout << "Orden inverso:";
+cout << "Orden inverso:\n";
 cout << d;
 cout << c;
 cout << b;

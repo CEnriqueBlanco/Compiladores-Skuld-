@@ -1,6 +1,7 @@
 int numero;
 int resultado;
 
+cout << "Escribe un numero entero:\n";
 cin >> numero;
 
 if (numero > 0) {
@@ -13,5 +14,5 @@ if (numero > 0) {
     }
 }
 
-cout << "Resultado (positivo=0, negativo=1, nulo=2):";
+cout << "Resultado (positivo=0, negativo=1, nulo=2):\n";
 cout << resultado;

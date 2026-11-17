@@ -3,7 +3,9 @@ float minutos;
 float precio;
 float costo;
 
+cout << "Escribe la clave de la zona:\n";
 cin >> clave;
+cout << "Escribe los minutos hablados:\n";
 cin >> minutos;
 
 if (clave == 12) {
@@ -38,5 +40,5 @@ if (clave == 12) {
 
 costo = precio * minutos;
 
-cout << "Costo total de la llamada:";
+cout << "Costo total de la llamada:\n";
 cout << costo;

@@ -1,6 +1,7 @@
 float calificacion;
 int resultado;
 
+cout << "Escribe la calificacion del examen:\n";
 cin >> calificacion;
 
 if (calificacion >= 8.0) {
@@ -9,5 +10,5 @@ if (calificacion >= 8.0) {
     resultado = 0;
 }
 
-cout << "Aprobado=1, Reprobado=0:";
+cout << "Aprobado=1, Reprobado=0:\n";
 cout << resultado;

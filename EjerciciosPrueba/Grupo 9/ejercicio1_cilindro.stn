@@ -4,13 +4,15 @@ float area;
 float volumen;
 float pi = 3.1416;
 
+cout << "Escribe el radio del cilindro:\n";
 cin >> radio;
+cout << "Escribe la altura del cilindro:\n";
 cin >> altura;
 
 area = 2.0 * pi * radio * altura;
 volumen = pi * radio * radio * altura;
 
-cout << "Area:";
+cout << "Area:\n";
 cout << area;
-cout << "Volumen:";
+cout << "Volumen:\n";
 cout << volumen;

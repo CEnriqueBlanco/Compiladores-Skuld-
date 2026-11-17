@@ -3,6 +3,7 @@ int i;
 int signo;
 float suma = 0.0;
 
+cout << "Escribe el valor de N:\n";
 cin >> n;
 
 i = 1;
@@ -17,5 +18,5 @@ while (i <= n) {
     i = i + 1;
 }
 
-cout << "Resultado de la serie:";
+cout << "Resultado de la serie:\n";
 cout << suma;

@@ -3,7 +3,9 @@ float sueldo;
 float aumento;
 float nuevo;
 
+cout << "Escribe la categoria del trabajador (1-4):\n";
 cin >> categoria;
+cout << "Escribe el sueldo del trabajador:\n";
 cin >> sueldo;
 
 if (categoria == 1) {
@@ -26,7 +28,7 @@ if (categoria == 1) {
 
 nuevo = sueldo + aumento;
 
-cout << "Categoria:";
+cout << "Categoria:\n";
 cout << categoria;
-cout << "Nuevo sueldo:";
+cout << "Nuevo sueldo:\n";
 cout << nuevo;

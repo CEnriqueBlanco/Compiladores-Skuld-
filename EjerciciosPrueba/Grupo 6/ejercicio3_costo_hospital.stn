@@ -4,8 +4,11 @@ int dias;
 float costo_dia;
 float total;
 
+cout << "Escribe el tipo de enfermedad (1-4):\n";
 cin >> tipo;
+cout << "Escribe la edad del paciente:\n";
 cin >> edad;
+cout << "Escribe los dias de internacion:\n";
 cin >> dias;
 
 if (tipo == 1) {
@@ -32,5 +35,5 @@ if (edad >= 14 && edad <= 22) {
     total = total * 1.10;
 }
 
-cout << "Costo total del paciente:";
+cout << "Costo total del paciente:\n";
 cout << total;

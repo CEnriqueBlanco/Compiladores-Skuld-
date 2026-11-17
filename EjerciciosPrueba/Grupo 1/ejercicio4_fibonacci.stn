@@ -4,14 +4,15 @@ int b;
 int temp;
 int i;
 
+cout << "Escribe el valor de N:\n";
 cin >> n;
 
 if (n == 0) {
-    cout << "Fibonacci:";
+    cout << "Fibonacci:\n";
     cout << 0;
 } else {
     if (n == 1) {
-        cout << "Fibonacci:";
+        cout << "Fibonacci:\n";
         cout << 1;
     } else {
         a = 0;
@@ -23,7 +24,7 @@ if (n == 0) {
             b = temp;
             i = i + 1;
         }
-        cout << "Fibonacci:";
+        cout << "Fibonacci:\n";
         cout << b;
     }
 }

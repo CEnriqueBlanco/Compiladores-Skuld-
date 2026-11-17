@@ -1,9 +1,10 @@
 int dias;
 int segundos;
 
+cout << "Escribe el numero de dias:\n";
 cin >> dias;
 
 segundos = dias * 24 * 60 * 60;
 
-cout << "Segundos:";
+cout << "Segundos:\n";
 cout << segundos;

@@ -110,10 +110,10 @@ class TMMachine:
                             self.stack.append(0)
                 elif op in ("out", "outc"):
                     value = pop_number()
-                    text = str(value) if op == "out" else str(value)
+                    text = str(value) if op == "out" else self._decode_string(value)
                     self.output_buffer.append(text)
                     if output_callback:
-                        output_callback(text + ("" if op == "outc" else "\n"))
+                        output_callback(text)
                 elif op in ("adi", "sbi", "mpi", "dvi", "mod", "les", "leq", "grt", "geq", "equ", "neq", "and", "orr"):
                     right = pop_number()
                     left = pop_number()
@@ -175,3 +175,15 @@ class TMMachine:
             return int(argument)
         except ValueError:
             return argument
+
+    @staticmethod
+    def _decode_string(value: object) -> str:
+        text = str(value)
+        return (
+            text.replace("\\\\", "\0")
+            .replace("\\n", "\n")
+            .replace("\\r", "\r")
+            .replace("\\t", "\t")
+            .replace('\\"', '"')
+            .replace("\0", "\\")
+        )

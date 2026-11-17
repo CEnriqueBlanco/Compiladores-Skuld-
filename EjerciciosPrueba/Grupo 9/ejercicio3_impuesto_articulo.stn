@@ -2,6 +2,7 @@ float costo;
 float impuesto;
 float total;
 
+cout << "Escribe el costo basico del articulo:\n";
 cin >> costo;
 
 if (costo <= 20.0) {
@@ -20,9 +21,9 @@ if (costo <= 20.0) {
 
 total = costo + impuesto;
 
-cout << "Costo basico:";
+cout << "Costo basico:\n";
 cout << costo;
-cout << "Impuesto:";
+cout << "Impuesto:\n";
 cout << impuesto;
-cout << "Precio total:";
+cout << "Precio total:\n";
 cout << total;

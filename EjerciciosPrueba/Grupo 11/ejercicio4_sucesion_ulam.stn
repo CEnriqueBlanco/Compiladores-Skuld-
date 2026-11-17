@@ -1,8 +1,9 @@
 int n;
 
+cout << "Escribe un entero positivo:\n";
 cin >> n;
 
-cout << "Sucesion de ULAM:";
+cout << "Sucesion de ULAM:\n";
 while (n > 1) {
     cout << n;
     if (n / 2 * 2 == n) {

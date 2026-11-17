@@ -8,16 +8,19 @@ float julio;
 float mayor_total = 0.0 - 1.0;
 int mayor_clave = 0;
 
+cout << "Escribe el numero de fabricas:\n";
 cin >> n;
 
 i = 1;
 while (i <= n) {
+    cout << "Escribe la clave de la fabrica:\n";
     cin >> clave;
     total = 0.0;
     julio = 0.0;
 
     mes = 1;
     while (mes <= 12) {
+        cout << "Escribe la produccion del mes:\n";
         cin >> produccion;
         total = total + produccion;
         if (mes == 7) {
@@ -26,9 +29,9 @@ while (i <= n) {
         mes = mes + 1;
     }
 
-    cout << "Fabrica:";
+    cout << "Fabrica:\n";
     cout << clave;
-    cout << "Total anual:";
+    cout << "Total anual:\n";
     cout << total;
 
     if (total > mayor_total) {
@@ -37,14 +40,14 @@ while (i <= n) {
     }
 
     if (julio > 3000000.0) {
-        cout << "Fabrica con julio mayor a 3000000:";
+        cout << "Fabrica con julio mayor a 3000000:\n";
         cout << clave;
     }
 
     i = i + 1;
 }
 
-cout << "Fabrica con mayor produccion anual:";
+cout << "Fabrica con mayor produccion anual:\n";
 cout << mayor_clave;
-cout << "Total producido:";
+cout << "Total producido:\n";
 cout << mayor_total;

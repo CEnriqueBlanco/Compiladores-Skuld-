@@ -9,6 +9,7 @@ float p2;
 float p3;
 float p4;
 
+cout << "Escribe un voto (1-4, 0 para terminar):\n";
 cin >> voto;
 
 while (voto != 0) {
@@ -28,18 +29,19 @@ while (voto != 0) {
         }
     }
     total = total + 1;
+    cout << "Escribe el siguiente voto (1-4, 0 para terminar):\n";
     cin >> voto;
 }
 
-cout << "Votos candidato 1:";
+cout << "Votos candidato 1:\n";
 cout << c1;
-cout << "Votos candidato 2:";
+cout << "Votos candidato 2:\n";
 cout << c2;
-cout << "Votos candidato 3:";
+cout << "Votos candidato 3:\n";
 cout << c3;
-cout << "Votos candidato 4:";
+cout << "Votos candidato 4:\n";
 cout << c4;
-cout << "Total de votos:";
+cout << "Total de votos:\n";
 cout << total;
 
 if (total > 0) {
@@ -47,12 +49,12 @@ if (total > 0) {
     p2 = c2 * 100.0 / total;
     p3 = c3 * 100.0 / total;
     p4 = c4 * 100.0 / total;
-    cout << "Porcentaje candidato 1:";
+    cout << "Porcentaje candidato 1:\n";
     cout << p1;
-    cout << "Porcentaje candidato 2:";
+    cout << "Porcentaje candidato 2:\n";
     cout << p2;
-    cout << "Porcentaje candidato 3:";
+    cout << "Porcentaje candidato 3:\n";
     cout << p3;
-    cout << "Porcentaje candidato 4:";
+    cout << "Porcentaje candidato 4:\n";
     cout << p4;
 }

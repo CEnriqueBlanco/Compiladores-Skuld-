@@ -2,6 +2,7 @@ float monto;
 float descuento;
 float total;
 
+cout << "Escribe el monto de la compra:\n";
 cin >> monto;
 
 if (monto < 500.0) {
@@ -24,7 +25,7 @@ if (monto < 500.0) {
 
 total = monto - descuento;
 
-cout << "Descuento:";
+cout << "Descuento:\n";
 cout << descuento;
-cout << "Total a pagar:";
+cout << "Total a pagar:\n";
 cout << total;

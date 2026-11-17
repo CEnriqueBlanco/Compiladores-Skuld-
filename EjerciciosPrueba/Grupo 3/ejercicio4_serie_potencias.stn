@@ -4,6 +4,7 @@ int j;
 int potencia;
 int suma;
 
+cout << "Escribe el valor de N:\n";
 cin >> n;
 
 suma = 0;
@@ -19,5 +20,5 @@ while (i <= n) {
     i = i + 1;
 }
 
-cout << "Suma de la serie:";
+cout << "Suma de la serie:\n";
 cout << suma;

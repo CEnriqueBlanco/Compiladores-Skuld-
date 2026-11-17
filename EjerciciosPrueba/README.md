@@ -43,6 +43,9 @@ terminan con un centinela:
   los cinco tipos de vino.
 - Lluvias: 12 registros de NORTE, 12 de CENTRO y 12 de SUR, en ese orden.
 
+Cada programa muestra un mensaje antes de pedir cada dato y usa `\n` al final
+de las cadenas de salida para separar las lineas.
+
 Los programas usan solamente variables escalares, `if` / `else`, `while`,
 `cin` y `cout`, porque el generador TM actual no soporta arreglos ni llamadas
 a funciones. Para evitar el manejo de signos unarios que no esta implementado

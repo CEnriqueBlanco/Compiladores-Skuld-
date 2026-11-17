@@ -6,7 +6,9 @@ int q2;
 int q4;
 int expresion;
 
+cout << "Escribe el valor de P:\n";
 cin >> p;
+cout << "Escribe el valor de Q:\n";
 cin >> q;
 
 p2 = p * p;
@@ -16,9 +18,9 @@ q4 = q2 * q2;
 expresion = p3 + q4 - 2 * p2;
 
 if (expresion < 680) {
-    cout << "Satisfacen la expresion:";
+    cout << "Satisfacen la expresion:\n";
     cout << 1;
 } else {
-    cout << "Satisfacen la expresion:";
+    cout << "Satisfacen la expresion:\n";
     cout << 0;
 }

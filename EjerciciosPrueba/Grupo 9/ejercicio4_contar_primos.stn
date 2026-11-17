@@ -4,6 +4,7 @@ int d;
 int cuenta = 0;
 bool primo;
 
+cout << "Escribe el valor de M:\n";
 cin >> m;
 
 n = 2;
@@ -22,5 +23,5 @@ while (n < m) {
     n = n + 1;
 }
 
-cout << "Cantidad de primos menores a M:";
+cout << "Cantidad de primos menores a M:\n";
 cout << cuenta;
