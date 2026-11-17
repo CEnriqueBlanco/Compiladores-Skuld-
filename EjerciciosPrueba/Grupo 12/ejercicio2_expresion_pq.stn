@@ -1,0 +1,24 @@
+int p;
+int q;
+int p2;
+int p3;
+int q2;
+int q4;
+int expresion;
+
+cin >> p;
+cin >> q;
+
+p2 = p * p;
+p3 = p2 * p;
+q2 = q * q;
+q4 = q2 * q2;
+expresion = p3 + q4 - 2 * p2;
+
+if (expresion < 680) {
+    cout << "Satisfacen la expresion:";
+    cout << 1;
+} else {
+    cout << "Satisfacen la expresion:";
+    cout << 0;
+}

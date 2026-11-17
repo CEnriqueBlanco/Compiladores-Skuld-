@@ -1,0 +1,41 @@
+int matricula;
+int carrera;
+int semestre;
+float promedio;
+int aceptado = 0;
+
+cin >> matricula;
+cin >> carrera;
+cin >> semestre;
+cin >> promedio;
+
+if (carrera == 1) {
+    if (semestre >= 6 && promedio >= 8.8) {
+        aceptado = 1;
+    }
+} else {
+    if (carrera == 2) {
+        if (semestre > 6 && promedio > 8.5) {
+            aceptado = 1;
+        }
+    } else {
+        if (carrera == 3) {
+            if (semestre > 5 && promedio > 8.5) {
+                aceptado = 1;
+            }
+        } else {
+            if (carrera == 4) {
+                if (semestre > 5 && promedio > 8.5) {
+                    aceptado = 1;
+                }
+            }
+        }
+    }
+}
+
+cout << "Matricula:";
+cout << matricula;
+cout << "Carrera:";
+cout << carrera;
+cout << "Aceptado=1:";
+cout << aceptado;

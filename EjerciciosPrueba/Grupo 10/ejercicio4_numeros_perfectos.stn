@@ -1,0 +1,23 @@
+int n;
+int i;
+int d;
+int suma;
+
+cin >> n;
+
+i = 1;
+while (i <= n) {
+    suma = 0;
+    d = 1;
+    while (d < i) {
+        if (i % d == 0) {
+            suma = suma + d;
+        }
+        d = d + 1;
+    }
+    if (suma == i) {
+        cout << "Numero perfecto:";
+        cout << i;
+    }
+    i = i + 1;
+}

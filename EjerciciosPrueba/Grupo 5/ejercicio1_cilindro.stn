@@ -1,0 +1,16 @@
+float radio;
+float altura;
+float area;
+float volumen;
+float pi = 3.1416;
+
+cin >> radio;
+cin >> altura;
+
+area = 2.0 * pi * radio * altura;
+volumen = pi * radio * radio * altura;
+
+cout << "Area:";
+cout << area;
+cout << "Volumen:";
+cout << volumen;

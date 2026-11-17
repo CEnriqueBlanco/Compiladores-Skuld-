@@ -1,0 +1,17 @@
+int a;
+int b;
+int c;
+int resultado;
+
+cin >> a;
+cin >> b;
+cin >> c;
+
+if (a < b && b < c) {
+    resultado = 1;
+} else {
+    resultado = 0;
+}
+
+cout << "Creciente=1, No=0:";
+cout << resultado;

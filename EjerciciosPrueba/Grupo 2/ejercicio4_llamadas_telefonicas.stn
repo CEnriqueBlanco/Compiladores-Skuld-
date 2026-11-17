@@ -1,0 +1,43 @@
+int tipo;
+float duracion;
+float costo;
+float total = 0.0;
+int locales = 0;
+
+cin >> tipo;
+
+while (tipo != 0 - 1) {
+    cin >> duracion;
+
+    if (tipo == 1) {
+        if (duracion <= 3.0) {
+            costo = 7.59;
+        } else {
+            costo = 7.59 + (duracion - 3.0) * 3.03;
+        }
+    } else {
+        if (tipo == 2) {
+            if (duracion <= 3.0) {
+                costo = 1.20;
+            } else {
+                costo = 1.20 + (duracion - 3.0) * 0.48;
+            }
+        } else {
+            locales = locales + 1;
+            if (locales > 50) {
+                costo = 0.60;
+            } else {
+                costo = 0.0;
+            }
+        }
+    }
+
+    total = total + costo;
+    cout << "Costo de la llamada:";
+    cout << costo;
+
+    cin >> tipo;
+}
+
+cout << "Total a pagar:";
+cout << total;

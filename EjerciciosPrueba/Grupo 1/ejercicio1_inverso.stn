@@ -1,0 +1,15 @@
+int a;
+int b;
+int c;
+int d;
+
+cin >> a;
+cin >> b;
+cin >> c;
+cin >> d;
+
+cout << "Orden inverso:";
+cout << d;
+cout << c;
+cout << b;
+cout << a;

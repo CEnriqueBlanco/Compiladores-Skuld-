@@ -1,0 +1,14 @@
+int numero;
+int ceros = 0;
+
+cin >> numero;
+
+while (numero != 0 - 1) {
+    if (numero == 0) {
+        ceros = ceros + 1;
+    }
+    cin >> numero;
+}
+
+cout << "Cantidad de ceros:";
+cout << ceros;

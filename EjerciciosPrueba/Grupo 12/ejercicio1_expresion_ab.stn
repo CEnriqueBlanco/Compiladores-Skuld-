@@ -1,0 +1,13 @@
+int a;
+int b;
+int suma;
+float resultado;
+
+cin >> a;
+cin >> b;
+
+suma = a + b;
+resultado = (suma * suma) / 3.0;
+
+cout << "Resultado de (A+B)^2/3:";
+cout << resultado;

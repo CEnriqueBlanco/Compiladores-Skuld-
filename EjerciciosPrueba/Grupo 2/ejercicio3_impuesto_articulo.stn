@@ -1,0 +1,28 @@
+float costo;
+float impuesto;
+float total;
+
+cin >> costo;
+
+if (costo <= 20.0) {
+    impuesto = 0.0;
+} else {
+    if (costo <= 40.0) {
+        impuesto = (costo - 20.0) * 0.30;
+    } else {
+        if (costo > 500.0) {
+            impuesto = 20.0 * 0.30 + (costo - 40.0) * 0.50;
+        } else {
+            impuesto = 20.0 * 0.30 + (costo - 40.0) * 0.40;
+        }
+    }
+}
+
+total = costo + impuesto;
+
+cout << "Costo basico:";
+cout << costo;
+cout << "Impuesto:";
+cout << impuesto;
+cout << "Precio total:";
+cout << total;

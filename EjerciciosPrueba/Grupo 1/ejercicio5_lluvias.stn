@@ -1,0 +1,57 @@
+float lluvia;
+float total_norte = 0.0;
+float total_centro = 0.0;
+float total_sur = 0.0;
+float promedio_centro = 0.0;
+float menor_sur = 999999.0;
+int mes;
+int mes_menor;
+int region;
+
+mes = 1;
+while (mes <= 12) {
+    cin >> lluvia;
+    total_norte = total_norte + lluvia;
+    mes = mes + 1;
+}
+
+mes = 1;
+while (mes <= 12) {
+    cin >> lluvia;
+    total_centro = total_centro + lluvia;
+    mes = mes + 1;
+}
+
+mes = 1;
+mes_menor = 1;
+while (mes <= 12) {
+    cin >> lluvia;
+    total_sur = total_sur + lluvia;
+    if (lluvia < menor_sur) {
+        menor_sur = lluvia;
+        mes_menor = mes;
+    }
+    mes = mes + 1;
+}
+
+promedio_centro = total_centro / 12.0;
+
+cout << "Promedio anual CENTRO:";
+cout << promedio_centro;
+cout << "Mes con menor lluvia en SUR:";
+cout << mes_menor;
+cout << "Menor lluvia SUR:";
+cout << menor_sur;
+
+if (total_norte > total_centro && total_norte > total_sur) {
+    region = 1;
+} else {
+    if (total_centro > total_norte && total_centro > total_sur) {
+        region = 2;
+    } else {
+        region = 3;
+    }
+}
+
+cout << "Region con mayor lluvia anual (1=NORTE, 2=CENTRO, 3=SUR):";
+cout << region;

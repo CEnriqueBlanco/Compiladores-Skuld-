@@ -1,0 +1,15 @@
+float peso_libras;
+float longitud_pies;
+float peso_kilos;
+float longitud_metros;
+
+cin >> peso_libras;
+cin >> longitud_pies;
+
+peso_kilos = peso_libras * 0.453592;
+longitud_metros = longitud_pies * 0.3048;
+
+cout << "Peso en kilogramos:";
+cout << peso_kilos;
+cout << "Longitud en metros:";
+cout << longitud_metros;

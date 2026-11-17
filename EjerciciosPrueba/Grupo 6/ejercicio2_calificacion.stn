@@ -1,0 +1,13 @@
+float calificacion;
+int resultado;
+
+cin >> calificacion;
+
+if (calificacion >= 8.0) {
+    resultado = 1;
+} else {
+    resultado = 0;
+}
+
+cout << "Aprobado=1, Reprobado=0:";
+cout << resultado;

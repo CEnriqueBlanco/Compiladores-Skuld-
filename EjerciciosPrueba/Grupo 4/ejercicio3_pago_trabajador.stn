@@ -1,0 +1,42 @@
+int categoria;
+int horas;
+float sueldo;
+float tarifa;
+float pago;
+
+cin >> categoria;
+cin >> sueldo;
+cin >> horas;
+
+if (horas > 30) {
+    horas = 30;
+}
+
+if (categoria == 1) {
+    tarifa = 30.0;
+} else {
+    if (categoria == 2) {
+        tarifa = 38.0;
+    } else {
+        if (categoria == 3) {
+            tarifa = 50.0;
+        } else {
+            if (categoria == 4) {
+                tarifa = 70.0;
+            } else {
+                tarifa = 0.0;
+            }
+        }
+    }
+}
+
+if (categoria <= 4) {
+    pago = sueldo + horas * tarifa;
+} else {
+    pago = sueldo;
+}
+
+cout << "Categoria:";
+cout << categoria;
+cout << "Pago total:";
+cout << pago;

@@ -1,0 +1,15 @@
+float base;
+float altura;
+float perimetro;
+float area;
+
+cin >> base;
+cin >> altura;
+
+perimetro = 2.0 * base + 2.0 * altura;
+area = base * altura;
+
+cout << "Perimetro:";
+cout << perimetro;
+cout << "Area:";
+cout << area;

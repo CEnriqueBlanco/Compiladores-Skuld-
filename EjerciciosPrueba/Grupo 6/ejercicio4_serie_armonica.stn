@@ -1,0 +1,21 @@
+int n;
+int i;
+int signo;
+float suma = 0.0;
+
+cin >> n;
+
+i = 1;
+signo = 1;
+while (i <= n) {
+    if (signo == 1) {
+        suma = suma + 1.0 / i;
+    } else {
+        suma = suma - 1.0 / i;
+    }
+    signo = 0 - signo;
+    i = i + 1;
+}
+
+cout << "Resultado de la serie:";
+cout << suma;

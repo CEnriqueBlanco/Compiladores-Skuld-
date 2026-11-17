@@ -1,0 +1,79 @@
+float p1;
+float p2;
+float p3;
+float p4;
+float p5;
+float precio;
+float importe;
+float recaudacion = 0.0;
+int clave;
+int cantidad;
+int c1 = 0;
+int c2 = 0;
+int c3 = 0;
+int c4 = 0;
+int c5 = 0;
+
+cin >> p1;
+cin >> p2;
+cin >> p3;
+cin >> p4;
+cin >> p5;
+
+cin >> clave;
+cin >> cantidad;
+
+while (clave != 0 - 1 && cantidad != 0 - 1) {
+    if (clave == 1) {
+        precio = p1;
+        c1 = c1 + cantidad;
+    } else {
+        if (clave == 2) {
+            precio = p2;
+            c2 = c2 + cantidad;
+        } else {
+            if (clave == 3) {
+                precio = p3;
+                c3 = c3 + cantidad;
+            } else {
+                if (clave == 4) {
+                    precio = p4;
+                    c4 = c4 + cantidad;
+                } else {
+                    if (clave == 5) {
+                        precio = p5;
+                        c5 = c5 + cantidad;
+                    } else {
+                        precio = 0.0;
+                    }
+                }
+            }
+        }
+    }
+
+    importe = cantidad * precio;
+    recaudacion = recaudacion + importe;
+
+    cout << "Clave:";
+    cout << clave;
+    cout << "Cantidad:";
+    cout << cantidad;
+    cout << "Importe de la venta:";
+    cout << importe;
+
+    cin >> clave;
+    cin >> cantidad;
+}
+
+cout << "Boletos tipo 1:";
+cout << c1;
+cout << "Boletos tipo 2:";
+cout << c2;
+cout << "Boletos tipo 3:";
+cout << c3;
+cout << "Boletos tipo 4:";
+cout << c4;
+cout << "Boletos tipo 5:";
+cout << c5;
+cout << "Recaudacion total:";
+cout << recaudacion;

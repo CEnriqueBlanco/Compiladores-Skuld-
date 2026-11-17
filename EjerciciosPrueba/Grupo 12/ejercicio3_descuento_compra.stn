@@ -1,0 +1,30 @@
+float monto;
+float descuento;
+float total;
+
+cin >> monto;
+
+if (monto < 500.0) {
+    descuento = 0.0;
+} else {
+    if (monto <= 1000.0) {
+        descuento = monto * 0.05;
+    } else {
+        if (monto <= 7000.0) {
+            descuento = monto * 0.11;
+        } else {
+            if (monto <= 15000.0) {
+                descuento = monto * 0.18;
+            } else {
+                descuento = monto * 0.25;
+            }
+        }
+    }
+}
+
+total = monto - descuento;
+
+cout << "Descuento:";
+cout << descuento;
+cout << "Total a pagar:";
+cout << total;

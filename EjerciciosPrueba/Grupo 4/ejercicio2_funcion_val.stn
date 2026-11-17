@@ -1,0 +1,35 @@
+int num;
+int v;
+int k;
+float val;
+float potencia;
+
+cin >> num;
+cin >> v;
+
+if (num == 1) {
+    val = 100.0 * v;
+} else {
+    if (num == 2) {
+        potencia = 1.0;
+        k = 1;
+        while (k <= v) {
+            potencia = potencia * 100.0;
+            k = k + 1;
+        }
+        val = potencia;
+    } else {
+        if (num == 3) {
+            if (v != 0) {
+                val = 100.0 / v;
+            } else {
+                val = 0.0;
+            }
+        } else {
+            val = 0.0;
+        }
+    }
+}
+
+cout << "VAL:";
+cout << val;

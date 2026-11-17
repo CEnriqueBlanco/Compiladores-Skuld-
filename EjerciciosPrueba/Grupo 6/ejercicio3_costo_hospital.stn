@@ -1,0 +1,36 @@
+int tipo;
+int edad;
+int dias;
+float costo_dia;
+float total;
+
+cin >> tipo;
+cin >> edad;
+cin >> dias;
+
+if (tipo == 1) {
+    costo_dia = 25.0;
+} else {
+    if (tipo == 2) {
+        costo_dia = 16.0;
+    } else {
+        if (tipo == 3) {
+            costo_dia = 20.0;
+        } else {
+            if (tipo == 4) {
+                costo_dia = 32.0;
+            } else {
+                costo_dia = 0.0;
+            }
+        }
+    }
+}
+
+total = costo_dia * dias;
+
+if (edad >= 14 && edad <= 22) {
+    total = total * 1.10;
+}
+
+cout << "Costo total del paciente:";
+cout << total;

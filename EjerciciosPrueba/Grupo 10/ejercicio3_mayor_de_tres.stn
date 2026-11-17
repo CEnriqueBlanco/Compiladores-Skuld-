@@ -1,0 +1,18 @@
+float a;
+float b;
+float c;
+
+cin >> a;
+cin >> b;
+cin >> c;
+
+cout << "Mayor:";
+if (a >= b && a >= c) {
+    cout << a;
+} else {
+    if (b >= a && b >= c) {
+        cout << b;
+    } else {
+        cout << c;
+    }
+}

@@ -1,0 +1,30 @@
+int n;
+int i;
+int numero;
+int mayor;
+int menor;
+
+cin >> n;
+
+if (n > 0) {
+    cin >> numero;
+    mayor = numero;
+    menor = numero;
+    i = 2;
+    while (i <= n) {
+        cin >> numero;
+        if (numero > mayor) {
+            mayor = numero;
+        }
+        if (numero < menor) {
+            menor = numero;
+        }
+        i = i + 1;
+    }
+    cout << "Mayor:";
+    cout << mayor;
+    cout << "Menor:";
+    cout << menor;
+} else {
+    cout << "Sin datos";
+}

@@ -1,0 +1,12 @@
+float sonidos;
+float temperatura;
+
+cin >> sonidos;
+
+if (sonidos < 0.0) {
+    cout << "Numero de sonidos invalido";
+} else {
+    temperatura = sonidos / 4.0 + 40.0;
+    cout << "Temperatura en Fahrenheit:";
+    cout << temperatura;
+}

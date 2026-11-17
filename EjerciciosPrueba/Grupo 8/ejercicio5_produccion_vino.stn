@@ -1,0 +1,65 @@
+int n;
+int anio;
+float v1;
+float v2;
+float v3;
+float v4;
+float v5;
+float t1 = 0.0;
+float t2 = 0.0;
+float t3 = 0.0;
+float t4 = 0.0;
+float t5 = 0.0;
+float total_anio;
+float maximo_tipo2 = 0.0 - 1.0;
+int anio_maximo = 0;
+
+cin >> n;
+
+anio = 1;
+while (anio <= n) {
+    cin >> v1;
+    cin >> v2;
+    cin >> v3;
+    cin >> v4;
+    cin >> v5;
+
+    t1 = t1 + v1;
+    t2 = t2 + v2;
+    t3 = t3 + v3;
+    t4 = t4 + v4;
+    t5 = t5 + v5;
+    total_anio = v1 + v2 + v3 + v4 + v5;
+
+    cout << "Anio:";
+    cout << anio;
+    cout << "Total del anio:";
+    cout << total_anio;
+
+    if (v2 > maximo_tipo2) {
+        maximo_tipo2 = v2;
+        anio_maximo = anio;
+    }
+
+    if (v3 == 0.0) {
+        cout << "Anio sin produccion de vino tipo 3:";
+        cout << anio;
+    }
+
+    anio = anio + 1;
+}
+
+cout << "Total tipo 1:";
+cout << t1;
+cout << "Total tipo 2:";
+cout << t2;
+cout << "Total tipo 3:";
+cout << t3;
+cout << "Total tipo 4:";
+cout << t4;
+cout << "Total tipo 5:";
+cout << t5;
+cout << "Anio con mayor produccion tipo 2:";
+cout << anio_maximo;
+cout << "Mayor cantidad tipo 2:";
+cout << maximo_tipo2;

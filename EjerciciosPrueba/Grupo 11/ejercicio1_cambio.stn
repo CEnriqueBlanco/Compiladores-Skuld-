@@ -1,0 +1,11 @@
+float costo;
+float pago;
+float cambio;
+
+cin >> costo;
+cin >> pago;
+
+cambio = pago - costo;
+
+cout << "Cambio:";
+cout << cambio;

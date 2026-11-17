@@ -1,0 +1,50 @@
+int n;
+int i;
+int mes;
+int clave;
+float produccion;
+float total;
+float julio;
+float mayor_total = 0.0 - 1.0;
+int mayor_clave = 0;
+
+cin >> n;
+
+i = 1;
+while (i <= n) {
+    cin >> clave;
+    total = 0.0;
+    julio = 0.0;
+
+    mes = 1;
+    while (mes <= 12) {
+        cin >> produccion;
+        total = total + produccion;
+        if (mes == 7) {
+            julio = produccion;
+        }
+        mes = mes + 1;
+    }
+
+    cout << "Fabrica:";
+    cout << clave;
+    cout << "Total anual:";
+    cout << total;
+
+    if (total > mayor_total) {
+        mayor_total = total;
+        mayor_clave = clave;
+    }
+
+    if (julio > 3000000.0) {
+        cout << "Fabrica con julio mayor a 3000000:";
+        cout << clave;
+    }
+
+    i = i + 1;
+}
+
+cout << "Fabrica con mayor produccion anual:";
+cout << mayor_clave;
+cout << "Total producido:";
+cout << mayor_total;
