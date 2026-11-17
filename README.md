@@ -45,6 +45,9 @@ También se puede ejecutar el compilador directamente:
 python skuld_compiler.py --lexico examples\prueba_estandar.stn
 python skuld_compiler.py --sintactico examples\prueba_estandar.stn
 python skuld_compiler.py --semantico examples\prueba_estandar.stn
+python skuld_compiler.py --intermedio examples\ejercicio4_fibonacci.stn
+python skuld_compiler.py --tm examples\ejercicio4_fibonacci.stn
+python skuld_compiler.py --ejecutar examples\ejercicio4_fibonacci.stn
 ```
 
 ## Arquitectura

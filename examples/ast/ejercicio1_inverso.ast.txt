@@ -1,0 +1,21 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 1
+    │   └── [Variable] ID: a @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: b @ 2
+    ├── [Declaración de Variable] Tipo: int @ 3
+    │   └── [Variable] ID: c @ 3
+    ├── [Declaración de Variable] Tipo: int @ 4
+    │   └── [Variable] ID: d @ 4
+    ├── [Entrada / sphone (cin)] ID: a @ 6
+    ├── [Entrada / sphone (cin)] ID: b @ 7
+    ├── [Entrada / sphone (cin)] ID: c @ 8
+    ├── [Entrada / sphone (cin)] ID: d @ 9
+    ├── [Salida / dmail (cout)] @ 11
+    │   └── [Variable / ID] Nombre: d @ 11
+    ├── [Salida / dmail (cout)] @ 12
+    │   └── [Variable / ID] Nombre: c @ 12
+    ├── [Salida / dmail (cout)] @ 13
+    │   └── [Variable / ID] Nombre: b @ 13
+    └── [Salida / dmail (cout)] @ 14
+        └── [Variable / ID] Nombre: a @ 14

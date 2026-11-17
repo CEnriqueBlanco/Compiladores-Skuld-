@@ -1,0 +1,28 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 1
+    │   └── [Variable] ID: num @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: res @ 2
+    ├── [Entrada / sphone (cin)] ID: num @ 4
+    ├── [Condicional / choice (if)] @ 6
+    │   ├── [Bloque de Código / Condition] @ 6
+    │   │   └── [Operador] '>' @ 6
+    │   │       ├── [Variable / ID] Nombre: num @ 6
+    │   │       └── [Constante] Valor: 0 @ 6
+    │   ├── [Bloque de Código / Then] @ 6
+    │   │   └── [Asignación] ID: res @ 7
+    │   │       └── [Constante] Valor: 0 @ 7
+    │   └── [Bloque de Código / Else] @ 6
+    │       └── [Condicional / choice (if)] @ 9
+    │           ├── [Bloque de Código / Condition] @ 9
+    │           │   └── [Operador] '<' @ 9
+    │           │       ├── [Variable / ID] Nombre: num @ 9
+    │           │       └── [Constante] Valor: 0 @ 9
+    │           ├── [Bloque de Código / Then] @ 9
+    │           │   └── [Asignación] ID: res @ 10
+    │           │       └── [Constante] Valor: 1 @ 10
+    │           └── [Bloque de Código / Else] @ 9
+    │               └── [Asignación] ID: res @ 12
+    │                   └── [Constante] Valor: 2 @ 12
+    └── [Salida / dmail (cout)] @ 16
+        └── [Variable / ID] Nombre: res @ 16

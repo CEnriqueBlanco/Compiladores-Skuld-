@@ -1,0 +1,16 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Salida / dmail (cout)] @ 1
+    │   └── [Cadena] "Teclea un numero: " @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: n @ 2
+    ├── [Entrada / sphone (cin)] ID: n @ 3
+    ├── [Salida / dmail (cout)] @ 5
+    │   └── [Cadena] "El doble del numero es: " @ 5
+    ├── [Declaración de Variable] Tipo: int @ 6
+    │   └── [Variable] ID: doble @ 6
+    ├── [Asignación] ID: doble @ 7
+    │   └── [Operador] '*' @ 7
+    │       ├── [Variable / ID] Nombre: n @ 7
+    │       └── [Constante] Valor: 2 @ 7
+    └── [Salida / dmail (cout)] @ 8
+        └── [Variable / ID] Nombre: doble @ 8

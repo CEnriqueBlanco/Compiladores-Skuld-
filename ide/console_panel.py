@@ -1,9 +1,96 @@
 import re
-
 from PyQt5.QtCore import QEvent, QObject, Qt, pyqtSignal
+from PyQt5.QtGui import QColor, QFont, QTextCursor
 from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget
 
 from ide.theme import steins_gate_theme
+
+
+class InteractiveTerminalWidget(QPlainTextEdit):
+    """
+    Terminal interactiva directa en el área de texto (como una consola en C / Linux / Windows).
+    - El cursor parpadea directamente en la última línea cuando se espera un dato.
+    - Se elimina cualquier barra, recuadro inferior o etiqueta 'TM IN'.
+    - Al presionar Enter, se envía la línea ingresada al programa.
+    """
+    input_submitted = pyqtSignal(str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setReadOnly(True)
+        self.setLineWrapMode(QPlainTextEdit.WidgetWidth)
+        self.setCursorWidth(2)
+        font = QFont("Consolas", 10)
+        font.setStyleHint(QFont.Monospace)
+        self.setFont(font)
+
+        self._waiting_input = False
+        self._prompt_pos = 0
+
+    def enable_input(self) -> None:
+        """Activa el modo de captura interactiva con cursor parpadeando directamente."""
+        self._waiting_input = True
+        self.setReadOnly(False)
+        self.moveCursor(QTextCursor.End)
+        self._prompt_pos = self.textCursor().position()
+        self.ensureCursorVisible()
+        self.setFocus()
+
+    def disable_input(self) -> None:
+        """Desactiva la entrada y vuelve a sólo lectura."""
+        self._waiting_input = False
+        self.setReadOnly(True)
+
+    def append_text(self, text: str) -> None:
+        """Añade texto como salida de la máquina."""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.setTextCursor(cursor)
+        self.insertPlainText(text + "\n")
+        self.ensureCursorVisible()
+
+    def write_stream(self, text: str) -> None:
+        """Escribe caracteres continuos en tiempo real (para mensajes como 'Teclea un numero: ')."""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.setTextCursor(cursor)
+        self.insertPlainText(text)
+        self.ensureCursorVisible()
+
+    def set_text(self, text: str) -> None:
+        self.setPlainText(text)
+        self.ensureCursorVisible()
+
+    def keyPressEvent(self, event):
+        if not self._waiting_input:
+            # Si no estamos esperando entrada, ignorar teclas de escritura
+            if event.key() in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Backspace, Qt.Key_Delete):
+                return
+            super().keyPressEvent(event)
+            return
+
+        cursor = self.textCursor()
+        # Si presiona Enter / Return
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            full_text = self.toPlainText()
+            user_input = full_text[self._prompt_pos:]
+            self.disable_input()
+            cursor.movePosition(QTextCursor.End)
+            cursor.insertText("\n")
+            self.setTextCursor(cursor)
+            self.input_submitted.emit(user_input)
+            return
+
+        # Evitar borrar texto anterior al prompt
+        if event.key() == Qt.Key_Backspace:
+            if cursor.position() <= self._prompt_pos:
+                return
+
+        if event.key() in (Qt.Key_Left, Qt.Key_Up):
+            if cursor.position() <= self._prompt_pos:
+                return
+
+        super().keyPressEvent(event)
 
 
 class ErrorHoverEventFilter(QObject):
@@ -20,8 +107,7 @@ class ErrorHoverEventFilter(QObject):
             pos = event.pos()
             cursor = self.widget.cursorForPosition(pos)
             line_text = cursor.block().text().strip()
-            
-            import re
+
             cursor_shape = (
                 Qt.PointingHandCursor
                 if re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text)
@@ -70,7 +156,7 @@ class ConsolePanel(QTabWidget):
 
         self._console = self._make_output("Bienvenido a Reading Steiner IDE\nEl Psy Kongroo\nListo para compilar...")
         self._errors = self._make_output("Errores léxicos, sintácticos y semánticos aparecerán aquí.")
-        self._execution = self._make_output("Salida de ejecución del programa compilado.")
+        self._execution = InteractiveTerminalWidget()
 
         self.addTab(self._console, "Consola")
         self.addTab(self._errors, "Errores")
@@ -87,11 +173,11 @@ class ConsolePanel(QTabWidget):
         self._errors.appendPlainText(text)
 
     def append_execution(self, text: str) -> None:
-        self._execution.appendPlainText(text)
+        self._execution.append_text(text)
 
     def set_execution(self, text: str) -> None:
         """Muestra el resultado completo de la última ejecución."""
-        self._execution.setPlainText(text)
+        self._execution.set_text(text)
         self.setCurrentWidget(self._execution)
 
     def clear_all(self) -> None:
@@ -111,6 +197,14 @@ class ConsolePanel(QTabWidget):
             f"selection-background-color: {colors.selection};"
             f"}}"
         )
+        self._execution.setStyleSheet(
+            f"QPlainTextEdit {{"
+            f"background-color: {colors.background};"
+            f"color: {colors.foreground};"
+            f"border: none;"
+            f"selection-background-color: {colors.selection};"
+            f"}}"
+        )
 
     def _on_errors_cursor_changed(self) -> None:
         cursor = self._errors.textCursor()
@@ -118,13 +212,11 @@ class ConsolePanel(QTabWidget):
         if not line_text:
             return
 
-        import re
         match = re.search(r"ERROR_(LEXICO|SINTACTICO|SEMANTICO)\((\d+),\s*(\d+)\)", line_text)
         if match:
             line_no = int(match.group(2))
             col_no = int(match.group(3))
 
-            # Extract lexeme length if present (e.g. -> 'lexeme')
             span_len = 1
             lex_match = re.search(r" -> '(.*)'\s*$", line_text)
             if lex_match:

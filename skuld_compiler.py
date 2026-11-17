@@ -5,6 +5,9 @@ import os
 from analizadores.analisis_lexico.skuld_lexer import tokenize_file_with_recovery, LexicalError, Token
 from analizadores.analisis_sintactico.skuld_parser import SkuldParser, print_tree_graphical, SyntaxError
 from analizadores.analisis_semantico import SemanticAnalyzer, print_annotated_tree
+from analizadores.codigo_intermedio.generator import IntermediateCodeGenerator
+from analizadores.generacion_codigo.tm_generator import TMGenerator
+from ejecucion.tm_machine import TMMachine
 
 
 def print_usage():
@@ -13,6 +16,9 @@ def print_usage():
     print("  --lexico       Ejecuta la fase de análisis léxico")
     print("  --sintactico   Ejecuta la fase de análisis sintáctico")
     print("  --semantico    Ejecuta la fase de análisis semántico")
+    print("  --intermedio   Genera el código intermedio de tres direcciones (.ci)")
+    print("  --tm           Genera las instrucciones para Tiny Machine (.tm)")
+    print("  --ejecutar     Genera el código TM y lo ejecuta en el simulador TM")
     sys.exit(1)
 
 
@@ -206,6 +212,100 @@ def run_semantic(source_path: str):
     sys.exit(0)
 
 
+def compile_pipeline(source_path: str):
+    """
+    Ejecuta el pipeline de compilación (léxico, sintáctico, semántico).
+    Retorna (annotated_ast, symbol_table) o lanza SystemExit(1) en caso de error.
+    """
+    if not os.path.exists(source_path):
+        print(f"Error: El archivo no existe: {source_path}", file=sys.stderr)
+        sys.exit(1)
+
+    tokens = try_parse_token_file(source_path)
+    if tokens is None:
+        tokens, lex_errors = tokenize_file_with_recovery(source_path)
+        if lex_errors:
+            for err in lex_errors:
+                print(str(err), file=sys.stderr)
+            sys.exit(1)
+
+    parser = SkuldParser(tokens)
+    ast = parser.parse()
+    if parser.errors:
+        for err in parser.errors:
+            print(str(err), file=sys.stderr)
+        sys.exit(1)
+
+    analyzer = SemanticAnalyzer()
+    annotated_ast, symbol_table, semantic_errors = analyzer.analyze(ast)
+    if semantic_errors:
+        for err in semantic_errors:
+            print(str(err), file=sys.stderr)
+        sys.exit(1)
+
+    return annotated_ast, symbol_table
+
+
+def run_intermediate(source_path: str):
+    annotated_ast, symbol_table = compile_pipeline(source_path)
+    generator = IntermediateCodeGenerator()
+    code_ci = generator.generate(annotated_ast, symbol_table)
+    print(code_ci)
+
+    # Guardar en archivo .ci
+    try:
+        source_dir = os.path.dirname(source_path)
+        out_dir = os.path.join(source_dir, "salidas") if source_dir else "salidas"
+        os.makedirs(out_dir, exist_ok=True)
+        file_name = os.path.splitext(os.path.basename(source_path))[0]
+        ci_file_path = os.path.join(out_dir, file_name + ".ci")
+        with open(ci_file_path, "w", encoding="utf-8") as f:
+            f.write(code_ci)
+    except Exception as e:
+        print(f"[Aviso] No se pudo guardar el archivo .ci: {e}", file=sys.stderr)
+
+    sys.exit(0)
+
+
+def run_tm_generation(source_path: str, save_only: bool = False) -> str:
+    annotated_ast, symbol_table = compile_pipeline(source_path)
+    generator = TMGenerator()
+    file_name = os.path.basename(source_path)
+    code_tm = generator.generate(annotated_ast, symbol_table, filename=file_name)
+
+    if not save_only:
+        print(code_tm)
+
+    try:
+        source_dir = os.path.dirname(source_path)
+        out_dir = os.path.join(source_dir, "salidas") if source_dir else "salidas"
+        os.makedirs(out_dir, exist_ok=True)
+        base_name = os.path.splitext(file_name)[0]
+        tm_file_path = os.path.join(out_dir, base_name + ".tm")
+        with open(tm_file_path, "w", encoding="utf-8") as f:
+            f.write(code_tm)
+    except Exception as e:
+        print(f"[Aviso] No se pudo guardar el archivo .tm: {e}", file=sys.stderr)
+
+    return code_tm
+
+
+def run_execution(source_path: str):
+    code_tm = run_tm_generation(source_path, save_only=True)
+    machine = TMMachine()
+    machine.load_code(code_tm)
+    success, status, outputs = machine.run()
+
+    if outputs:
+        print("\n".join(outputs))
+
+    if not success:
+        print(f"\n[Error de Ejecución TM]: {status}", file=sys.stderr)
+        sys.exit(1)
+
+    sys.exit(0)
+
+
 def main():
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -226,6 +326,12 @@ def main():
         run_syntax(source_path)
     elif phase == "--semantico":
         run_semantic(source_path)
+    elif phase == "--intermedio":
+        run_intermediate(source_path)
+    elif phase in ("--tm", "--codigo_tm"):
+        run_tm_generation(source_path, save_only=False)
+    elif phase in ("--ejecutar", "--ejecucion"):
+        run_execution(source_path)
     else:
         # Fallback to standard CLI parameters or single file
         if os.path.exists(phase):

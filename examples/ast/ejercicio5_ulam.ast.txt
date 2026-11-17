@@ -1,0 +1,37 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 1
+    │   └── [Variable] ID: n @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: suma @ 2
+    ├── [Entrada / sphone (cin)] ID: n @ 4
+    ├── [Bucle / loop (while)] @ 6
+    │   ├── [Bloque de Código / Condition] @ 6
+    │   │   └── [Operador] '>' @ 6
+    │   │       ├── [Variable / ID] Nombre: n @ 6
+    │   │       └── [Constante] Valor: 1 @ 6
+    │   └── [Bloque de Código / Loop] @ 6
+    │       ├── [Salida / dmail (cout)] @ 7
+    │       │   └── [Variable / ID] Nombre: n @ 7
+    │       └── [Condicional / choice (if)] @ 8
+    │           ├── [Bloque de Código / Condition] @ 8
+    │           │   └── [Operador] '==' @ 8
+    │           │       ├── [Operador] '*' @ 8
+    │           │       │   ├── [Operador] '/' @ 8
+    │           │       │   │   ├── [Variable / ID] Nombre: n @ 8
+    │           │       │   │   └── [Constante] Valor: 2 @ 8
+    │           │       │   └── [Constante] Valor: 2 @ 8
+    │           │       └── [Variable / ID] Nombre: n @ 8
+    │           ├── [Bloque de Código / Then] @ 8
+    │           │   └── [Asignación] ID: n @ 9
+    │           │       └── [Operador] '/' @ 9
+    │           │           ├── [Variable / ID] Nombre: n @ 9
+    │           │           └── [Constante] Valor: 2 @ 9
+    │           └── [Bloque de Código / Else] @ 8
+    │               └── [Asignación] ID: n @ 11
+    │                   └── [Operador] '+' @ 11
+    │                       ├── [Operador] '*' @ 11
+    │                       │   ├── [Variable / ID] Nombre: n @ 11
+    │                       │   └── [Constante] Valor: 3 @ 11
+    │                       └── [Constante] Valor: 1 @ 11
+    └── [Salida / dmail (cout)] @ 15
+        └── [Variable / ID] Nombre: n @ 15

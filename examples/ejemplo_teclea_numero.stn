@@ -1,0 +1,8 @@
+cout << "Teclea un numero: ";
+int n;
+cin >> n;
+
+cout << "El doble del numero es: ";
+int doble;
+doble = n * 2;
+cout << doble;

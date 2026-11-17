@@ -302,12 +302,14 @@ class AnalysisPanel(QTabWidget):
         self._syntax = SyntaxTreeWidget()
         self._semantic = SyntaxTreeWidget()
         self._intermediate = self._make_output("Código intermedio (tres direcciones, etc.).")
+        self._tm_code = self._make_output("Código de instrucciones para la Tiny Machine (TM).")
         self._symbols = self._make_symbols_table()
 
         self.addTab(self._tokens, "Tokens")
         self.addTab(self._syntax, "Sintáctico")
         self.addTab(self._semantic, "Semántico")
         self.addTab(self._intermediate, "Intermedio")
+        self.addTab(self._tm_code, "Código TM")
         self.addTab(self._symbols, "Símbolos")
 
         # Connect position changes to error navigation
@@ -315,12 +317,14 @@ class AnalysisPanel(QTabWidget):
         self._syntax.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._semantic.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._intermediate.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
+        self._tm_code.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
 
         # Install pointing hand cursor filter when hovering over error/token lines
         self._tokens_hover_filter = TokenHoverEventFilter(self._tokens)
         self._syntax_hover_filter = ErrorHoverEventFilter(self._syntax.text_widget)
         self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic.text_widget)
         self._intermediate_hover_filter = ErrorHoverEventFilter(self._intermediate)
+        self._tm_code_hover_filter = ErrorHoverEventFilter(self._tm_code)
         self.refresh_theme()
 
     def set_tokens(self, text: str) -> None:
@@ -334,6 +338,9 @@ class AnalysisPanel(QTabWidget):
 
     def set_intermediate(self, text: str) -> None:
         self._intermediate.setPlainText(text)
+
+    def set_tm_code(self, text: str) -> None:
+        self._tm_code.setPlainText(text)
 
     def set_symbols(self, text: str) -> None:
         self._symbols.clearContents()

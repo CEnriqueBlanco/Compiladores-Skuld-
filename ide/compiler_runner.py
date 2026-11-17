@@ -32,6 +32,7 @@ PHASE_ARGS = {
     "sintactico": "--sintactico",
     "semantico": "--semantico",
     "intermedio": "--intermedio",
+    "tm": "--tm",
     "ejecucion": "--ejecutar",
 }
 

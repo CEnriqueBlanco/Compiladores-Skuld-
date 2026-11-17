@@ -4,8 +4,8 @@ import datetime
 import os
 from pathlib import Path
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QFileDialog, QMessageBox
+from PyQt5.QtCore import QEventLoop, Qt
+from PyQt5.QtWidgets import QDialog, QFileDialog, QInputDialog, QMessageBox
 
 from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
@@ -530,6 +530,12 @@ def run_phase(window, phase: str) -> None:
             window._analysis_panel.set_symbol_rows(result.symbol_rows)
     elif phase == "intermedio":
         window._analysis_panel.set_intermediate(output_text)
+        if hasattr(window._analysis_panel, "setCurrentWidget"):
+            window._analysis_panel.setCurrentWidget(window._analysis_panel._intermediate)
+    elif phase == "tm":
+        window._analysis_panel.set_tm_code(output_text)
+        if hasattr(window._analysis_panel, "setCurrentWidget"):
+            window._analysis_panel.setCurrentWidget(window._analysis_panel._tm_code)
     elif phase == "ejecucion":
         if window._console_panel is not None:
             if result.execution_time_ms is not None:
@@ -581,25 +587,66 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
                 )
             return
 
-    execution_result = run_compiler("ejecucion", source_path)
-    output_text = execution_result.stdout or "(sin salida)"
+    # También generar y actualizar el código TM y el código intermedio en el panel de analizadores
+    tm_result = run_compiler("tm", source_path)
+    if tm_result.returncode == 0 and tm_result.stdout:
+        window._analysis_panel.set_tm_code(tm_result.stdout)
+
+    ci_result = run_compiler("intermedio", source_path)
+    if ci_result.returncode == 0 and ci_result.stdout:
+        window._analysis_panel.set_intermediate(ci_result.stdout)
+
+    # Ejecución interactiva directa con el simulador TM en la terminal integrada del panel inferior
+    tm_code = tm_result.stdout
+    if not tm_code:
+        if window._console_panel is not None:
+            window._console_panel.append_errors("No se pudo obtener el código TM para ejecutar.")
+        return
+
+    import time
+    from ejecucion.tm_machine import TMMachine
+
+    machine = TMMachine()
+    machine.load_code(tm_code)
+
+    exec_widget = window._console_panel._execution
+    window._console_panel.setCurrentWidget(exec_widget)
+    exec_widget.clear()
+
+    def terminal_input_callback() -> int:
+        loop = QEventLoop()
+        received_val = [0]
+
+        def on_submit(user_text: str):
+            try:
+                received_val[0] = int(user_text.strip())
+            except ValueError:
+                received_val[0] = 0
+            try:
+                exec_widget.input_submitted.disconnect(on_submit)
+            except Exception:
+                pass
+            loop.quit()
+
+        exec_widget.input_submitted.connect(on_submit)
+        exec_widget.enable_input()
+        loop.exec_()
+        return received_val[0]
+
+    def terminal_output_callback(chunk: str) -> None:
+        exec_widget.write_stream(chunk)
+
+    start_exec = time.perf_counter()
+    success, status, outputs = machine.run(
+        input_callback=terminal_input_callback,
+        output_callback=terminal_output_callback
+    )
+    exec_time_ms = (time.perf_counter() - start_exec) * 1000
+
     if window._console_panel is not None:
-        execution_text = output_text
-        if execution_result.execution_time_ms is not None:
-            execution_text += (
-                f"\n\nTiempo de ejecución: "
-                f"{execution_result.execution_time_ms:.3f} ms"
-            )
-        window._console_panel.set_execution(execution_text)
-        window._console_panel.append_console(
-            f"Fase ejecucion: {execution_result.execution_time_ms:.3f} ms"
-            if execution_result.execution_time_ms is not None
-            else "Fase ejecucion completada."
-        )
-        if execution_result.returncode != 0:
-            window._console_panel.append_errors(
-                execution_result.stderr or "Error durante la ejecución."
-            )
+        window._console_panel.append_console(f"Fase ejecucion: {exec_time_ms:.3f} ms")
+        if not success:
+            window._console_panel.append_errors(f"Error de ejecución TM: {status}")
 
 
 def run_lexical_selection(window, selected_text: str) -> None:
