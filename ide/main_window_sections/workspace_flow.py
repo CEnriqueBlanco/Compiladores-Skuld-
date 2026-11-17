@@ -1095,6 +1095,7 @@ def clear_outputs(window) -> None:
         window._analysis_panel.set_syntax("")
         window._analysis_panel.set_semantic("")
         window._analysis_panel.set_intermediate("")
+        window._analysis_panel.set_tm_code("")
         window._analysis_panel.set_symbols("")
     if window._console_panel is not None:
         window._console_panel.clear_all()

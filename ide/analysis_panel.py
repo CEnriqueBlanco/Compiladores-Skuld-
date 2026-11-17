@@ -301,8 +301,8 @@ class AnalysisPanel(QTabWidget):
         self._tokens = self._make_rich_output("Tokens léxicos aparecerán aquí.")
         self._syntax = SyntaxTreeWidget()
         self._semantic = SyntaxTreeWidget()
-        self._intermediate = self._make_output("Código intermedio (tres direcciones, etc.).")
-        self._tm_code = self._make_output("Código de instrucciones para la Tiny Machine (TM).")
+        self._intermediate = self._make_code_table(["No.", "Instrucción"])
+        self._tm_code = self._make_code_table(["Línea", "Código TM"])
         self._symbols = self._make_symbols_table()
 
         self.addTab(self._tokens, "Tokens")
@@ -316,15 +316,10 @@ class AnalysisPanel(QTabWidget):
         self._tokens.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._syntax.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
         self._semantic.text_widget.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
-        self._intermediate.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
-        self._tm_code.cursorPositionChanged.connect(self._on_text_widget_cursor_changed)
-
         # Install pointing hand cursor filter when hovering over error/token lines
         self._tokens_hover_filter = TokenHoverEventFilter(self._tokens)
         self._syntax_hover_filter = ErrorHoverEventFilter(self._syntax.text_widget)
         self._semantic_hover_filter = ErrorHoverEventFilter(self._semantic.text_widget)
-        self._intermediate_hover_filter = ErrorHoverEventFilter(self._intermediate)
-        self._tm_code_hover_filter = ErrorHoverEventFilter(self._tm_code)
         self.refresh_theme()
 
     def set_tokens(self, text: str) -> None:
@@ -337,10 +332,25 @@ class AnalysisPanel(QTabWidget):
         self._semantic.set_syntax_content(text, error_text)
 
     def set_intermediate(self, text: str) -> None:
-        self._intermediate.setPlainText(text)
+        rows = [
+            [str(index), line.strip()]
+            for index, line in enumerate(text.splitlines(), start=1)
+            if line.strip()
+        ]
+        self._set_code_rows(self._intermediate, rows)
 
     def set_tm_code(self, text: str) -> None:
-        self._tm_code.setPlainText(text)
+        rows = []
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            match = re.match(r"^\s*(?P<line>\d+):\s*(?P<code>.*?)(?:\t.*)?$", line)
+            if match:
+                rows.append([
+                    match.group("line"),
+                    match.group("code").rstrip(),
+                ])
+        self._set_code_rows(self._tm_code, rows)
 
     def set_symbols(self, text: str) -> None:
         self._symbols.clearContents()
@@ -398,6 +408,28 @@ class AnalysisPanel(QTabWidget):
             }}
             """
         )
+        for table in (self._intermediate, self._tm_code):
+            table.setStyleSheet(
+                f"""
+                QTableWidget, QTableWidget::viewport, QAbstractScrollArea::viewport {{
+                    background-color: {colors.background};
+                    color: {colors.foreground};
+                    gridline-color: {colors.border};
+                    selection-background-color: {colors.selection};
+                    selection-color: {colors.foreground};
+                    alternate-background-color: {colors.panel_bg};
+                }}
+                QTableWidget::item:hover {{
+                    background-color: {colors.hover};
+                }}
+                QHeaderView::section {{
+                    background-color: {colors.panel_bg};
+                    color: {colors.foreground};
+                    border: 1px solid {colors.border};
+                    padding: 5px 8px;
+                }}
+                """
+            )
 
     def _on_text_widget_cursor_changed(self) -> None:
         widget = self.sender()
@@ -455,6 +487,29 @@ class AnalysisPanel(QTabWidget):
         table.horizontalHeader().setStretchLastSection(True)
         table.verticalHeader().setVisible(False)
         return table
+
+    @staticmethod
+    def _make_code_table(headers: list[str]) -> QTableWidget:
+        table = QTableWidget(0, len(headers))
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        table.setHorizontalHeaderLabels(headers)
+        table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        table.setAlternatingRowColors(True)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        table.horizontalHeader().setStretchLastSection(True)
+        table.verticalHeader().setVisible(False)
+        return table
+
+    @staticmethod
+    def _set_code_rows(table: QTableWidget, rows: list[list[str]]) -> None:
+        table.clearContents()
+        table.setRowCount(len(rows))
+        for row_index, row_data in enumerate(rows):
+            for column_index, value in enumerate(row_data):
+                table.setItem(row_index, column_index, QTableWidgetItem(value))
+        table.resizeColumnsToContents()
 
     @staticmethod
     def _make_rich_output(text: str) -> QTextEdit:
