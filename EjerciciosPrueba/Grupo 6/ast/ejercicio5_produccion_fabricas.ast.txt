@@ -1,0 +1,216 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: int @ 1
+    │   └── [Variable] ID: n @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: i @ 2
+    ├── [Declaración de Variable] Tipo: int @ 3
+    │   └── [Variable] ID: mes @ 3
+    ├── [Declaración de Variable] Tipo: int @ 4
+    │   └── [Variable] ID: clave @ 4
+    ├── [Declaración de Variable] Tipo: float @ 5
+    │   └── [Variable] ID: produccion @ 5
+    ├── [Declaración de Variable] Tipo: float @ 6
+    │   └── [Variable] ID: total @ 6
+    ├── [Declaración de Variable] Tipo: float @ 7
+    │   └── [Variable] ID: julio @ 7
+    ├── [Declaración de Variable] Tipo: float @ 8
+    │   └── [Variable] ID: mayor_total (Inicializada) @ 8
+    │       └── [Operador] '-' @ 8
+    │           ├── [Constante] Valor: 0.0 @ 8
+    │           └── [Constante] Valor: 1.0 @ 8
+    ├── [Declaración de Variable] Tipo: int @ 9
+    │   └── [Variable] ID: mayor_clave (Inicializada) @ 9
+    │       └── [Constante] Valor: 0 @ 9
+    ├── [Salida / dmail (cout)] @ 11
+    │   └── [Cadena] "PRODUCCION ANUAL DE FABRICAS\n" @ 11
+    ├── [Salida / dmail (cout)] @ 12
+    │   └── [Cadena] "Escribe el numero de fabricas:\n" @ 12
+    ├── [Entrada / sphone (cin)] ID: n @ 13
+    ├── [Asignación] ID: i @ 15
+    │   └── [Constante] Valor: 1 @ 15
+    ├── [Bucle / loop (while)] @ 16
+    │   ├── [Bloque de Código / Condition] @ 16
+    │   │   └── [Operador] '<=' @ 16
+    │   │       ├── [Variable / ID] Nombre: i @ 16
+    │   │       └── [Variable / ID] Nombre: n @ 16
+    │   └── [Bloque de Código / Loop] @ 16
+    │       ├── [Salida / dmail (cout)] @ 17
+    │       │   └── [Cadena] "Fabrica numero:\n" @ 17
+    │       ├── [Salida / dmail (cout)] @ 18
+    │       │   └── [Variable / ID] Nombre: i @ 18
+    │       ├── [Salida / dmail (cout)] @ 19
+    │       │   └── [Cadena] "\n" @ 19
+    │       ├── [Salida / dmail (cout)] @ 20
+    │       │   └── [Cadena] "Escribe la clave de esta fabrica:\n" @ 20
+    │       ├── [Entrada / sphone (cin)] ID: clave @ 21
+    │       ├── [Asignación] ID: total @ 22
+    │       │   └── [Constante] Valor: 0.0 @ 22
+    │       ├── [Asignación] ID: julio @ 23
+    │       │   └── [Constante] Valor: 0.0 @ 23
+    │       ├── [Asignación] ID: mes @ 25
+    │       │   └── [Constante] Valor: 1 @ 25
+    │       ├── [Bucle / loop (while)] @ 26
+    │       │   ├── [Bloque de Código / Condition] @ 26
+    │       │   │   └── [Operador] '<=' @ 26
+    │       │   │       ├── [Variable / ID] Nombre: mes @ 26
+    │       │   │       └── [Constante] Valor: 12 @ 26
+    │       │   └── [Bloque de Código / Loop] @ 26
+    │       │       ├── [Condicional / choice (if)] @ 27
+    │       │       │   ├── [Bloque de Código / Condition] @ 27
+    │       │       │   │   └── [Operador] '==' @ 27
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 27
+    │       │       │   │       └── [Constante] Valor: 1 @ 27
+    │       │       │   └── [Bloque de Código / Then] @ 27
+    │       │       │       └── [Salida / dmail (cout)] @ 28
+    │       │       │           └── [Cadena] "Produccion de enero:\n" @ 28
+    │       │       ├── [Condicional / choice (if)] @ 30
+    │       │       │   ├── [Bloque de Código / Condition] @ 30
+    │       │       │   │   └── [Operador] '==' @ 30
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 30
+    │       │       │   │       └── [Constante] Valor: 2 @ 30
+    │       │       │   └── [Bloque de Código / Then] @ 30
+    │       │       │       └── [Salida / dmail (cout)] @ 31
+    │       │       │           └── [Cadena] "Produccion de febrero:\n" @ 31
+    │       │       ├── [Condicional / choice (if)] @ 33
+    │       │       │   ├── [Bloque de Código / Condition] @ 33
+    │       │       │   │   └── [Operador] '==' @ 33
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 33
+    │       │       │   │       └── [Constante] Valor: 3 @ 33
+    │       │       │   └── [Bloque de Código / Then] @ 33
+    │       │       │       └── [Salida / dmail (cout)] @ 34
+    │       │       │           └── [Cadena] "Produccion de marzo:\n" @ 34
+    │       │       ├── [Condicional / choice (if)] @ 36
+    │       │       │   ├── [Bloque de Código / Condition] @ 36
+    │       │       │   │   └── [Operador] '==' @ 36
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 36
+    │       │       │   │       └── [Constante] Valor: 4 @ 36
+    │       │       │   └── [Bloque de Código / Then] @ 36
+    │       │       │       └── [Salida / dmail (cout)] @ 37
+    │       │       │           └── [Cadena] "Produccion de abril:\n" @ 37
+    │       │       ├── [Condicional / choice (if)] @ 39
+    │       │       │   ├── [Bloque de Código / Condition] @ 39
+    │       │       │   │   └── [Operador] '==' @ 39
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 39
+    │       │       │   │       └── [Constante] Valor: 5 @ 39
+    │       │       │   └── [Bloque de Código / Then] @ 39
+    │       │       │       └── [Salida / dmail (cout)] @ 40
+    │       │       │           └── [Cadena] "Produccion de mayo:\n" @ 40
+    │       │       ├── [Condicional / choice (if)] @ 42
+    │       │       │   ├── [Bloque de Código / Condition] @ 42
+    │       │       │   │   └── [Operador] '==' @ 42
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 42
+    │       │       │   │       └── [Constante] Valor: 6 @ 42
+    │       │       │   └── [Bloque de Código / Then] @ 42
+    │       │       │       └── [Salida / dmail (cout)] @ 43
+    │       │       │           └── [Cadena] "Produccion de junio:\n" @ 43
+    │       │       ├── [Condicional / choice (if)] @ 45
+    │       │       │   ├── [Bloque de Código / Condition] @ 45
+    │       │       │   │   └── [Operador] '==' @ 45
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 45
+    │       │       │   │       └── [Constante] Valor: 7 @ 45
+    │       │       │   └── [Bloque de Código / Then] @ 45
+    │       │       │       └── [Salida / dmail (cout)] @ 46
+    │       │       │           └── [Cadena] "Produccion de julio:\n" @ 46
+    │       │       ├── [Condicional / choice (if)] @ 48
+    │       │       │   ├── [Bloque de Código / Condition] @ 48
+    │       │       │   │   └── [Operador] '==' @ 48
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 48
+    │       │       │   │       └── [Constante] Valor: 8 @ 48
+    │       │       │   └── [Bloque de Código / Then] @ 48
+    │       │       │       └── [Salida / dmail (cout)] @ 49
+    │       │       │           └── [Cadena] "Produccion de agosto:\n" @ 49
+    │       │       ├── [Condicional / choice (if)] @ 51
+    │       │       │   ├── [Bloque de Código / Condition] @ 51
+    │       │       │   │   └── [Operador] '==' @ 51
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 51
+    │       │       │   │       └── [Constante] Valor: 9 @ 51
+    │       │       │   └── [Bloque de Código / Then] @ 51
+    │       │       │       └── [Salida / dmail (cout)] @ 52
+    │       │       │           └── [Cadena] "Produccion de septiembre:\n" @ 52
+    │       │       ├── [Condicional / choice (if)] @ 54
+    │       │       │   ├── [Bloque de Código / Condition] @ 54
+    │       │       │   │   └── [Operador] '==' @ 54
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 54
+    │       │       │   │       └── [Constante] Valor: 10 @ 54
+    │       │       │   └── [Bloque de Código / Then] @ 54
+    │       │       │       └── [Salida / dmail (cout)] @ 55
+    │       │       │           └── [Cadena] "Produccion de octubre:\n" @ 55
+    │       │       ├── [Condicional / choice (if)] @ 57
+    │       │       │   ├── [Bloque de Código / Condition] @ 57
+    │       │       │   │   └── [Operador] '==' @ 57
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 57
+    │       │       │   │       └── [Constante] Valor: 11 @ 57
+    │       │       │   └── [Bloque de Código / Then] @ 57
+    │       │       │       └── [Salida / dmail (cout)] @ 58
+    │       │       │           └── [Cadena] "Produccion de noviembre:\n" @ 58
+    │       │       ├── [Condicional / choice (if)] @ 60
+    │       │       │   ├── [Bloque de Código / Condition] @ 60
+    │       │       │   │   └── [Operador] '==' @ 60
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 60
+    │       │       │   │       └── [Constante] Valor: 12 @ 60
+    │       │       │   └── [Bloque de Código / Then] @ 60
+    │       │       │       └── [Salida / dmail (cout)] @ 61
+    │       │       │           └── [Cadena] "Produccion de diciembre:\n" @ 61
+    │       │       ├── [Entrada / sphone (cin)] ID: produccion @ 63
+    │       │       ├── [Asignación] ID: total @ 64
+    │       │       │   └── [Operador] '+' @ 64
+    │       │       │       ├── [Variable / ID] Nombre: total @ 64
+    │       │       │       └── [Variable / ID] Nombre: produccion @ 64
+    │       │       ├── [Condicional / choice (if)] @ 65
+    │       │       │   ├── [Bloque de Código / Condition] @ 65
+    │       │       │   │   └── [Operador] '==' @ 65
+    │       │       │   │       ├── [Variable / ID] Nombre: mes @ 65
+    │       │       │   │       └── [Constante] Valor: 7 @ 65
+    │       │       │   └── [Bloque de Código / Then] @ 65
+    │       │       │       └── [Asignación] ID: julio @ 66
+    │       │       │           └── [Variable / ID] Nombre: produccion @ 66
+    │       │       └── [Asignación] ID: mes @ 68
+    │       │           └── [Operador] '+' @ 68
+    │       │               ├── [Variable / ID] Nombre: mes @ 68
+    │       │               └── [Constante] Valor: 1 @ 68
+    │       ├── [Salida / dmail (cout)] @ 71
+    │       │   └── [Cadena] "Resultado de la fabrica:\n" @ 71
+    │       ├── [Salida / dmail (cout)] @ 72
+    │       │   └── [Variable / ID] Nombre: clave @ 72
+    │       ├── [Salida / dmail (cout)] @ 73
+    │       │   └── [Cadena] "\n" @ 73
+    │       ├── [Salida / dmail (cout)] @ 74
+    │       │   └── [Cadena] "Produccion total anual:\n" @ 74
+    │       ├── [Salida / dmail (cout)] @ 75
+    │       │   └── [Variable / ID] Nombre: total @ 75
+    │       ├── [Salida / dmail (cout)] @ 76
+    │       │   └── [Cadena] "\n" @ 76
+    │       ├── [Condicional / choice (if)] @ 78
+    │       │   ├── [Bloque de Código / Condition] @ 78
+    │       │   │   └── [Operador] '>' @ 78
+    │       │   │       ├── [Variable / ID] Nombre: total @ 78
+    │       │   │       └── [Variable / ID] Nombre: mayor_total @ 78
+    │       │   └── [Bloque de Código / Then] @ 78
+    │       │       ├── [Asignación] ID: mayor_total @ 79
+    │       │       │   └── [Variable / ID] Nombre: total @ 79
+    │       │       └── [Asignación] ID: mayor_clave @ 80
+    │       │           └── [Variable / ID] Nombre: clave @ 80
+    │       ├── [Condicional / choice (if)] @ 83
+    │       │   ├── [Bloque de Código / Condition] @ 83
+    │       │   │   └── [Operador] '>' @ 83
+    │       │   │       ├── [Variable / ID] Nombre: julio @ 83
+    │       │   │       └── [Constante] Valor: 3000000.0 @ 83
+    │       │   └── [Bloque de Código / Then] @ 83
+    │       │       ├── [Salida / dmail (cout)] @ 84
+    │       │       │   └── [Cadena] "Fabrica con julio mayor a 3000000:\n" @ 84
+    │       │       └── [Salida / dmail (cout)] @ 85
+    │       │           └── [Variable / ID] Nombre: clave @ 85
+    │       └── [Asignación] ID: i @ 88
+    │           └── [Operador] '+' @ 88
+    │               ├── [Variable / ID] Nombre: i @ 88
+    │               └── [Constante] Valor: 1 @ 88
+    ├── [Salida / dmail (cout)] @ 91
+    │   └── [Cadena] "Fabrica con mayor produccion anual:\n" @ 91
+    ├── [Salida / dmail (cout)] @ 92
+    │   └── [Variable / ID] Nombre: mayor_clave @ 92
+    ├── [Salida / dmail (cout)] @ 93
+    │   └── [Cadena] "\n" @ 93
+    ├── [Salida / dmail (cout)] @ 94
+    │   └── [Cadena] "Total producido:\n" @ 94
+    └── [Salida / dmail (cout)] @ 95
+        └── [Variable / ID] Nombre: mayor_total @ 95

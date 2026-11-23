@@ -131,6 +131,9 @@ class MainWindow(QMainWindow):
         self._console_container: QWidget | None = None
         self._analysis_minimized = False
         self._console_minimized = False
+        self._restoring_layout = True
+        self._layout_restored = False
+        self._last_execution_time_ms: float | None = None
         self._top_splitter: QSplitter | None = None
         self._main_splitter: QSplitter | None = None
         self._top_sizes_before_analysis_toggle: list[int] | None = None
@@ -556,6 +559,7 @@ class MainWindow(QMainWindow):
             self._main_sizes_before_console_toggle = self._main_splitter.sizes()
         self._console_minimized = False
         self._console_container.setVisible(False)
+        self._save_session()
 
     def _close_analysis_panel(self) -> None:
         if self._analysis_container is None:
@@ -569,6 +573,7 @@ class MainWindow(QMainWindow):
             left = current_sizes[0] if len(current_sizes) > 0 else 250
             center = current_sizes[1] if len(current_sizes) > 1 else 9999
             self._top_splitter.setSizes([left, center, 0])
+        self._save_session()
 
     def _close_explorer_panel(self) -> None:
         if self._file_explorer is None:
@@ -581,6 +586,7 @@ class MainWindow(QMainWindow):
             center = current_sizes[1] if len(current_sizes) > 1 else 9999
             right = current_sizes[2] if len(current_sizes) > 2 and (self._analysis_container and self._analysis_container.isVisible()) else 0
             self._top_splitter.setSizes([0, center, right])
+        self._save_session()
 
     def _toggle_console_minimize(self) -> None:
         if self._console_panel is None or self._console_container is None:
@@ -601,6 +607,7 @@ class MainWindow(QMainWindow):
                     self._main_splitter.setSizes(self._main_sizes_before_console_toggle)
                 else:
                     self._main_splitter.setSizes([620, 180])
+        self._save_session()
 
     def _toggle_analysis_minimize(self) -> None:
         if self._analysis_panel is None or self._analysis_container is None:
@@ -621,6 +628,7 @@ class MainWindow(QMainWindow):
                     self._top_splitter.setSizes(self._top_sizes_before_analysis_toggle)
                 else:
                     self._top_splitter.setSizes([250, 700, 250])
+        self._save_session()
 
     def _show_explorer_panel(self) -> None:
         if self._file_explorer is None:
@@ -631,6 +639,7 @@ class MainWindow(QMainWindow):
             if len(sizes) >= 3 and sizes[0] <= 20:
                 sizes = [250, max(700, sizes[1]), sizes[2]]
             self._top_splitter.setSizes(sizes)
+        self._save_session()
 
     def _toggle_terminal_panel(self) -> None:
         if self._console_container is None:
@@ -670,6 +679,7 @@ class MainWindow(QMainWindow):
             if len(sizes) >= 2 and sizes[1] <= 20:
                 sizes = [max(620, sizes[0]), 180]
             self._main_splitter.setSizes(sizes)
+        self._save_session()
 
     def _show_analysis_panel(self) -> None:
         if self._analysis_container is None:
@@ -685,6 +695,7 @@ class MainWindow(QMainWindow):
             if len(sizes) >= 3 and sizes[2] <= 20:
                 sizes = [max(250, sizes[0]), max(700, sizes[1]), 250]
             self._top_splitter.setSizes(sizes)
+        self._save_session()
 
     def _load_example_code(self) -> str:
         example_path = Path(__file__).resolve().parent.parent / "examples" / "hello_world.stn"
@@ -737,8 +748,9 @@ class MainWindow(QMainWindow):
         open_theme_dialog(self)
 
     def _on_text_changed(self) -> None:
-        editor = self._get_active_editor()
-        if editor:
+        sender = self.sender()
+        editor = sender if isinstance(sender, CodeEditor) else self._get_active_editor()
+        if isinstance(editor, CodeEditor):
             editor.setProperty("unsaved", True)
             if self._search_text:
                 editor.set_search_highlights(self._search_text)
@@ -792,8 +804,11 @@ class MainWindow(QMainWindow):
         file_label = current_file.name if current_file else self._current_tab_title()
         unsaved = editor.property("unsaved")
         save_indicator = "  ●  Sin guardar" if unsaved else ""
+        execution_indicator = ""
+        if self._last_execution_time_ms is not None:
+            execution_indicator = f" · Tiempo: {self._last_execution_time_ms:.3f} ms"
         self._status.showMessage(
-            f"{self._current_lab_member_label()} · {file_label} · Línea {line}, Col {column}{save_indicator}"
+            f"{self._current_lab_member_label()} · {file_label} · Línea {line}, Col {column}{save_indicator}{execution_indicator}"
         )
 
     def _new_file(self, with_example: bool = False) -> None:
@@ -868,8 +883,26 @@ class MainWindow(QMainWindow):
         if not self._confirm_all_unsaved_before_exit():
             event.ignore()
             return
+        self._restoring_layout = False
         self._save_session()
         super().closeEvent(event)
+
+    def showEvent(self, event) -> None:  # type: ignore[override]
+        super().showEvent(event)
+        if getattr(self, "_layout_restored", False):
+            return
+
+        self._layout_restored = True
+        restore_layout_state(self)
+        maximized = bool(
+            self._settings.value("session/window_maximized", True, type=bool)
+        )
+        if maximized:
+            self.showMaximized()
+        else:
+            self.showNormal()
+
+        self._restoring_layout = False
 
     def _close_tab(self, index: int) -> None:
         close_tab(self, index)

@@ -1,6 +1,0 @@
-write 'Teclea un numero: '
-read n
-write 'El doble del numero es: '
-t1 = n * 2
-doble = t1
-write doble

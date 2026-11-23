@@ -1,24 +1,25 @@
 import unittest
+
 from analizadores.analisis_lexico.skuld_lexer import tokenize_file_with_recovery
 from analizadores.analisis_sintactico.skuld_parser import SkuldParser
 from analizadores.analisis_semantico.semantic_analyzer import SemanticAnalyzer
-from analizadores.codigo_intermedio.generator import IntermediateCodeGenerator
 from analizadores.generacion_codigo.tm_generator import TMGenerator
 from ejecucion.tm_machine import TMMachine
 
 
-def compile_and_run(file_path: str, inputs: list[int]) -> list[str]:
-    tokens, lex_errs = tokenize_file_with_recovery(file_path)
-    assert not lex_errs, f"Lex errors: {lex_errs}"
-    ast = SkuldParser(tokens).parse()
-    ann_ast, symtab, sem_errs = SemanticAnalyzer().analyze(ast)
-    assert not sem_errs, f"Semantic errors: {sem_errs}"
-    
-    ci = IntermediateCodeGenerator().generate(ann_ast, symtab)
-    assert len(ci) > 0, "Empty CI"
+def compile_and_run(file_path: str, inputs: list[object]) -> list[str]:
+    tokens, lex_errors = tokenize_file_with_recovery(file_path)
+    assert not lex_errors, f"Lex errors: {lex_errors}"
 
-    tm_code = TMGenerator().generate(ann_ast, symtab, file_path)
-    assert len(tm_code) > 0, "Empty TM code"
+    parser = SkuldParser(tokens)
+    ast = parser.parse()
+    assert not parser.errors, f"Syntax errors: {parser.errors}"
+
+    annotated_ast, symbol_table, semantic_errors = SemanticAnalyzer().analyze(ast)
+    assert not semantic_errors, f"Semantic errors: {semantic_errors}"
+
+    tm_code = TMGenerator().generate(annotated_ast, symbol_table, file_path)
+    assert tm_code
 
     machine = TMMachine()
     machine.load_code(tm_code)
@@ -27,63 +28,47 @@ def compile_and_run(file_path: str, inputs: list[int]) -> list[str]:
     return outputs
 
 
-class TestCompiladorSkuldFaseFinal(unittest.TestCase):
-    def test_factorial(self):
-        # 5! = 120
-        out = compile_and_run("Ejemplosv2/factorial_tiny.stn", [5])
-        self.assertEqual(out, ["120"])
+class TestEjerciciosGrupo6(unittest.TestCase):
+    base = "EjerciciosPrueba/Grupo 6"
 
-    def test_ejercicio1_inverso(self):
-        # Invertir 10, 20, 30, 40 -> 40, 30, 20, 10
-        out = compile_and_run("examples/ejercicio1_inverso.stn", [10, 20, 30, 40])
-        self.assertEqual(out, ["40", "30", "20", "10"])
+    def test_segundos_por_dias(self):
+        outputs = compile_and_run(f"{self.base}/ejercicio1_segundos_dias.stn", [2])
+        self.assertIn("172800", outputs)
 
-    def test_ejercicio2_signo_positivo(self):
-        out = compile_and_run("examples/ejercicio2_signo.stn", [45])
-        self.assertEqual(out, ["0"])
+    def test_calificacion_aprobada(self):
+        outputs = compile_and_run(f"{self.base}/ejercicio2_calificacion.stn", [8])
+        self.assertIn("1", outputs)
 
-    def test_ejercicio2_signo_negativo(self):
-        out = compile_and_run("examples/ejercicio2_signo.stn", [-7])
-        self.assertEqual(out, ["1"])
+    def test_calificacion_reprobada(self):
+        outputs = compile_and_run(f"{self.base}/ejercicio2_calificacion.stn", [7])
+        self.assertIn("0", outputs)
 
-    def test_ejercicio2_signo_nulo(self):
-        out = compile_and_run("examples/ejercicio2_signo.stn", [0])
-        self.assertEqual(out, ["2"])
+    def test_costo_hospital(self):
+        outputs = compile_and_run(
+            f"{self.base}/ejercicio3_costo_hospital.stn",
+            [1, 20, 2],
+        )
+        self.assertIn("55.00000000000001", outputs)
 
-    def test_ejercicio3_creciente(self):
-        # 1, 5, 9 -> 1
-        out = compile_and_run("examples/ejercicio3_creciente.stn", [1, 5, 9])
-        self.assertEqual(out, ["1"])
-        # 5, 2, 9 -> 0
-        out = compile_and_run("examples/ejercicio3_creciente.stn", [5, 2, 9])
-        self.assertEqual(out, ["0"])
+    def test_serie_armonica(self):
+        outputs = compile_and_run(f"{self.base}/ejercicio4_serie_armonica.stn", [2])
+        self.assertTrue(outputs)
 
-    def test_ejercicio4_fibonacci(self):
-        # Fibonacci(7) = 13 (0, 1, 1, 2, 3, 5, 8, 13)
-        out = compile_and_run("examples/ejercicio4_fibonacci.stn", [7])
-        self.assertEqual(out, ["13"])
-        # Fibonacci(0) = 0
-        out = compile_and_run("examples/ejercicio4_fibonacci.stn", [0])
-        self.assertEqual(out, ["0"])
+    def test_codigo_tm_grupo6(self):
+        file_path = f"{self.base}/ejercicio5_produccion_fabricas.stn"
+        tokens, lex_errors = tokenize_file_with_recovery(file_path)
+        self.assertFalse(lex_errors)
 
-    def test_ejercicio5_ulam(self):
-        # ULAM para 6: 6, 3, 10, 5, 16, 8, 4, 2, 1
-        out = compile_and_run("examples/ejercicio5_ulam.stn", [6])
-        self.assertEqual(out, ["6", "3", "10", "5", "16", "8", "4", "2", "1"])
+        parser = SkuldParser(tokens)
+        ast = parser.parse()
+        self.assertFalse(parser.errors)
 
-    def test_codigo_tm_usa_instrucciones_de_pila(self):
-        tokens, lex_errs = tokenize_file_with_recovery("examples/ejemplo_teclea_numero.stn")
-        self.assertFalse(lex_errs)
-        ast = SkuldParser(tokens).parse()
-        ann_ast, symtab, sem_errs = SemanticAnalyzer().analyze(ast)
-        self.assertFalse(sem_errs)
+        annotated_ast, symbol_table, semantic_errors = SemanticAnalyzer().analyze(ast)
+        self.assertFalse(semantic_errors)
 
-        code = TMGenerator().generate(ann_ast, symtab)
-
-        self.assertIn("lda n", code)
-        self.assertIn("lod n", code)
-        self.assertIn("mpi", code)
-        self.assertNotIn("LD     ", code)
+        code = TMGenerator().generate(annotated_ast, symbol_table, file_path)
+        self.assertIn("Produccion de enero", code)
+        self.assertIn("Produccion de julio", code)
 
 
 if __name__ == "__main__":

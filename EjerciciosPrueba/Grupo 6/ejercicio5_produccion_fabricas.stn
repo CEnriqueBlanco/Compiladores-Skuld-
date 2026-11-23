@@ -8,19 +8,58 @@ float julio;
 float mayor_total = 0.0 - 1.0;
 int mayor_clave = 0;
 
+cout << "PRODUCCION ANUAL DE FABRICAS\n";
 cout << "Escribe el numero de fabricas:\n";
 cin >> n;
 
 i = 1;
 while (i <= n) {
-    cout << "Escribe la clave de la fabrica:\n";
+    cout << "Fabrica numero:\n";
+    cout << i;
+    cout << "\n";
+    cout << "Escribe la clave de esta fabrica:\n";
     cin >> clave;
     total = 0.0;
     julio = 0.0;
 
     mes = 1;
     while (mes <= 12) {
-        cout << "Escribe la produccion del mes:\n";
+        if (mes == 1) {
+            cout << "Produccion de enero:\n";
+        }
+        if (mes == 2) {
+            cout << "Produccion de febrero:\n";
+        }
+        if (mes == 3) {
+            cout << "Produccion de marzo:\n";
+        }
+        if (mes == 4) {
+            cout << "Produccion de abril:\n";
+        }
+        if (mes == 5) {
+            cout << "Produccion de mayo:\n";
+        }
+        if (mes == 6) {
+            cout << "Produccion de junio:\n";
+        }
+        if (mes == 7) {
+            cout << "Produccion de julio:\n";
+        }
+        if (mes == 8) {
+            cout << "Produccion de agosto:\n";
+        }
+        if (mes == 9) {
+            cout << "Produccion de septiembre:\n";
+        }
+        if (mes == 10) {
+            cout << "Produccion de octubre:\n";
+        }
+        if (mes == 11) {
+            cout << "Produccion de noviembre:\n";
+        }
+        if (mes == 12) {
+            cout << "Produccion de diciembre:\n";
+        }
         cin >> produccion;
         total = total + produccion;
         if (mes == 7) {
@@ -29,10 +68,12 @@ while (i <= n) {
         mes = mes + 1;
     }
 
-    cout << "Fabrica:\n";
+    cout << "Resultado de la fabrica:\n";
     cout << clave;
-    cout << "Total anual:\n";
+    cout << "\n";
+    cout << "Produccion total anual:\n";
     cout << total;
+    cout << "\n";
 
     if (total > mayor_total) {
         mayor_total = total;
@@ -49,5 +90,6 @@ while (i <= n) {
 
 cout << "Fabrica con mayor produccion anual:\n";
 cout << mayor_clave;
+cout << "\n";
 cout << "Total producido:\n";
 cout << mayor_total;

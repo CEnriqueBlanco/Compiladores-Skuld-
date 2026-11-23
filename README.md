@@ -1,36 +1,44 @@
-# Skuld Compiler & IDE
+# Skuld
 
-Compilador educativo e IDE para el lenguaje Skuld. El proyecto está
-desarrollado en Python y separa la interfaz gráfica de las fases del
-compilador.
+Skuld es un lenguaje educativo compilado por un proyecto en Python que incluye
+analizadores léxico, sintáctico y semántico, generación de código intermedio,
+código para Tiny Machine y una interfaz gráfica con PyQt5.
 
-## Equipo
+## Contenido
 
-- Alan Gael Gallardo Jiménez
-- Carlos Enrique Blanco Ortiz
+- [Inicio rápido](#inicio-rápido)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Archivos fuente](#archivos-fuente)
+- [Programa mínimo](#programa-mínimo)
+- [Tipos de datos](#tipos-de-datos)
+- [Variables](#variables)
+- [Entrada y salida](#entrada-y-salida)
+- [Operadores](#operadores)
+- [Condicionales](#condicionales)
+- [Ciclos](#ciclos)
+- [Funciones](#funciones)
+- [Comentarios](#comentarios)
+- [Precedencia de expresiones](#precedencia-de-expresiones)
+- [Errores](#errores)
+- [IDE](#ide)
+- [Compilación desde terminal](#compilación-desde-terminal)
+- [Ejercicios](#ejercicios)
 
-## Tecnologías
+## Inicio rápido
 
-- Python 3.11 o posterior
-- PyQt5 para la interfaz gráfica
-- PyInstaller para generar ejecutables opcionalmente
+Requisitos:
 
-## Instalación y ejecución
+- Python 3.11 o posterior.
+- Las dependencias de `requirements.txt`.
 
-Cada integrante debe instalar sus dependencias en su propio entorno virtual.
-Los entornos virtuales y sus archivos generados no forman parte del
-repositorio.
-
-### Windows
-
-La forma recomendada es:
+En Windows, desde la raíz del proyecto:
 
 ```powershell
 .\setup_env.ps1
 .\run_ide.ps1
 ```
 
-La instalación manual equivalente es:
+También puede abrirse manualmente:
 
 ```powershell
 py -3.11 -m venv .venv311
@@ -39,237 +47,420 @@ python -m pip install -r requirements.txt
 python -m ide.main
 ```
 
-También se puede ejecutar el compilador directamente:
-
-```powershell
-python skuld_compiler.py --lexico examples\prueba_estandar.stn
-python skuld_compiler.py --sintactico examples\prueba_estandar.stn
-python skuld_compiler.py --semantico examples\prueba_estandar.stn
-python skuld_compiler.py --intermedio examples\ejercicio4_fibonacci.stn
-python skuld_compiler.py --tm examples\ejercicio4_fibonacci.stn
-python skuld_compiler.py --ejecutar examples\ejercicio4_fibonacci.stn
-```
-
-## Arquitectura
+## Estructura del proyecto
 
 ```text
-Código fuente (.stn)
-        |
-        v
-Analizador léxico -> tokens
-        |
-        v
-Analizador sintáctico -> AST
-        |
-        v
-Analizador semántico -> AST anotado + tabla de símbolos + errores
-        |
-        v
-IDE / salida de consola
+.
+├── analizadores/
+│   ├── analisis_lexico/
+│   ├── analisis_sintactico/
+│   ├── analisis_semantico/
+│   ├── codigo_intermedio/
+│   └── generacion_codigo/
+├── ejecucion/
+├── ide/
+├── EjerciciosPrueba/
+├── tests/
+├── skuld_compiler.py
+├── requirements.txt
+├── setup_env.ps1
+└── run_ide.ps1
 ```
 
-El IDE puede usar el compilador externo definido en `SKULD_COMPILER_CMD`.
-Si la variable no existe, utiliza automáticamente `skuld_compiler.py` ubicado
-en la raíz del proyecto.
+## Archivos fuente
 
-```powershell
-$env:SKULD_COMPILER_CMD="C:\ruta\a\tu\compilador.exe"
-```
+Los programas de Skuld pueden guardarse con la extensión `.stn`. Las extensiones
+`.txt` también pueden abrirse y compilarse desde la IDE.
 
-## Lenguaje Skuld soportado
+Cada sentencia termina con punto y coma `;`, excepto las estructuras de control
+como `if`, `while` y las definiciones de función o bloque principal.
 
-### Tipos y palabras reservadas
-
-| Categoría | Elementos |
-|---|---|
-| Tipos | `int`, `float`, `bool`, `string`, `void` |
-| Estructura | `function`, `main`, `return` |
-| Control | `if`, `else`, `while`, `do`, `until` |
-| Entrada y salida | `cin`, `cout` |
-| Booleanos | `true`, `false` |
-| Operadores lógicos por palabra | `and`, `or`, `not` |
-
-También se reconocen los operadores simbólicos `&&`, `||` y `!`.
-
-### Declaraciones y funciones
-
-Las variables pueden declararse con o sin inicialización:
-
-```text
-int edad = 20;
-float temperatura = 36.5;
-bool activo = true;
-string mensaje = "Hola";
-```
-
-Las funciones tienen tipo de retorno, nombre, parámetros y un bloque:
-
-```text
-function bool es_mayor(int valor, int limite) {
-    return valor > limite;
-}
-```
-
-El programa principal se escribe con `main`:
+## Programa mínimo
 
 ```text
 main {
-    bool mayor = es_mayor(edad, 18);
-    cout("Resultado");
+    cout << "Hola, mundo:\n";
 }
 ```
 
-### Sentencias y expresiones
-
-El parser reconoce:
-
-- Asignaciones simples y compuestas: `=`, `+=`, `-=`, `*=`, `/=`, `%=`.
-- Incremento y decremento: `++` y `--`.
-- Operaciones aritméticas: `+`, `-`, `*`, `/`, `%`.
-- Comparaciones: `<`, `<=`, `>`, `>=`, `==`, `!=`.
-- Operaciones lógicas: `&&`, `||`, `!`, `and`, `or`, `not`.
-- Condicionales `if` / `else`.
-- Ciclos `while`.
-- Ciclos `do` / `until`.
-- Entrada mediante `cin`.
-- Salida mediante `cout`.
-- Llamadas a funciones y valores de retorno.
-- Literales enteros, flotantes, booleanos y cadenas.
-- Comentarios ignorados por el lexer.
-
-Un programa completo de ejemplo se encuentra en
-[`examples/prueba_estandar.stn`](D:/Compiladores-Skuld-/examples/prueba_estandar.stn).
-
-La descripcion tecnica detallada de la fase semantica se encuentra en
-[`DESCRIPCION_TECNICA_ANALISIS_SEMANTICO.md`](D:/Compiladores-Skuld-/DESCRIPCION_TECNICA_ANALISIS_SEMANTICO.md).
-
-## Funcionamiento del compilador
-
-### 1. Análisis léxico
-
-`SkuldLexer` recorre el código fuente y genera tokens con:
-
-- Tipo de token.
-- Lexema original.
-- Línea.
-- Columna inicial y final.
-
-Reconoce identificadores, palabras reservadas, literales numéricos y de
-cadena, operadores y delimitadores. El lexer también puede recuperarse de
-errores y continuar para reportar más de un problema.
-
-Los errores léxicos se muestran con este formato:
+También se admite un programa directo sin envolverlo en `main`:
 
 ```text
-ERROR_LEXICO(linea, columna): descripción -> 'lexema'
+int numero;
+
+cout << "Escribe un numero:\n";
+cin >> numero;
+
+cout << "El numero es:\n";
+cout << numero;
 ```
 
-### 2. Análisis sintáctico
+El archivo puede contener declaraciones globales y sentencias sueltas. Para
+programas organizados se recomienda usar `main { ... }`.
 
-`SkuldParser` es un parser descendente recursivo. Consume los tokens y
-construye un Árbol Sintáctico Abstracto (AST) con nodos para:
+## Tipos de datos
 
-- Declaraciones de variables y funciones.
-- Bloques y programa principal.
-- Asignaciones.
-- Condicionales y ciclos.
-- Entrada, salida y retornos.
-- Literales, identificadores, llamadas y operaciones.
+| Tipo | Descripción | Ejemplo |
+|---|---|---|
+| `int` | Número entero | `int edad = 20;` |
+| `float` | Número decimal | `float precio = 12.50;` |
+| `bool` | Valor lógico | `bool activo = true;` |
+| `string` | Texto | `string nombre = "Ana";` |
+| `void` | Función sin valor de retorno | `function void mostrar() { }` |
 
-Los errores sintácticos se acumulan y el parser intenta sincronizarse para
-continuar el análisis:
+Literales admitidos:
 
 ```text
-ERROR_SINTACTICO(linea, columna): descripción -> 'lexema'
+10
+-25
+3.1416
+true
+false
+"Hola"
+"Primera linea:\nSegunda linea:"
 ```
 
-La fase guarda el árbol textual en una carpeta `ast` junto al archivo fuente:
+## Variables
+
+Las variables se declaran indicando primero el tipo y después el identificador:
 
 ```text
-examples/ast/prueba_estandar.ast.txt
+int edad;
+float salario;
+bool aprobado;
+string mensaje;
 ```
 
-La CLI también acepta como entrada un archivo que ya tenga el formato de
-tokens producido por el análisis léxico.
-
-### 3. Análisis semántico
-
-`SemanticAnalyzer` conserva el AST original, crea una copia anotada y realiza:
-
-- Registro y búsqueda de variables y funciones.
-- Manejo de ámbitos anidados.
-- Detección de identificadores no declarados.
-- Detección de declaraciones duplicadas.
-- Verificación de tipos en declaraciones y asignaciones.
-- Verificación de tipos en operaciones aritméticas, relacionales y lógicas.
-- Verificación de condiciones booleanas en `if`, `while` y `do`.
-- Verificación de argumentos y valores de retorno.
-- Propagación de atributos de tipo, ámbito y valor constante.
-
-Los nombres visibles de tipos son `int`, `float`, `bool`, `string` y `void`.
-Internamente se normalizan algunos tipos para mantener compatibilidad con la
-implementación anterior.
-
-La fase produce:
+Una variable puede inicializarse al declararse:
 
 ```text
-examples/ast/prueba_estandar.ast_annotated.txt
-examples/ast/prueba_estandar.symbols.txt
+int contador = 0;
+float total = 0.0;
+bool activo = true;
+string nombre = "Skuld";
 ```
 
-Los errores semánticos usan el formato:
+Varias variables pueden declararse juntas si se separan por comas:
 
 ```text
-ERROR_SEMANTICO(linea, columna): descripción -> 'lexema'
+int a, b, c;
+int x = 1, y = 2;
 ```
 
-## Tabla de símbolos
+Los identificadores deben comenzar con una letra o `_`. Después pueden contener
+letras, números o `_`.
 
-La tabla de símbolos mantiene la información de variables y funciones
-encontradas durante el análisis. Cada entrada puede incluir:
+Ejemplos válidos:
 
-- Nombre.
-- Tipo.
-- Clase de símbolo.
-- Ámbito.
-- Línea de declaración.
-- Parámetros y tipo de retorno cuando corresponde.
-- Valor constante cuando puede determinarse.
+```text
+total
+_temporal
+dato2
+valorPromedio
+```
 
-La tabla puede consultarse desde la salida de la CLI o desde la pestaña
-**Símbolos** del IDE.
+## Entrada y salida
 
-## Interfaz gráfica
+### Leer datos
 
-El IDE permite:
+Use `cin >> nombre;` para leer una variable:
 
-### Archivos y edición
+```text
+int edad;
+cin >> edad;
+```
 
-- Crear archivos nuevos.
-- Abrir archivos individuales.
-- Abrir carpetas y navegar en el explorador.
-- Guardar y usar **Guardar como**.
-- Cerrar pestañas.
-- Arrastrar archivos al explorador o al editor.
-- Detectar cambios externos y recargar archivos.
-- Autoguardado configurable.
-- Fuente, tamaño, zoom y tema configurables.
+También se acepta la forma de función:
 
-### Paneles
+```text
+cin(edad);
+```
 
-- Editor con numeración de líneas.
-- Resaltado de sintaxis.
-- Explorador de archivos.
-- Panel de analizadores.
-- Terminal y consola.
-- Lista de errores.
-- Resultado léxico.
-- Resultado sintáctico.
-- AST anotado del análisis semántico.
-- Tabla de símbolos.
+La forma alternativa reconocida por el lexer es:
 
-Los errores reportados por las fases se pueden seleccionar para saltar a la
-línea correspondiente del editor y se resaltan visualmente.
+```text
+sphone(edad);
+```
+
+### Escribir datos
+
+Use `cout <<` para escribir una cadena o el valor de una variable:
+
+```text
+cout << "Introduce tu edad:\n";
+cout << edad;
+cout << "\n";
+```
+
+También se pueden encadenar varios elementos:
+
+```text
+cout << "Edad: " << edad << "\n";
+```
+
+La forma equivalente con función es:
+
+```text
+cout("Edad:", edad);
+```
+
+## Operadores
+
+### Operadores aritméticos
+
+| Operador | Acción | Ejemplo |
+|---|---|---|
+| `+` | Suma | `a + b` |
+| `-` | Resta | `a - b` |
+| `*` | Multiplicación | `a * b` |
+| `/` | División | `a / b` |
+| `%` | Residuo | `a % b` |
+| `^` | Potencia | `base ^ exponente` |
+
+### Comparación
+
+| Operador | Significado |
+|---|---|
+| `==` | Igual a |
+| `!=` | Diferente de |
+| `<` | Menor que |
+| `<=` | Menor o igual que |
+| `>` | Mayor que |
+| `>=` | Mayor o igual que |
+
+### Operadores lógicos
+
+Se puede escribir con símbolos o palabras:
+
+| Símbolo | Palabra | Acción |
+|---|---|---|
+| `&&` | `and` | Y lógico |
+| `\|\|` | `or` | O lógico |
+| `!` | `not` | Negación |
+
+Ejemplo:
+
+```text
+if (edad >= 18 && activo) {
+    cout << "Puede continuar:\n";
+}
+```
+
+### Asignación
+
+| Operador | Equivalente | Ejemplo |
+|---|---|---|
+| `=` | Asignación | `x = 10;` |
+| `+=` | `x = x + valor` | `x += 5;` |
+| `-=` | `x = x - valor` | `x -= 2;` |
+| `*=` | `x = x * valor` | `x *= 3;` |
+| `/=` | `x = x / valor` | `x /= 2;` |
+| `%=` | `x = x % valor` | `x %= 4;` |
+| `++` | Incrementa en uno | `contador++;` |
+| `--` | Decrementa en uno | `contador--;` |
+
+## Condicionales
+
+### Forma recomendada con llaves
+
+```text
+if (nota >= 8.0) {
+    cout << "Aprobado:\n";
+} else {
+    cout << "Reprobado:\n";
+}
+```
+
+Las llaves pueden omitirse en sentencias simples:
+
+```text
+if (x > 0)
+    cout << "Positivo:\n";
+else
+    cout << "No positivo:\n";
+```
+
+También pueden usarse las palabras estructurales `then`, `end` y `else`:
+
+```text
+if (x > 0) then
+    cout << "Positivo:\n";
+else
+    cout << "No positivo:\n";
+end
+```
+
+También se reconoce `choice` como alternativa al nombre `if`:
+
+```text
+choice (valor == 1) {
+    cout << "Uno:\n";
+} else {
+    cout << "Otro:\n";
+}
+```
+
+## Ciclos
+
+### `while`
+
+```text
+int i = 1;
+
+while (i <= 10) {
+    cout << i;
+    cout << "\n";
+    i++;
+}
+```
+
+Forma alternativa:
+
+```text
+while i <= 10 do
+    cout << i;
+    i++;
+end
+```
+
+### `do ... while`
+
+```text
+int numero;
+
+do {
+    cin >> numero;
+} while (numero < 0);
+```
+
+### `do ... until`
+
+```text
+int opcion;
+
+do {
+    cout << "Opcion:\n";
+    cin >> opcion;
+} until (opcion == 0);
+```
+
+Las variantes `loop`, `pulse` y `until` forman parte de los nombres propios del
+lenguaje y funcionan como alternativas del parser:
+
+```text
+loop (i <= 10) {
+    i++;
+}
+```
+
+## Funciones
+
+Una función se declara con `function`, su tipo de retorno, su nombre y sus
+parámetros:
+
+```text
+function int suma(int a, int b) {
+    return a + b;
+}
+```
+
+La función debe tener el tipo correspondiente al valor que devuelve:
+
+```text
+function float promedio(float a, float b) {
+    return (a + b) / 2.0;
+}
+
+function void mostrar(int valor) {
+    cout << "Valor:\n";
+    cout << valor;
+}
+```
+
+Una función se llama escribiendo su nombre y sus argumentos:
+
+```text
+int resultado = suma(10, 20);
+mostrar(resultado);
+```
+
+La palabra `steiner` es el nombre interno reconocido para `function`:
+
+```text
+steiner int duplicar(int valor) {
+    return valor * 2;
+}
+```
+
+## Comentarios
+
+### Comentario de una línea
+
+```text
+<> Esto es un comentario
+```
+
+### Comentario de varias líneas
+
+```text
+<!
+Este texto no forma parte del programa.
+Puede ocupar varias líneas.
+!>
+```
+
+Los comentarios son ignorados por el analizador léxico.
+
+## Precedencia de expresiones
+
+La expresión se evalúa de mayor a menor según el siguiente orden:
+
+1. Literales, identificadores y paréntesis.
+2. Operador unitario `^`.
+3. `*`, `/`, `%`.
+4. `+`, `-`.
+5. `<`, `<=`, `>`, `>=`, `==`, `!=`.
+6. `&&` o `and`.
+7. `||` o `or`.
+8. Operador unitario `not` o `!`.
+
+Se recomienda usar paréntesis cuando la intención pueda resultar ambigua:
+
+```text
+resultado = (a + b) * c;
+if ((edad >= 18) && activo) {
+    return true;
+}
+```
+
+## Errores
+
+Las fases reportan errores con la línea y la columna donde se encontraron:
+
+```text
+ERROR_LEXICO(linea, columna): descripcion -> 'lexema'
+ERROR_SINTACTICO(linea, columna): descripcion -> 'lexema'
+ERROR_SEMANTICO(linea, columna): descripcion -> 'lexema'
+```
+
+Antes de generar código, el compilador debe superar:
+
+1. El análisis léxico.
+2. El análisis sintáctico.
+3. El análisis semántico.
+
+## IDE
+
+La interfaz permite:
+
+- Crear, abrir y guardar archivos `.stn`.
+- Abrir carpetas y navegar por el explorador.
+- Cambiar entre pestañas.
+- Usar análisis léxico, sintáctico y semántico.
+- Consultar el AST, el AST anotado y la tabla de símbolos.
+- Generar código intermedio y código Tiny Machine.
+- Ejecutar el programa en la terminal integrada.
+- Mostrar u ocultar el explorador, la terminal y los analizadores.
 
 ### Atajos
 
@@ -281,76 +472,61 @@ línea correspondiente del editor y se resaltan visualmente.
 | `Ctrl+Shift+S` | Guardar como |
 | `Ctrl+F` | Buscar |
 | `Ctrl+G` | Ir a una línea |
-| `Ctrl+1` | Mostrar u ocultar analizadores |
-| `Ctrl+2` | Mostrar u ocultar terminal |
-| `Ctrl+3` | Mostrar u ocultar explorador |
+| `Ctrl+1` | Alternar analizadores |
+| `Ctrl+2` | Alternar terminal |
+| `Ctrl+3` | Alternar explorador |
 
-## Fases disponibles
+## Compilación desde terminal
 
-Actualmente están implementadas y conectadas:
+Ejecutar una fase léxica:
 
-- Análisis léxico.
-- Análisis sintáctico.
-- Análisis semántico.
-- Visualización del AST y del AST anotado.
-- Tabla de símbolos.
-- Reporte y resaltado de errores.
-- Código intermedio de tres direcciones (`--intermedio`).
-- Código TM de pila (`--tm`).
-- Ejecución del código TM (`--ejecutar`).
-
-El código TM usa instrucciones de pila como `ldc`, `lod`, `lda`, `sto`, `adi`,
-`sbi`, `mpi`, `les`, `equ`, `fjp` y `ujp`. El archivo `.ci` es una salida
-didáctica independiente; la ejecución utiliza el `.tm`.
-
-Al ejecutar desde el IDE, el código generado se muestra en las pestañas
-`Intermedio` y `Código TM`, mientras que la salida del simulador aparece en la
-pestaña `Ejecución` del panel **Terminal**, ubicado debajo del editor.
-
-## Estructura del proyecto
-
-```text
-.
-├── analizadores/
-│   ├── analisis_lexico/
-│   │   └── skuld_lexer.py
-│   ├── analisis_sintactico/
-│   │   └── skuld_parser.py
-│   ├── analisis_semantico/
-│       ├── semantic_analyzer.py
-│       └── symbol_table.py
-│   ├── codigo_intermedio/
-│   │   └── generator.py
-│   └── generacion_codigo/
-│       └── tm_generator.py
-├── ejecucion/
-│   └── tm_machine.py
-├── ide/
-│   ├── main.py
-│   ├── main_window.py
-│   ├── compiler_runner.py
-│   ├── code_editor.py
-│   ├── analysis_panel.py
-│   └── console_panel.py
-├── examples/
-├── skuld_compiler.py
-├── requirements.txt
-├── setup_env.ps1
-└── run_ide.ps1
+```powershell
+python skuld_compiler.py --lexico "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
 ```
 
-## Archivos generados
+Ejecutar el análisis sintáctico:
 
-Los siguientes archivos son temporales o específicos de cada instalación y
-están excluidos por `.gitignore`:
+```powershell
+python skuld_compiler.py --sintactico "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
+```
 
-- `venv/`, `.venv/`, `.venv311/`.
-- `__pycache__/` y `*.pyc`.
-- `.pytest_cache/`.
-- `build/`, `dist/`.
-- `*.dist-info/`, `*.egg-info/`, `*.whl` y `*.egg`.
-- Resultados de análisis generados dentro de carpetas `ast/`; estos archivos
-  pueden conservarse como evidencia de las fases ejecutadas.
+Ejecutar el análisis semántico:
 
-Cada integrante debe ejecutar la instalación localmente; no se deben subir
-entornos virtuales ni paquetes instalados al repositorio.
+```powershell
+python skuld_compiler.py --semantico "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
+```
+
+Generar código intermedio:
+
+```powershell
+python skuld_compiler.py --intermedio "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
+```
+
+Generar código Tiny Machine:
+
+```powershell
+python skuld_compiler.py --tm "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
+```
+
+Ejecutar un programa:
+
+```powershell
+python skuld_compiler.py --ejecutar "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
+```
+
+## Ejercicios
+
+Los ejercicios conservados están en `EjerciciosPrueba/`. Incluyen práctica de
+operaciones aritméticas, condicionales, ciclos, acumuladores, búsqueda del
+máximo o mínimo, sucesiones y cálculo de totales.
+
+En este README se recomienda seguir este orden de aprendizaje:
+
+1. Declarar variables e imprimir valores.
+2. Leer datos con `cin >>`.
+3. Usar operadores aritméticos.
+4. Crear decisiones con `if` y `else`.
+5. Resolver repeticiones con `while`.
+6. Combinar contadores y acumuladores.
+7. Crear funciones y usar valores de retorno.
+8. Resolver ejercicios con ciclos anidados.

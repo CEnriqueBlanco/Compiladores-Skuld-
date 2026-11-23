@@ -10,11 +10,15 @@ class FileExplorer(QTreeWidget):
     file_close_requested = pyqtSignal(str)
     path_renamed = pyqtSignal(str, str)
     path_deleted = pyqtSignal(str)
+    root_paths_changed = pyqtSignal()
+    expanded_paths_changed = pyqtSignal()
 
     def __init__(self) -> None:
         super().__init__()
         self._root_paths: list[Path] = []
         self._open_files: list[Path] = []
+        self._expanded_paths: set[Path] = set()
+        self._restoring_tree = False
         self._ignored_dirs = {
             ".git",
             "__pycache__",
@@ -32,12 +36,16 @@ class FileExplorer(QTreeWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._show_context_menu)
         self.itemDoubleClicked.connect(self._on_item_activated)
+        self.itemExpanded.connect(self._on_item_expanded)
+        self.itemCollapsed.connect(self._on_item_collapsed)
         self.setAcceptDrops(True)
         self._build_tree()
 
     def _build_tree(self) -> None:
+        self._restoring_tree = True
         self.clear()
         if not self._root_paths and not self._open_files:
+            self._restoring_tree = False
             return
 
         icon_file = self.style().standardIcon(QStyle.SP_FileIcon)
@@ -71,8 +79,52 @@ class FileExplorer(QTreeWidget):
                     root_item.addChild(item)
 
             self.addTopLevelItem(root_item)
+            self._restore_expanded_state(root_item)
 
-        self.expandAll()
+        self._restoring_tree = False
+
+    def _restore_expanded_state(self, item: QTreeWidgetItem) -> None:
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        if item_path_raw:
+            item.setExpanded(Path(str(item_path_raw)).resolve() in self._expanded_paths)
+
+        for index in range(item.childCount()):
+            child = item.child(index)
+            child_path_raw = child.data(0, Qt.UserRole + 1)
+            if child_path_raw:
+                child.setExpanded(
+                    Path(str(child_path_raw)).resolve() in self._expanded_paths
+                )
+            self._restore_expanded_state(child)
+
+    def set_expanded_paths(self, folder_paths: list[str]) -> None:
+        self._expanded_paths.clear()
+        for folder_path in folder_paths:
+            path = Path(folder_path)
+            if path.exists() and path.is_dir():
+                self._expanded_paths.add(path.resolve())
+        self._build_tree()
+
+    def get_expanded_paths(self) -> list[str]:
+        return [str(path) for path in sorted(self._expanded_paths, key=str)]
+
+    def _on_item_expanded(self, item: QTreeWidgetItem) -> None:
+        if self._restoring_tree:
+            return
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        item_type = item.data(0, Qt.UserRole)
+        if item_path_raw and item_type == "folder":
+            self._expanded_paths.add(Path(str(item_path_raw)).resolve())
+            self.expanded_paths_changed.emit()
+
+    def _on_item_collapsed(self, item: QTreeWidgetItem) -> None:
+        if self._restoring_tree:
+            return
+        item_path_raw = item.data(0, Qt.UserRole + 1)
+        item_type = item.data(0, Qt.UserRole)
+        if item_path_raw and item_type == "folder":
+            self._expanded_paths.discard(Path(str(item_path_raw)).resolve())
+            self.expanded_paths_changed.emit()
 
     def refresh(self) -> None:
         self._build_tree()
@@ -92,6 +144,7 @@ class FileExplorer(QTreeWidget):
                 continue
             self._root_paths.append(resolved)
         self._build_tree()
+        self.root_paths_changed.emit()
 
     def add_root_path(self, folder_path: str) -> None:
         selected = Path(folder_path)
@@ -102,10 +155,12 @@ class FileExplorer(QTreeWidget):
             return
         self._root_paths.append(resolved)
         self._build_tree()
+        self.root_paths_changed.emit()
 
     def clear_roots(self) -> None:
         self._root_paths.clear()
         self._build_tree()
+        self.root_paths_changed.emit()
 
     def add_open_file(self, file_path: str) -> None:
         path = Path(file_path).resolve()
@@ -220,11 +275,13 @@ class FileExplorer(QTreeWidget):
         if not selected.exists():
             self._root_paths = [path for path in self._root_paths if str(path) != folder_path]
             self._build_tree()
+            self.root_paths_changed.emit()
             return
 
         resolved = selected.resolve()
         self._root_paths = [path for path in self._root_paths if path != resolved]
         self._build_tree()
+        self.root_paths_changed.emit()
 
     def _open_folder_for_item(self, item: QTreeWidgetItem) -> None:
         item_path_raw = item.data(0, Qt.UserRole + 1)

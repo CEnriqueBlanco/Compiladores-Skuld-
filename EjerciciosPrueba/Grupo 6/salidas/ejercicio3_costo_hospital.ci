@@ -1,0 +1,42 @@
+write 'Escribe el tipo de enfermedad (1-4):\n'
+read tipo
+write 'Escribe la edad del paciente:\n'
+read edad
+write 'Escribe los dias de internacion:\n'
+read dias
+t1 = tipo == 1
+ifFalse t1 goto L1
+costo_dia = 25.0
+goto L2
+L1:
+t2 = tipo == 2
+ifFalse t2 goto L3
+costo_dia = 16.0
+goto L4
+L3:
+t3 = tipo == 3
+ifFalse t3 goto L5
+costo_dia = 20.0
+goto L6
+L5:
+t4 = tipo == 4
+ifFalse t4 goto L7
+costo_dia = 32.0
+goto L8
+L7:
+costo_dia = 0.0
+L8:
+L6:
+L4:
+L2:
+t5 = costo_dia * dias
+total = t5
+t6 = edad >= 14
+t7 = edad <= 22
+t8 = t6 && t7
+ifFalse t8 goto L10
+t9 = total * 1.1
+total = t9
+L10:
+write 'Costo total del paciente:\n'
+write total

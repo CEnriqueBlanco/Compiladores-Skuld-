@@ -1,7 +1,0 @@
-int edad;
-cin >> edad;
-if (edad >= 18) then
-    cout << "Mayor de edad";
-else
-    cout << "Menor de edad";
-end

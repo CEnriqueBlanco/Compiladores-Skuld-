@@ -1,0 +1,8 @@
+write 'Escribe el numero de dias:\n'
+read dias
+t1 = dias * 24
+t2 = t1 * 60
+t3 = t2 * 60
+segundos = t3
+write 'Segundos:\n'
+write segundos

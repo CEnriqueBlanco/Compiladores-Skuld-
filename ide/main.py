@@ -35,7 +35,7 @@ def main() -> int:
         main_window.setWindowIcon(QIcon(window_icon_path))
 
     splash.show()
-    QTimer.singleShot(1200, lambda: (splash.close(), main_window.showMaximized()))
+    QTimer.singleShot(1200, lambda: (splash.close(), main_window.show()))
 
     return app.exec_()
 

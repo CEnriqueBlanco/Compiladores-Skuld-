@@ -1,0 +1,214 @@
+└── [Bloque de Código / Programa] {atributo: sintetizado} @ 1
+    ├── [Declaración de Variable] Tipo: int {tipo: int, atributo: heredado} @ 1
+    │   └── [Variable] ID: n {tipo: int, atributo: heredado} @ 1
+    ├── [Declaración de Variable] Tipo: int {tipo: int, atributo: heredado} @ 2
+    │   └── [Variable] ID: i {tipo: int, atributo: heredado} @ 2
+    ├── [Declaración de Variable] Tipo: int {tipo: int, atributo: heredado} @ 3
+    │   └── [Variable] ID: mes {tipo: int, atributo: heredado} @ 3
+    ├── [Declaración de Variable] Tipo: int {tipo: int, atributo: heredado} @ 4
+    │   └── [Variable] ID: clave {tipo: int, atributo: heredado} @ 4
+    ├── [Declaración de Variable] Tipo: float {tipo: float, atributo: heredado} @ 5
+    │   └── [Variable] ID: produccion {tipo: float, atributo: heredado} @ 5
+    ├── [Declaración de Variable] Tipo: float {tipo: float, atributo: heredado} @ 6
+    │   └── [Variable] ID: total {tipo: float, atributo: heredado} @ 6
+    ├── [Declaración de Variable] Tipo: float {tipo: float, atributo: heredado} @ 7
+    │   └── [Variable] ID: julio {tipo: float, atributo: heredado} @ 7
+    ├── [Declaración de Variable] Tipo: float {tipo: float, atributo: heredado} @ 8
+    │   └── [Variable] ID: mayor_total (Inicializada) {tipo: float, val: -1.0, atributo: heredado} @ 8
+    │       └── [Operador] '-' {tipo: float, val: -1.0, atributo: sintetizado} @ 8
+    │           ├── [Constante] Valor: 0.0 {tipo: float, val: 0.0, atributo: sintetizado} @ 8
+    │           └── [Constante] Valor: 1.0 {tipo: float, val: 1.0, atributo: sintetizado} @ 8
+    ├── [Declaración de Variable] Tipo: int {tipo: int, atributo: heredado} @ 9
+    │   └── [Variable] ID: mayor_clave (Inicializada) {tipo: int, val: 0, atributo: heredado} @ 9
+    │       └── [Constante] Valor: 0 {tipo: int, val: 0, atributo: sintetizado} @ 9
+    ├── [Salida / cout] {atributo: sintetizado} @ 11
+    │   └── [Cadena] "PRODUCCION ANUAL DE FABRICAS\n" {tipo: string, val: PRODUCCION ANUAL DE FABRICAS\n, atributo: sintetizado} @ 11
+    ├── [Salida / cout] {atributo: sintetizado} @ 12
+    │   └── [Cadena] "Escribe el numero de fabricas:\n" {tipo: string, val: Escribe el numero de fabricas:\n, atributo: sintetizado} @ 12
+    ├── [Entrada / cin] ID: n {tipo: int, atributo: sintetizado} @ 13
+    ├── [Asignación] ID: i {tipo: int, val: 1, atributo: sintetizado} @ 15
+    │   └── [Constante] Valor: 1 {tipo: int, val: 1, atributo: sintetizado} @ 15
+    ├── [Bucle / while] {atributo: sintetizado} @ 16
+    │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 16
+    │   │   └── [Operador] '<=' {tipo: bool, atributo: sintetizado} @ 16
+    │   │       ├── [Variable / ID] Nombre: i {tipo: int, val: 1, atributo: sintetizado} @ 16
+    │   │       └── [Variable / ID] Nombre: n {tipo: int, atributo: sintetizado} @ 16
+    │   └── [Bloque de Código / Loop] {atributo: sintetizado} @ 16
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 17
+    │       │   └── [Cadena] "Fabrica numero:\n" {tipo: string, val: Fabrica numero:\n, atributo: sintetizado} @ 17
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 18
+    │       │   └── [Variable / ID] Nombre: i {tipo: int, val: 1, atributo: sintetizado} @ 18
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 19
+    │       │   └── [Cadena] "\n" {tipo: string, val: \n, atributo: sintetizado} @ 19
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 20
+    │       │   └── [Cadena] "Escribe la clave de esta fabrica:\n" {tipo: string, val: Escribe la clave de esta fabrica:\n, atributo: sintetizado} @ 20
+    │       ├── [Entrada / cin] ID: clave {tipo: int, atributo: sintetizado} @ 21
+    │       ├── [Asignación] ID: total {tipo: float, val: 0.0, atributo: sintetizado} @ 22
+    │       │   └── [Constante] Valor: 0.0 {tipo: float, val: 0.0, atributo: sintetizado} @ 22
+    │       ├── [Asignación] ID: julio {tipo: float, val: 0.0, atributo: sintetizado} @ 23
+    │       │   └── [Constante] Valor: 0.0 {tipo: float, val: 0.0, atributo: sintetizado} @ 23
+    │       ├── [Asignación] ID: mes {tipo: int, val: 1, atributo: sintetizado} @ 25
+    │       │   └── [Constante] Valor: 1 {tipo: int, val: 1, atributo: sintetizado} @ 25
+    │       ├── [Bucle / while] {atributo: sintetizado} @ 26
+    │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 26
+    │       │   │   └── [Operador] '<=' {tipo: bool, val: True, atributo: sintetizado} @ 26
+    │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 26
+    │       │   │       └── [Constante] Valor: 12 {tipo: int, val: 12, atributo: sintetizado} @ 26
+    │       │   └── [Bloque de Código / Loop] {atributo: sintetizado} @ 26
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 27
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 27
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: True, atributo: sintetizado} @ 27
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 27
+    │       │       │   │       └── [Constante] Valor: 1 {tipo: int, val: 1, atributo: sintetizado} @ 27
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 27
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 28
+    │       │       │           └── [Cadena] "Produccion de enero:\n" {tipo: string, val: Produccion de enero:\n, atributo: sintetizado} @ 28
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 30
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 30
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 30
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 30
+    │       │       │   │       └── [Constante] Valor: 2 {tipo: int, val: 2, atributo: sintetizado} @ 30
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 30
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 31
+    │       │       │           └── [Cadena] "Produccion de febrero:\n" {tipo: string, val: Produccion de febrero:\n, atributo: sintetizado} @ 31
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 33
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 33
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 33
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 33
+    │       │       │   │       └── [Constante] Valor: 3 {tipo: int, val: 3, atributo: sintetizado} @ 33
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 33
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 34
+    │       │       │           └── [Cadena] "Produccion de marzo:\n" {tipo: string, val: Produccion de marzo:\n, atributo: sintetizado} @ 34
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 36
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 36
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 36
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 36
+    │       │       │   │       └── [Constante] Valor: 4 {tipo: int, val: 4, atributo: sintetizado} @ 36
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 36
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 37
+    │       │       │           └── [Cadena] "Produccion de abril:\n" {tipo: string, val: Produccion de abril:\n, atributo: sintetizado} @ 37
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 39
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 39
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 39
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 39
+    │       │       │   │       └── [Constante] Valor: 5 {tipo: int, val: 5, atributo: sintetizado} @ 39
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 39
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 40
+    │       │       │           └── [Cadena] "Produccion de mayo:\n" {tipo: string, val: Produccion de mayo:\n, atributo: sintetizado} @ 40
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 42
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 42
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 42
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 42
+    │       │       │   │       └── [Constante] Valor: 6 {tipo: int, val: 6, atributo: sintetizado} @ 42
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 42
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 43
+    │       │       │           └── [Cadena] "Produccion de junio:\n" {tipo: string, val: Produccion de junio:\n, atributo: sintetizado} @ 43
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 45
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 45
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 45
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 45
+    │       │       │   │       └── [Constante] Valor: 7 {tipo: int, val: 7, atributo: sintetizado} @ 45
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 45
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 46
+    │       │       │           └── [Cadena] "Produccion de julio:\n" {tipo: string, val: Produccion de julio:\n, atributo: sintetizado} @ 46
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 48
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 48
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 48
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 48
+    │       │       │   │       └── [Constante] Valor: 8 {tipo: int, val: 8, atributo: sintetizado} @ 48
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 48
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 49
+    │       │       │           └── [Cadena] "Produccion de agosto:\n" {tipo: string, val: Produccion de agosto:\n, atributo: sintetizado} @ 49
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 51
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 51
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 51
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 51
+    │       │       │   │       └── [Constante] Valor: 9 {tipo: int, val: 9, atributo: sintetizado} @ 51
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 51
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 52
+    │       │       │           └── [Cadena] "Produccion de septiembre:\n" {tipo: string, val: Produccion de septiembre:\n, atributo: sintetizado} @ 52
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 54
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 54
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 54
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 54
+    │       │       │   │       └── [Constante] Valor: 10 {tipo: int, val: 10, atributo: sintetizado} @ 54
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 54
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 55
+    │       │       │           └── [Cadena] "Produccion de octubre:\n" {tipo: string, val: Produccion de octubre:\n, atributo: sintetizado} @ 55
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 57
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 57
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 57
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 57
+    │       │       │   │       └── [Constante] Valor: 11 {tipo: int, val: 11, atributo: sintetizado} @ 57
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 57
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 58
+    │       │       │           └── [Cadena] "Produccion de noviembre:\n" {tipo: string, val: Produccion de noviembre:\n, atributo: sintetizado} @ 58
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 60
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 60
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 60
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 60
+    │       │       │   │       └── [Constante] Valor: 12 {tipo: int, val: 12, atributo: sintetizado} @ 60
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 60
+    │       │       │       └── [Salida / cout] {atributo: sintetizado} @ 61
+    │       │       │           └── [Cadena] "Produccion de diciembre:\n" {tipo: string, val: Produccion de diciembre:\n, atributo: sintetizado} @ 61
+    │       │       ├── [Entrada / cin] ID: produccion {tipo: float, atributo: sintetizado} @ 63
+    │       │       ├── [Asignación] ID: total {tipo: float, atributo: sintetizado} @ 64
+    │       │       │   └── [Operador] '+' {tipo: float, atributo: sintetizado} @ 64
+    │       │       │       ├── [Variable / ID] Nombre: total {tipo: float, val: 0.0, atributo: sintetizado} @ 64
+    │       │       │       └── [Variable / ID] Nombre: produccion {tipo: float, atributo: sintetizado} @ 64
+    │       │       ├── [Condicional / if] {atributo: sintetizado} @ 65
+    │       │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 65
+    │       │       │   │   └── [Operador] '==' {tipo: bool, val: False, atributo: sintetizado} @ 65
+    │       │       │   │       ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 65
+    │       │       │   │       └── [Constante] Valor: 7 {tipo: int, val: 7, atributo: sintetizado} @ 65
+    │       │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 65
+    │       │       │       └── [Asignación] ID: julio {tipo: float, atributo: sintetizado} @ 66
+    │       │       │           └── [Variable / ID] Nombre: produccion {tipo: float, atributo: sintetizado} @ 66
+    │       │       └── [Asignación] ID: mes {tipo: int, val: 2, atributo: sintetizado} @ 68
+    │       │           └── [Operador] '+' {tipo: int, val: 2, atributo: sintetizado} @ 68
+    │       │               ├── [Variable / ID] Nombre: mes {tipo: int, val: 1, atributo: sintetizado} @ 68
+    │       │               └── [Constante] Valor: 1 {tipo: int, val: 1, atributo: sintetizado} @ 68
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 71
+    │       │   └── [Cadena] "Resultado de la fabrica:\n" {tipo: string, val: Resultado de la fabrica:\n, atributo: sintetizado} @ 71
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 72
+    │       │   └── [Variable / ID] Nombre: clave {tipo: int, atributo: sintetizado} @ 72
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 73
+    │       │   └── [Cadena] "\n" {tipo: string, val: \n, atributo: sintetizado} @ 73
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 74
+    │       │   └── [Cadena] "Produccion total anual:\n" {tipo: string, val: Produccion total anual:\n, atributo: sintetizado} @ 74
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 75
+    │       │   └── [Variable / ID] Nombre: total {tipo: float, atributo: sintetizado} @ 75
+    │       ├── [Salida / cout] {atributo: sintetizado} @ 76
+    │       │   └── [Cadena] "\n" {tipo: string, val: \n, atributo: sintetizado} @ 76
+    │       ├── [Condicional / if] {atributo: sintetizado} @ 78
+    │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 78
+    │       │   │   └── [Operador] '>' {tipo: bool, atributo: sintetizado} @ 78
+    │       │   │       ├── [Variable / ID] Nombre: total {tipo: float, atributo: sintetizado} @ 78
+    │       │   │       └── [Variable / ID] Nombre: mayor_total {tipo: float, val: -1.0, atributo: sintetizado} @ 78
+    │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 78
+    │       │       ├── [Asignación] ID: mayor_total {tipo: float, atributo: sintetizado} @ 79
+    │       │       │   └── [Variable / ID] Nombre: total {tipo: float, atributo: sintetizado} @ 79
+    │       │       └── [Asignación] ID: mayor_clave {tipo: int, atributo: sintetizado} @ 80
+    │       │           └── [Variable / ID] Nombre: clave {tipo: int, atributo: sintetizado} @ 80
+    │       ├── [Condicional / if] {atributo: sintetizado} @ 83
+    │       │   ├── [Bloque de Código / Condition] {atributo: sintetizado} @ 83
+    │       │   │   └── [Operador] '>' {tipo: bool, atributo: sintetizado} @ 83
+    │       │   │       ├── [Variable / ID] Nombre: julio {tipo: float, atributo: sintetizado} @ 83
+    │       │   │       └── [Constante] Valor: 3000000.0 {tipo: float, val: 3000000.0, atributo: sintetizado} @ 83
+    │       │   └── [Bloque de Código / Then] {atributo: sintetizado} @ 83
+    │       │       ├── [Salida / cout] {atributo: sintetizado} @ 84
+    │       │       │   └── [Cadena] "Fabrica con julio mayor a 3000000:\n" {tipo: string, val: Fabrica con julio mayor a 3000000:\n, atributo: sintetizado} @ 84
+    │       │       └── [Salida / cout] {atributo: sintetizado} @ 85
+    │       │           └── [Variable / ID] Nombre: clave {tipo: int, atributo: sintetizado} @ 85
+    │       └── [Asignación] ID: i {tipo: int, val: 2, atributo: sintetizado} @ 88
+    │           └── [Operador] '+' {tipo: int, val: 2, atributo: sintetizado} @ 88
+    │               ├── [Variable / ID] Nombre: i {tipo: int, val: 1, atributo: sintetizado} @ 88
+    │               └── [Constante] Valor: 1 {tipo: int, val: 1, atributo: sintetizado} @ 88
+    ├── [Salida / cout] {atributo: sintetizado} @ 91
+    │   └── [Cadena] "Fabrica con mayor produccion anual:\n" {tipo: string, val: Fabrica con mayor produccion anual:\n, atributo: sintetizado} @ 91
+    ├── [Salida / cout] {atributo: sintetizado} @ 92
+    │   └── [Variable / ID] Nombre: mayor_clave {tipo: int, atributo: sintetizado} @ 92
+    ├── [Salida / cout] {atributo: sintetizado} @ 93
+    │   └── [Cadena] "Total producido:\n" {tipo: string, val: Total producido:\n, atributo: sintetizado} @ 93
+    └── [Salida / cout] {atributo: sintetizado} @ 94
+        └── [Variable / ID] Nombre: mayor_total {tipo: float, atributo: sintetizado} @ 94

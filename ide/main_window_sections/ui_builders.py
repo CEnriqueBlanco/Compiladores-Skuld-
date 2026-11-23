@@ -267,6 +267,8 @@ def build_layout(window) -> None:
     window._file_explorer.file_close_requested.connect(window._close_file_from_explorer)
     window._file_explorer.path_renamed.connect(window._on_path_renamed)
     window._file_explorer.path_deleted.connect(window._on_path_deleted)
+    window._file_explorer.root_paths_changed.connect(window._save_session)
+    window._file_explorer.expanded_paths_changed.connect(window._save_session)
     window._analysis_panel = AnalysisPanel()
     window._analysis_panel._syntax.line_selected.connect(window._jump_to_line_from_tree)
     window._analysis_panel.error_selected.connect(window._jump_to_and_highlight_error)
@@ -286,6 +288,9 @@ def build_layout(window) -> None:
     window._top_splitter.setStretchFactor(1, 3)
     window._top_splitter.setStretchFactor(2, 1)
     window._top_splitter.setSizes([250, 700, 250])
+    window._top_splitter.splitterMoved.connect(
+        lambda *_args: window._save_session()
+    )
     window._top_sizes_before_analysis_toggle = window._top_splitter.sizes()
 
     window._console_panel = ConsolePanel()
@@ -303,6 +308,9 @@ def build_layout(window) -> None:
     window._main_splitter.setStretchFactor(0, 3)
     window._main_splitter.setStretchFactor(1, 1)
     window._main_splitter.setSizes([620, 180])
+    window._main_splitter.splitterMoved.connect(
+        lambda *_args: window._save_session()
+    )
     window._main_sizes_before_console_toggle = window._main_splitter.sizes()
 
     window.setCentralWidget(window._main_splitter)

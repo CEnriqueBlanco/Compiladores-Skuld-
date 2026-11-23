@@ -1,0 +1,23 @@
+└── [Bloque de Código / Programa] @ 1
+    ├── [Declaración de Variable] Tipo: float @ 1
+    │   └── [Variable] ID: calificacion @ 1
+    ├── [Declaración de Variable] Tipo: int @ 2
+    │   └── [Variable] ID: resultado @ 2
+    ├── [Salida / dmail (cout)] @ 4
+    │   └── [Cadena] "Escribe la calificacion del examen:\n" @ 4
+    ├── [Entrada / sphone (cin)] ID: calificacion @ 5
+    ├── [Condicional / choice (if)] @ 7
+    │   ├── [Bloque de Código / Condition] @ 7
+    │   │   └── [Operador] '>=' @ 7
+    │   │       ├── [Variable / ID] Nombre: calificacion @ 7
+    │   │       └── [Constante] Valor: 8.0 @ 7
+    │   ├── [Bloque de Código / Then] @ 7
+    │   │   └── [Asignación] ID: resultado @ 8
+    │   │       └── [Constante] Valor: 1 @ 8
+    │   └── [Bloque de Código / Else] @ 7
+    │       └── [Asignación] ID: resultado @ 10
+    │           └── [Constante] Valor: 0 @ 10
+    ├── [Salida / dmail (cout)] @ 13
+    │   └── [Cadena] "Aprobado=1, Reprobado=0:\n" @ 13
+    └── [Salida / dmail (cout)] @ 14
+        └── [Variable / ID] Nombre: resultado @ 14

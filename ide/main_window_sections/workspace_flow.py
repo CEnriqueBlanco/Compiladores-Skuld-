@@ -469,6 +469,8 @@ def run_phase(window, phase: str) -> None:
     if not editor:
         return
 
+    clear_outputs(window)
+
     if phase == "ejecucion" and getattr(window, "_tm_execution_active", False):
         if window._console_panel is not None:
             window._console_panel.append_errors(
@@ -491,6 +493,8 @@ def run_phase(window, phase: str) -> None:
     save_file(window)
 
     if phase == "ejecucion":
+        window._last_execution_time_ms = None
+        window._update_cursor_status()
         window._tm_execution_active = True
         try:
             _run_full_pipeline(window, str(current_file), editor)
@@ -524,8 +528,7 @@ def run_phase(window, phase: str) -> None:
             if phase == "ejecucion" and result.execution_time_ms is not None:
                 window._console_panel.set_execution(
                     f"Error durante la ejecución.\n\n"
-                    f"{result.stderr or 'No se generó salida.'}\n\n"
-                    f"Tiempo de ejecución: {result.execution_time_ms:.3f} ms"
+                    f"{result.stderr or 'No se generó salida.'}"
                 )
         return
 
@@ -550,13 +553,7 @@ def run_phase(window, phase: str) -> None:
             window._analysis_panel.setCurrentWidget(window._analysis_panel._tm_code)
     elif phase == "ejecucion":
         if window._console_panel is not None:
-            if result.execution_time_ms is not None:
-                window._console_panel.set_execution(
-                    f"{output_text}\n\n"
-                    f"Tiempo de ejecución: {result.execution_time_ms:.3f} ms"
-                )
-            else:
-                window._console_panel.set_execution(output_text)
+            window._console_panel.set_execution(output_text)
 
     if window._console_panel is not None:
         window._console_panel.append_console(f"Fase ejecutada: {phase}")
@@ -625,13 +622,15 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
     window._console_panel.setCurrentWidget(exec_widget)
     exec_widget.clear()
 
-    def terminal_input_callback() -> int:
+    def terminal_input_callback() -> int | float:
         loop = QEventLoop()
-        received_val = [0]
+        received_val: list[object] = [0]
 
         def on_submit(user_text: str):
             try:
-                received_val[0] = int(user_text.strip())
+                text_value = user_text.strip()
+                number = float(text_value)
+                received_val[0] = int(number) if number.is_integer() else number
             except ValueError:
                 received_val[0] = 0
             try:
@@ -642,11 +641,13 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
 
         exec_widget.input_submitted.connect(on_submit)
         exec_widget.enable_input()
+        QApplication.processEvents()
         loop.exec_()
         return received_val[0]
 
     def terminal_output_callback(chunk: str) -> None:
         exec_widget.write_stream(chunk)
+        QApplication.processEvents()
 
     def terminal_step_callback(
         current_pc: int,
@@ -665,9 +666,10 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
     )
     exec_widget.disable_input()
     exec_time_ms = (time.perf_counter() - start_exec) * 1000
+    window._last_execution_time_ms = exec_time_ms
+    window._update_cursor_status()
 
     if window._console_panel is not None:
-        window._console_panel.append_console(f"Fase ejecucion: {exec_time_ms:.3f} ms")
         if not success:
             window._console_panel.append_errors(f"Error de ejecución TM: {status}")
 
@@ -861,9 +863,12 @@ def restore_session(window) -> None:
     folder_paths = normalize_settings_list(window, window._settings.value("session/folders", []))
     open_files = normalize_settings_list(window, window._settings.value("session/open_files", []))
     active_file = str(window._settings.value("session/active_file", "") or "")
+    expanded_folders = normalize_settings_list(window, window._settings.value("session/expanded_folders", []))
 
     if folder_paths:
         window._file_explorer.set_root_paths(folder_paths)
+    if expanded_folders:
+        window._file_explorer.set_expanded_paths(expanded_folders)
 
     opened_any = False
     for file_path in open_files:
@@ -890,10 +895,10 @@ def restore_session(window) -> None:
                 window._editor_tabs.setCurrentIndex(index)
                 break
 
-        restore_layout_state(window)
-
-
 def save_session(window) -> None:
+    if getattr(window, "_restoring_layout", False):
+        return
+
     folders: list[str] = []
     if window._file_explorer is not None:
         folders = window._file_explorer.get_root_paths()
@@ -919,10 +924,17 @@ def save_session(window) -> None:
     window._settings.setValue("session/folders", folders)
     window._settings.setValue("session/open_files", open_files)
     window._settings.setValue("session/active_file", active_file)
+    if window._file_explorer is not None:
+        window._settings.setValue(
+            "session/expanded_folders",
+            window._file_explorer.get_expanded_paths(),
+        )
     window._settings.setValue("session/theme", steins_gate_theme.get_theme_key())
     window._settings.setValue("session/autosave_enabled", window._autosave_enabled)
     window._settings.setValue("session/code_font_family", window._code_font.family())
     window._settings.setValue("session/code_font_size", window._code_font.pointSize())
+    window._settings.setValue("session/window_geometry", window.saveGeometry())
+    window._settings.setValue("session/window_maximized", window.isMaximized())
     window._settings.setValue("session/analysis_visible", window._analysis_container.isVisible() if window._analysis_container is not None else True)
     window._settings.setValue("session/console_visible", window._console_container.isVisible() if window._console_container is not None else True)
     window._settings.setValue("session/explorer_visible", window._file_explorer.isVisible() if window._file_explorer is not None else True)
@@ -948,6 +960,10 @@ def normalize_settings_list(window, value) -> list[str]:
 
 
 def restore_layout_state(window) -> None:
+    window_geometry = window._settings.value("session/window_geometry")
+    if window_geometry is not None:
+        window.restoreGeometry(window_geometry)
+
     analysis_visible = bool(window._settings.value("session/analysis_visible", True, type=bool))
     console_visible = bool(window._settings.value("session/console_visible", True, type=bool))
     explorer_visible = bool(window._settings.value("session/explorer_visible", True, type=bool))
@@ -1016,6 +1032,7 @@ def on_tab_changed(window, _index: int) -> None:
         window._update_find_match_label()
         editor.setFocus()
     window._update_cursor_status()
+    clear_outputs(window)
 
 
 def on_path_renamed(window, old_path_raw: str, new_path_raw: str) -> None:
