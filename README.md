@@ -29,7 +29,7 @@ código para Tiny Machine y una interfaz gráfica con PyQt5.
 
 Requisitos:
 
-- Python 3.11 o posterior.
+- Python 3.11.
 - Las dependencias de `requirements.txt`.
 
 En Windows, desde la raíz del proyecto:

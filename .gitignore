@@ -59,7 +59,6 @@ tiny-master/*.o
 build/
 dist/
 *.spec
-ReadingSteiner.spec
 
 # --- Archivos Temporales de Prueba ---
 scratch/
