@@ -1,26 +1,39 @@
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
 from pathlib import Path
 
 
 def build() -> int:
     project_root = Path(__file__).resolve().parent
-    icon_path = project_root / "resources" / "icons" / "logo.ico"
+    resources_path = project_root / "resources"
+    icon_path = resources_path / "icons" / "icon.ico"
     main_path = project_root / "ide" / "main.py"
+    spec_path = project_root / "build" / "spec"
+    spec_path.mkdir(parents=True, exist_ok=True)
 
     command = [
-        "pyinstaller",
+        sys.executable,
+        "-m",
+        "PyInstaller",
+        "--noconfirm",
+        "--clean",
+        "--specpath",
+        str(spec_path),
         "--onefile",
         "--windowed",
         "--name",
         "ReadingSteiner",
+        "--icon",
+        str(icon_path),
+        "--add-data",
+        f"{resources_path}{os.pathsep}resources",
+        "--collect-all",
+        "qtawesome",
+        str(main_path),
     ]
-
-    if icon_path.exists():
-        command.extend(["--icon", str(icon_path)])
-
-    command.append(str(main_path))
 
     print("Ejecutando:", " ".join(command))
     result = subprocess.run(command, cwd=project_root, check=False)

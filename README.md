@@ -22,6 +22,7 @@ código para Tiny Machine y una interfaz gráfica con PyQt5.
 - [Errores](#errores)
 - [IDE](#ide)
 - [Compilación desde terminal](#compilación-desde-terminal)
+- [Crear ejecutable para Windows](#crear-ejecutable-para-windows)
 - [Ejercicios](#ejercicios)
 
 ## Inicio rápido
@@ -513,6 +514,18 @@ Ejecutar un programa:
 ```powershell
 python skuld_compiler.py --ejecutar "EjerciciosPrueba\Grupo 6\ejercicio5_produccion_fabricas.stn"
 ```
+
+## Crear ejecutable para Windows
+
+Con el entorno configurado, genera un ejecutable independiente con:
+
+```powershell
+.\.venv311\Scripts\python.exe build_exe.py
+```
+
+El archivo se crea en `dist\ReadingSteiner.exe`. Se puede abrir con doble clic
+y no requiere instalar Python en el equipo donde se ejecuta. La primera apertura
+puede tardar unos segundos mientras se cargan los componentes de la interfaz.
 
 ## Ejercicios
 
