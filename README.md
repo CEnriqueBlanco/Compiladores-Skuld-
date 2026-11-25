@@ -460,7 +460,8 @@ La interfaz permite:
 - Usar análisis léxico, sintáctico y semántico.
 - Consultar el AST, el AST anotado y la tabla de símbolos.
 - Generar código intermedio y código Tiny Machine.
-- Ejecutar el programa en la terminal integrada.
+- Ejecutar programas en sesiones separadas; cancelarlas con `Ctrl+C` y cerrarlas con la X.
+- Mostrar en rojo la cancelación y su tiempo transcurrido.
 - Mostrar u ocultar el explorador, la terminal y los analizadores.
 
 ### Atajos

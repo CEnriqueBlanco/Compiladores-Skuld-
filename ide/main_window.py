@@ -112,6 +112,7 @@ class MainWindow(QMainWindow):
         self._status = QStatusBar(self)
         self._settings = QSettings("Skuld", "ReadingSteinerIDE")
         self._editor_tabs: QTabWidget | None = None
+        self._analysis_editor: CodeEditor | None = None
         self._editor_container: QWidget | None = None
         self._find_bar: QWidget | None = None
         self._find_bar_stack: QStackedWidget | None = None
@@ -926,7 +927,7 @@ class MainWindow(QMainWindow):
         return current_tab_title(self)
 
     def _clear_outputs(self) -> None:
-        clear_outputs(self)
+        clear_outputs(self, preserve_executions=False)
 
     def dragEnterEvent(self, event) -> None:
         if event.mimeData().hasUrls():

@@ -6,7 +6,9 @@ import re
 import shlex
 import subprocess
 import sys
+from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import dataclass, field
+from io import StringIO
 from typing import List, Optional
 
 from analizadores.analisis_lexico.skuld_lexer import LexicalError, tokenize_file_with_recovery
@@ -153,12 +155,67 @@ def _run_semantic_inline(source_path: str) -> CompilerResult:
         return CompilerResult(returncode=1, stdout="", stderr=f"Error interno en análisis semántico: {exc}")
 
 
+def _run_compiler_embedded(phase: str, source_path: str) -> CompilerResult:
+    from skuld_compiler import run_execution, run_intermediate, run_syntax, run_tm_generation
+
+    stdout = StringIO()
+    stderr = StringIO()
+    returncode = 0
+
+    try:
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            if phase == "sintactico":
+                run_syntax(source_path)
+            elif phase == "intermedio":
+                run_intermediate(source_path)
+            elif phase == "tm":
+                run_tm_generation(source_path)
+            elif phase == "ejecucion":
+                run_execution(source_path)
+            else:
+                return CompilerResult(
+                    returncode=1,
+                    stdout="",
+                    stderr=f"Fase del compilador no reconocida: {phase}",
+                )
+    except SystemExit as exc:
+        returncode = exc.code if isinstance(exc.code, int) else 1
+
+    stdout_text = stdout.getvalue()
+    stderr_text = stderr.getvalue()
+    error_line = None
+    error_column = None
+    error_column_end = None
+
+    match = re.search(r"ERROR_SINTACTICO\((\d+),\s*(\d+)\): (.*)", stderr_text)
+    if match:
+        error_line = int(match.group(1))
+        error_column = int(match.group(2))
+        lex_match = re.search(r" -> '(.*)'$", stderr_text.strip())
+        span_len = 1
+        if lex_match:
+            span_len = max(1, len(lex_match.group(1).splitlines()[0] if lex_match.group(1) else ""))
+        error_column_end = error_column + span_len - 1
+
+    return CompilerResult(
+        returncode=returncode,
+        stdout=stdout_text,
+        stderr=stderr_text,
+        error_line=error_line,
+        error_column=error_column,
+        error_column_end=error_column_end,
+    )
+
+
 def _run_compiler(phase: str, source_path: str) -> CompilerResult:
     if phase == "lexico":
         return _format_lex_tokens(source_path)
 
     if phase == "semantico":
         return _run_semantic_inline(source_path)
+
+    if getattr(sys, "frozen", False):
+        return _run_compiler_embedded(phase, source_path)
 
     command = _get_compiler_command()
     if not command:

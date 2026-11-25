@@ -32,6 +32,8 @@ def build() -> int:
         f"{resources_path}{os.pathsep}resources",
         "--collect-all",
         "qtawesome",
+        "--hidden-import",
+        "skuld_compiler",
         str(main_path),
     ]
 

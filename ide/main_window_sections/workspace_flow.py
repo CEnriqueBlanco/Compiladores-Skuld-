@@ -7,6 +7,7 @@ from pathlib import Path
 from PyQt5.QtCore import QEventLoop, Qt
 from PyQt5.QtWidgets import QApplication, QDialog, QFileDialog, QInputDialog, QMessageBox
 
+from ide.analysis_panel import AnalysisPanelSnapshot
 from ide.code_editor import CodeEditor
 from ide.compiler_runner import run_compiler
 from ide.theme import steins_gate_theme
@@ -469,19 +470,11 @@ def run_phase(window, phase: str) -> None:
     if not editor:
         return
 
-    clear_outputs(window)
-
-    if phase == "ejecucion" and getattr(window, "_tm_execution_active", False):
-        if window._console_panel is not None:
-            window._console_panel.append_errors(
-                "Ya hay una ejecución TM esperando datos. "
-                "Termínala antes de iniciar otro ejercicio."
-            )
-        return
+    clear_outputs(window, preserve_executions=True)
 
     editor.clear_error_highlights()
     if window._console_panel is not None:
-        window._console_panel.clear_all()
+        window._console_panel.clear_messages()
 
     current_file = get_active_file_path(window)
     if not current_file:
@@ -495,11 +488,7 @@ def run_phase(window, phase: str) -> None:
     if phase == "ejecucion":
         window._last_execution_time_ms = None
         window._update_cursor_status()
-        window._tm_execution_active = True
-        try:
-            _run_full_pipeline(window, str(current_file), editor)
-        finally:
-            window._tm_execution_active = False
+        _run_full_pipeline(window, str(current_file), editor)
         return
 
     result = run_compiler(phase, str(current_file))
@@ -618,9 +607,14 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
     machine = TMMachine()
     machine.load_code(tm_code)
 
-    exec_widget = window._console_panel._execution
-    window._console_panel.setCurrentWidget(exec_widget)
-    exec_widget.clear()
+    exec_widget = window._console_panel.create_execution_session(Path(source_path).name)
+    exec_widget.set_execution_running(True)
+    cancel_requested = [False]
+
+    def request_cancel() -> None:
+        cancel_requested[0] = True
+
+    exec_widget.interrupt_requested.connect(request_cancel)
 
     def terminal_input_callback() -> int | float:
         loop = QEventLoop()
@@ -639,10 +633,18 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
                 pass
             loop.quit()
 
+        def on_interrupt():
+            loop.quit()
+
         exec_widget.input_submitted.connect(on_submit)
+        exec_widget.interrupt_requested.connect(on_interrupt)
         exec_widget.enable_input()
-        QApplication.processEvents()
         loop.exec_()
+        try:
+            exec_widget.input_submitted.disconnect(on_submit)
+            exec_widget.interrupt_requested.disconnect(on_interrupt)
+        except TypeError:
+            pass
         return received_val[0]
 
     def terminal_output_callback(chunk: str) -> None:
@@ -655,21 +657,34 @@ def _run_full_pipeline(window, source_path: str, editor) -> None:
         stack: list[object],
         memory: dict[object, object],
     ) -> None:
-        window._analysis_panel.set_tm_execution_state(current_pc, stack, memory)
+        if window._console_panel.current_execution_widget() is exec_widget:
+            window._analysis_panel.set_tm_execution_state(current_pc, stack, memory)
         QApplication.processEvents()
 
     start_exec = time.perf_counter()
-    success, status, outputs = machine.run(
-        input_callback=terminal_input_callback,
-        output_callback=terminal_output_callback,
-        step_callback=terminal_step_callback,
-    )
-    exec_widget.disable_input()
+    try:
+        success, status, outputs = machine.run(
+            input_callback=terminal_input_callback,
+            output_callback=terminal_output_callback,
+            step_callback=terminal_step_callback,
+            should_stop=lambda: cancel_requested[0],
+        )
+    finally:
+        exec_widget.set_execution_running(False)
+        try:
+            exec_widget.interrupt_requested.disconnect(request_cancel)
+        except TypeError:
+            pass
     exec_time_ms = (time.perf_counter() - start_exec) * 1000
-    window._last_execution_time_ms = exec_time_ms
+    window._last_execution_time_ms = exec_time_ms if cancel_requested[0] else None
     window._update_cursor_status()
 
-    if window._console_panel is not None:
+    if cancel_requested[0]:
+        exec_widget.append_status(
+            f"Ejecución cancelada con Ctrl+C. Tiempo de ejecución: {exec_time_ms:.3f} ms.",
+            "#ff5c5c",
+        )
+    elif window._console_panel is not None:
         if not success:
             window._console_panel.append_errors(f"Error de ejecución TM: {status}")
 
@@ -681,7 +696,7 @@ def run_lexical_selection(window, selected_text: str) -> None:
 
     editor.clear_error_highlights()
     if window._console_panel is not None:
-        window._console_panel.clear_all()
+        window._console_panel.clear_messages()
 
     source_text = selected_text.replace("\u2029", "\n")
     if not source_text.strip():
@@ -711,7 +726,7 @@ def run_lexical_force(window) -> None:
 
     editor.clear_error_highlights()
     if window._console_panel is not None:
-        window._console_panel.clear_all()
+        window._console_panel.clear_messages()
 
     source_text = editor.toPlainText()
     if not source_text.strip():
@@ -1026,6 +1041,10 @@ def close_tab(window, index: int) -> None:
 
 def on_tab_changed(window, _index: int) -> None:
     editor = get_active_editor(window)
+    previous_editor = window._analysis_editor
+    if window._analysis_panel is not None and previous_editor is not None:
+        previous_editor._analysis_snapshot = window._analysis_panel.snapshot_state()
+
     if editor:
         editor.setReadOnly(False)
         editor.set_search_highlights(window._search_text)
@@ -1033,6 +1052,13 @@ def on_tab_changed(window, _index: int) -> None:
         editor.setFocus()
     window._update_cursor_status()
     clear_outputs(window)
+    if (
+        editor is not None
+        and window._analysis_panel is not None
+        and isinstance(editor._analysis_snapshot, AnalysisPanelSnapshot)
+    ):
+        window._analysis_panel.restore_state(editor._analysis_snapshot)
+    window._analysis_editor = editor
 
 
 def on_path_renamed(window, old_path_raw: str, new_path_raw: str) -> None:
@@ -1129,7 +1155,7 @@ def current_tab_title(window) -> str:
     return window._editor_tabs.tabText(current_index) or "Sin archivo"
 
 
-def clear_outputs(window) -> None:
+def clear_outputs(window, *, preserve_executions: bool = True) -> None:
     if window._analysis_panel is not None:
         window._analysis_panel.set_tokens("")
         window._analysis_panel.set_syntax("")
@@ -1138,4 +1164,7 @@ def clear_outputs(window) -> None:
         window._analysis_panel.set_tm_code("")
         window._analysis_panel.set_symbols("")
     if window._console_panel is not None:
-        window._console_panel.clear_all()
+        if preserve_executions:
+            window._console_panel.clear_messages()
+        else:
+            window._console_panel.clear_all()

@@ -67,6 +67,7 @@ class TMMachine:
             Callable[[int, str, list[object], dict[object, object]], None]
         ] = None,
         max_steps: int = 100000,
+        should_stop: Optional[Callable[[], bool]] = None,
     ) -> tuple[bool, str, list[str]]:
         self.output_buffer = []
         inputs = list(input_data or [])
@@ -80,6 +81,9 @@ class TMMachine:
 
         try:
             while pc < len(self.code) and steps < max_steps:
+                if should_stop and should_stop():
+                    return False, "Cancelado por el usuario", self.output_buffer
+
                 instruction_pc = pc
                 op, argument = self.code[pc]
                 pc += 1
@@ -87,6 +91,8 @@ class TMMachine:
 
                 if step_callback:
                     step_callback(instruction_pc, op, list(self.stack), dict(self.memory))
+                if should_stop and should_stop():
+                    return False, "Cancelado por el usuario", self.output_buffer
 
                 if op in ("stp", "hlt", "halt"):
                     return True, "Halted", self.output_buffer

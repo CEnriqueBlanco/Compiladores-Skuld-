@@ -1,5 +1,6 @@
 import html
 import re
+from dataclasses import dataclass
 
 from PyQt5.QtWidgets import (
     QAbstractItemView,
@@ -292,6 +293,20 @@ class SyntaxTreeWidget(QStackedWidget):
         self.setCurrentWidget(self.tree_widget)
 
 
+@dataclass
+class AnalysisPanelSnapshot:
+    tokens: str = ""
+    syntax: str = ""
+    semantic: str = ""
+    semantic_errors: str = ""
+    intermediate: str = ""
+    tm_code: str = ""
+    symbols: str = ""
+    symbol_rows: list[list[str]] | None = None
+    tm_execution_state: tuple[int, list[object], dict[object, object]] | None = None
+    current_tab: int = 0
+
+
 class AnalysisPanel(QTabWidget):
     error_selected = pyqtSignal(int, int, int)  # line, column, length
 
@@ -304,6 +319,15 @@ class AnalysisPanel(QTabWidget):
         self._intermediate = self._make_code_table(["No.", "Instrucción"])
         self._tm_code = self._make_code_table(["Línea", "Código TM", "Estado"])
         self._symbols = self._make_symbols_table()
+        self._state_tokens = ""
+        self._state_syntax = ""
+        self._state_semantic = ""
+        self._state_semantic_errors = ""
+        self._state_intermediate = ""
+        self._state_tm_code = ""
+        self._state_symbols: str | None = ""
+        self._state_symbol_rows: list[list[str]] | None = None
+        self._state_tm_execution: tuple[int, list[object], dict[object, object]] | None = None
 
         self.addTab(self._tokens, "Tokens")
         self.addTab(self._syntax, "Sintáctico")
@@ -323,15 +347,20 @@ class AnalysisPanel(QTabWidget):
         self.refresh_theme()
 
     def set_tokens(self, text: str) -> None:
+        self._state_tokens = text
         self._tokens.setHtml(self._tokens_to_html(text))
 
     def set_syntax(self, text: str) -> None:
+        self._state_syntax = text
         self._syntax.set_syntax_content(text)
 
     def set_semantic(self, text: str, error_text: str = "") -> None:
+        self._state_semantic = text
+        self._state_semantic_errors = error_text
         self._semantic.set_syntax_content(text, error_text)
 
     def set_intermediate(self, text: str) -> None:
+        self._state_intermediate = text
         rows = [
             [str(index), line.strip()]
             for index, line in enumerate(text.splitlines(), start=1)
@@ -340,6 +369,8 @@ class AnalysisPanel(QTabWidget):
         self._set_code_rows(self._intermediate, rows)
 
     def set_tm_code(self, text: str) -> None:
+        self._state_tm_code = text
+        self._state_tm_execution = None
         rows = []
         instruction_number = 1
         for line in text.splitlines():
@@ -364,6 +395,7 @@ class AnalysisPanel(QTabWidget):
         memory: dict[object, object],
     ) -> None:
         """Muestra el punto actual y el estado de la máquina durante la ejecución."""
+        self._state_tm_execution = (current_pc, list(stack), dict(memory))
         for row in range(self._tm_code.rowCount()):
             for column in range(self._tm_code.columnCount()):
                 item = self._tm_code.item(row, column)
@@ -388,6 +420,8 @@ class AnalysisPanel(QTabWidget):
             self._tm_code.scrollToItem(self._tm_code.item(row, 0))
 
     def set_symbols(self, text: str) -> None:
+        self._state_symbols = text
+        self._state_symbol_rows = None
         self._symbols.clearContents()
         if not text:
             self._symbols.setRowCount(0)
@@ -401,6 +435,8 @@ class AnalysisPanel(QTabWidget):
         self._symbols.resizeColumnsToContents()
 
     def set_symbol_rows(self, rows: list[list[str]]) -> None:
+        self._state_symbols = None
+        self._state_symbol_rows = [list(row) for row in rows]
         headers = ["Nombre", "Tipo", "Dirección/Offset", "Líneas"]
         self._symbols.setColumnCount(len(headers))
         self._symbols.setHorizontalHeaderLabels(headers)
@@ -410,6 +446,44 @@ class AnalysisPanel(QTabWidget):
                 self._symbols.setItem(row_index, column_index, QTableWidgetItem(value))
         self._symbols.resizeColumnsToContents()
         self._symbols.horizontalHeader().setStretchLastSection(True)
+
+    def snapshot_state(self) -> AnalysisPanelSnapshot:
+        execution_state = self._state_tm_execution
+        if execution_state is not None:
+            pc, stack, memory = execution_state
+            execution_state = (pc, list(stack), dict(memory))
+        symbol_rows = self._state_symbol_rows
+        if symbol_rows is not None:
+            symbol_rows = [list(row) for row in symbol_rows]
+
+        return AnalysisPanelSnapshot(
+            tokens=self._state_tokens,
+            syntax=self._state_syntax,
+            semantic=self._state_semantic,
+            semantic_errors=self._state_semantic_errors,
+            intermediate=self._state_intermediate,
+            tm_code=self._state_tm_code,
+            symbols=self._state_symbols or "",
+            symbol_rows=symbol_rows,
+            tm_execution_state=execution_state,
+            current_tab=self.currentIndex(),
+        )
+
+    def restore_state(self, snapshot: AnalysisPanelSnapshot) -> None:
+        self.set_tokens(snapshot.tokens)
+        self.set_syntax(snapshot.syntax)
+        self.set_semantic(snapshot.semantic, snapshot.semantic_errors)
+        self.set_intermediate(snapshot.intermediate)
+        self.set_tm_code(snapshot.tm_code)
+        if snapshot.symbol_rows is not None:
+            self.set_symbol_rows(snapshot.symbol_rows)
+        else:
+            self.set_symbols(snapshot.symbols)
+
+        if snapshot.tm_execution_state is not None:
+            self.set_tm_execution_state(*snapshot.tm_execution_state)
+        if 0 <= snapshot.current_tab < self.count():
+            self.setCurrentIndex(snapshot.current_tab)
 
     def refresh_theme(self) -> None:
         colors = steins_gate_theme.get_colors()

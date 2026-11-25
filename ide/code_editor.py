@@ -32,6 +32,7 @@ class CodeEditor(QPlainTextEdit):
         self._line_number_area = LineNumberArea(self)
         self._search_selections: list[QTextEdit.ExtraSelection] = []
         self._error_selections: list[QTextEdit.ExtraSelection] = []
+        self._analysis_snapshot: object | None = None
         self._syntax_highlighter = SkuldSyntaxHighlighter(self.document())
         self._selection_lexical_callback = None
 

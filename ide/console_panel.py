@@ -1,6 +1,6 @@
 import re
 from PyQt5.QtCore import QEvent, QObject, Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QColor, QFont, QTextCursor
+from PyQt5.QtGui import QColor, QFont, QKeySequence, QTextCharFormat, QTextCursor
 from PyQt5.QtWidgets import QPlainTextEdit, QTabWidget
 
 from ide.theme import steins_gate_theme
@@ -14,6 +14,8 @@ class InteractiveTerminalWidget(QPlainTextEdit):
     - Al presionar Enter, se envía la línea ingresada al programa.
     """
     input_submitted = pyqtSignal(str)
+    interrupt_requested = pyqtSignal()
+    execution_finished = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -26,6 +28,17 @@ class InteractiveTerminalWidget(QPlainTextEdit):
 
         self._waiting_input = False
         self._prompt_pos = 0
+        self._execution_running = False
+        self._close_requested = False
+        self.setToolTip("Presiona Ctrl+C para cancelar esta ejecución.")
+
+    def set_execution_running(self, running: bool) -> None:
+        was_running = self._execution_running
+        self._execution_running = running
+        if not running:
+            self.disable_input()
+            if was_running:
+                self.execution_finished.emit()
 
     def enable_input(self) -> None:
         """Activa el modo de captura interactiva con cursor parpadeando directamente."""
@@ -69,6 +82,16 @@ class InteractiveTerminalWidget(QPlainTextEdit):
         self.insertPlainText(text + "\n")
         self.ensureCursorVisible()
 
+    def append_status(self, text: str, color: str) -> None:
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        text_format = QTextCharFormat()
+        text_format.setForeground(QColor(color))
+        cursor.insertText(text + "\n", text_format)
+        cursor.setCharFormat(QTextCharFormat())
+        self.setTextCursor(cursor)
+        self.ensureCursorVisible()
+
     def write_stream(self, text: str) -> None:
         """Escribe caracteres continuos en tiempo real (para mensajes como 'Teclea un numero: ')."""
         cursor = self.textCursor()
@@ -82,6 +105,20 @@ class InteractiveTerminalWidget(QPlainTextEdit):
         self.ensureCursorVisible()
 
     def keyPressEvent(self, event):
+        if self._execution_running and event.matches(QKeySequence.Copy):
+            if self.textCursor().hasSelection():
+                super().keyPressEvent(event)
+                return
+
+            if self._waiting_input:
+                self.disable_input()
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.End)
+                cursor.insertText("^C\n")
+                self.setTextCursor(cursor)
+            self.interrupt_requested.emit()
+            return
+
         if not self._waiting_input:
             # Si no estamos esperando entrada, ignorar teclas de escritura
             if event.key() in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Backspace, Qt.Key_Delete):
@@ -176,11 +213,13 @@ class ConsolePanel(QTabWidget):
 
         self._console = self._make_output("Bienvenido a Reading Steiner IDE\nEl Psy Kongroo\nListo para compilar...")
         self._errors = self._make_output("Errores léxicos, sintácticos y semánticos aparecerán aquí.")
-        self._execution = InteractiveTerminalWidget()
+        self._execution_tabs = QTabWidget()
+        self._execution_tabs.setTabsClosable(True)
+        self._execution_tabs.tabCloseRequested.connect(self._close_execution_session)
 
         self.addTab(self._console, "Consola")
         self.addTab(self._errors, "Errores")
-        self.addTab(self._execution, "Ejecución")
+        self.addTab(self._execution_tabs, "Ejecución")
         self.refresh_theme()
 
         self._errors.cursorPositionChanged.connect(self._on_errors_cursor_changed)
@@ -192,18 +231,71 @@ class ConsolePanel(QTabWidget):
     def append_errors(self, text: str) -> None:
         self._errors.appendPlainText(text)
 
+    def create_execution_session(self, title: str) -> InteractiveTerminalWidget:
+        base_title = title or "Ejecución"
+        tab_title = base_title
+        suffix = 2
+        while any(
+            self._execution_tabs.tabText(index) == tab_title
+            for index in range(self._execution_tabs.count())
+        ):
+            tab_title = f"{base_title} ({suffix})"
+            suffix += 1
+
+        terminal = InteractiveTerminalWidget()
+        terminal.execution_finished.connect(
+            lambda terminal=terminal: self._on_execution_finished(terminal)
+        )
+        self._execution_tabs.addTab(terminal, tab_title)
+        self._execution_tabs.setCurrentWidget(terminal)
+        self.setCurrentWidget(self._execution_tabs)
+        return terminal
+
+    def _close_execution_session(self, index: int) -> None:
+        widget = self._execution_tabs.widget(index)
+        if not isinstance(widget, InteractiveTerminalWidget):
+            return
+        if widget._execution_running:
+            widget._close_requested = True
+            widget.interrupt_requested.emit()
+            return
+        self._remove_execution_session(widget)
+
+    def _on_execution_finished(self, widget: InteractiveTerminalWidget) -> None:
+        if widget._close_requested:
+            self._remove_execution_session(widget)
+
+    def _remove_execution_session(self, widget: InteractiveTerminalWidget) -> None:
+        index = self._execution_tabs.indexOf(widget)
+        if index >= 0:
+            self._execution_tabs.removeTab(index)
+            widget.deleteLater()
+
+    def current_execution_widget(self) -> InteractiveTerminalWidget | None:
+        widget = self._execution_tabs.currentWidget()
+        return widget if isinstance(widget, InteractiveTerminalWidget) else None
+
     def append_execution(self, text: str) -> None:
-        self._execution.append_text(text)
+        terminal = self.current_execution_widget()
+        if terminal is not None:
+            terminal.append_text(text)
 
     def set_execution(self, text: str) -> None:
         """Muestra el resultado completo de la última ejecución."""
-        self._execution.set_text(text)
-        self.setCurrentWidget(self._execution)
+        terminal = self.current_execution_widget() or self.create_execution_session("Ejecución")
+        terminal.set_text(text)
+        self.setCurrentWidget(self._execution_tabs)
 
-    def clear_all(self) -> None:
+    def clear_messages(self) -> None:
         self._console.clear()
         self._errors.clear()
-        self._execution.clear()
+
+    def clear_all(self) -> None:
+        self.clear_messages()
+        for index in range(self._execution_tabs.count()):
+            widget = self._execution_tabs.widget(index)
+            if isinstance(widget, InteractiveTerminalWidget):
+                widget.clear()
 
     def refresh_theme(self) -> None:
         colors = steins_gate_theme.get_colors()
@@ -217,7 +309,7 @@ class ConsolePanel(QTabWidget):
             f"selection-background-color: {colors.selection};"
             f"}}"
         )
-        self._execution.setStyleSheet(
+        self._execution_tabs.setStyleSheet(
             f"QPlainTextEdit {{"
             f"background-color: {colors.background};"
             f"color: {colors.foreground};"
@@ -225,6 +317,17 @@ class ConsolePanel(QTabWidget):
             f"selection-background-color: {colors.selection};"
             f"}}"
         )
+        for index in range(self._execution_tabs.count()):
+            widget = self._execution_tabs.widget(index)
+            if isinstance(widget, InteractiveTerminalWidget):
+                widget.setStyleSheet(
+                    f"QPlainTextEdit {{"
+                    f"background-color: {colors.background};"
+                    f"color: {colors.foreground};"
+                    f"border: none;"
+                    f"selection-background-color: {colors.selection};"
+                    f"}}"
+                )
 
     def _on_errors_cursor_changed(self) -> None:
         cursor = self._errors.textCursor()
